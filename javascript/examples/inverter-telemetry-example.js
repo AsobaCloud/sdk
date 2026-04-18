@@ -9,7 +9,7 @@
  *   3. Stream live data using streamInverter() or streamSite()
  *
  * Prerequisites:
- *   export INVERTER_TELEMETRY_ENDPOINT=https://your-api.execute-api.af-south-1.amazonaws.com/prod
+ *   export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
  *   export INVERTER_TELEMETRY_API_KEY=your_api_key
  */
 

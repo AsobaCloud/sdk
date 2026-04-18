@@ -208,7 +208,7 @@ The backend caches API key lookups for 60 seconds. Only successful lookups are c
 ```javascript
 const sdk = new OnaSDK({
   endpoints: {
-    inverterTelemetry: 'https://your-api.execute-api.af-south-1.amazonaws.com/prod',
+    inverterTelemetry: 'https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod',
   },
   inverterTelemetryApiKey: process.env.INVERTER_TELEMETRY_API_KEY,
 });
@@ -273,7 +273,7 @@ for await (const record of sdk.inverterTelemetry.streamSite({ site_id: 'Sibaya' 
 #### Telemetry Configuration
 
 ```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://your-api.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
 export INVERTER_TELEMETRY_API_KEY=your_api_key
 ```
 

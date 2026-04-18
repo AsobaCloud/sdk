@@ -352,7 +352,7 @@ from ona_platform.services.inverter_telemetry import RateLimitError
 from ona_platform.exceptions import AuthenticationError, ValidationError
 
 client = OnaClient(
-    inverter_telemetry_endpoint='https://your-api.execute-api.af-south-1.amazonaws.com/prod',
+    inverter_telemetry_endpoint='https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod',
     inverter_telemetry_api_key='your_api_key'
 )
 
@@ -416,7 +416,7 @@ for record in client.inverter_telemetry.stream_site(site_id='Sibaya'):
 #### Telemetry Configuration
 
 ```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://your-api.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
 export INVERTER_TELEMETRY_API_KEY=your_api_key
 export TELEMETRY_POLLING_INTERVAL=30   # optional, default 5s
 ```

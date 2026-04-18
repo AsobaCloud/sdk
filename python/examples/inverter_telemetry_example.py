@@ -9,7 +9,7 @@ The correct workflow is:
   3. Stream live data using stream_inverter() or stream_site()
 
 Prerequisites:
-    export INVERTER_TELEMETRY_ENDPOINT=https://your-api.execute-api.af-south-1.amazonaws.com/prod
+    export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
     export INVERTER_TELEMETRY_API_KEY=your_api_key
 """
 

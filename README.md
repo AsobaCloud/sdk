@@ -126,7 +126,7 @@ export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.co
 export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.co
 
 # Inverter Telemetry (required for telemetry features)
-export INVERTER_TELEMETRY_ENDPOINT=https://your-telemetry-api.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
 export INVERTER_TELEMETRY_API_KEY=your_api_key
 ```
 
