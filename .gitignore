@@ -1,0 +1,24 @@
+# GitHub workflows
+.github/
+
+# Kiro specs and settings
+.kiro/
+
+# Test caches
+.hypothesis/
+.pytest_cache/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Lambda deployment artifacts
+backend/package/
+backend/lambda.zip
+
+# macOS metadata
+.DS_Store
+
+# Windows Zone.Identifier files (created when downloading files on Windows)
+*:Zone.Identifier
+

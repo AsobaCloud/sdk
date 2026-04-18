@@ -1,0 +1,38 @@
+{
+  "RoleName": "ona-lambda-inverterTelemetryApi-role",
+  "TrustPolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole"
+      }
+    ]
+  },
+  "ManagedPolicies": [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  ],
+  "InlinePolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:Query",
+          "dynamodb:GetItem"
+        ],
+        "Resource": [
+          "arn:aws:dynamodb:af-south-1:905418405543:table/ona-platform-telemetry-5min",
+          "arn:aws:dynamodb:af-south-1:905418405543:table/ona-platform-telemetry-5min/index/*",
+          "arn:aws:dynamodb:af-south-1:905418405543:table/ona-platform-telemetry-daily",
+          "arn:aws:dynamodb:af-south-1:905418405543:table/ona-platform-telemetry-daily/index/*",
+          "arn:aws:dynamodb:af-south-1:905418405543:table/api_keys"
+        ]
+      }
+    ]
+  }
+}

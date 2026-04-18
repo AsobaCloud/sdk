@@ -1,0 +1,4 @@
+{
+  "javascript/**/*.js": "javascript/node_modules/.bin/eslint --fix",
+  "python/**/*.py": "ruff check --fix"
+}

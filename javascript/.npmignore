@@ -1,0 +1,34 @@
+# Development files
+examples/
+tests/
+.vscode/
+.idea/
+
+# Documentation (keep README.md)
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Environment
+.env
+.env.*
+
+# IDE
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Testing
+coverage/
+.nyc_output/

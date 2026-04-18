@@ -1,0 +1,44 @@
+{
+  "name": "@asoba/ona-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for Asoba Ona Energy Management Platform",
+  "main": "src/index.js",
+  "types": "src/types/index.d.ts",
+  "scripts": {
+    "test": "jest --testPathPattern=tests/",
+    "lint": "eslint src/**/*.js",
+    "format": "prettier --write src/**/*.js"
+  },
+  "keywords": [
+    "asoba",
+    "ona",
+    "energy",
+    "solar",
+    "forecasting",
+    "iot",
+    "edge-computing",
+    "sdk"
+  ],
+  "author": "Asoba",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AsobaCloud/platform.git",
+    "directory": "sdk/javascript"
+  },
+  "dependencies": {
+    "aws4": "^1.12.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "eslint": "^8.50.0",
+    "fast-check": "^4.7.0",
+    "jest": "^30.3.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.2.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
