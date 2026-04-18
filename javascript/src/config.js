@@ -26,7 +26,8 @@ const DEFAULTS = {
     interpolation: null,
     terminal: null,
     weather: null,
-    inverterTelemetry: null
+    inverterTelemetry: null,
+    oodaTerminal: null
   }
 };
 
@@ -69,6 +70,17 @@ class Config {
     // endpoint comes from options.endpoints.inverterTelemetry or env var
     if (!this.endpoints.inverterTelemetry && process.env.INVERTER_TELEMETRY_ENDPOINT) {
       this.endpoints.inverterTelemetry = process.env.INVERTER_TELEMETRY_ENDPOINT;
+    }
+
+    this.oodaTerminalApiKey = options.oodaTerminalApiKey
+      || process.env.OODA_TERMINAL_API_KEY
+      || null;
+    this.oodaPollingInterval = options.oodaPollingInterval !== undefined
+      ? options.oodaPollingInterval
+      : 5;
+    // endpoint comes from options.endpoints.oodaTerminal or env var
+    if (!this.endpoints.oodaTerminal && process.env.OODA_TERMINAL_ENDPOINT) {
+      this.endpoints.oodaTerminal = process.env.OODA_TERMINAL_ENDPOINT;
     }
 
     this.validate();
@@ -120,6 +132,15 @@ class Config {
       throw new ConfigurationError(
         'inverterTelemetry endpoint must use https://',
         ['endpoints.inverterTelemetry']
+      );
+    }
+
+    // Validate oodaTerminal endpoint scheme if set
+    const otEndpoint = this.endpoints.oodaTerminal;
+    if (otEndpoint && !otEndpoint.startsWith('https://')) {
+      throw new ConfigurationError(
+        'oodaTerminal endpoint must use https://',
+        ['endpoints.oodaTerminal']
       );
     }
   }

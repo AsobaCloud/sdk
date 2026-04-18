@@ -36,6 +36,11 @@ class OnaConfig:
     telemetry_polling_interval: float = 5.0
     telemetry_5min_table: str = "ona-platform-telemetry-5min"
     telemetry_daily_table: str = "ona-platform-telemetry-daily"
+    ooda_terminal_endpoint: Optional[str] = None
+    ooda_terminal_api_key: Optional[str] = None
+    ooda_polling_interval: float = 5.0
+    ooda_5min_table: str = "ona-platform-ooda-5min"
+    ooda_daily_table: str = "ona-platform-ooda-daily"
 
     def __post_init__(self):
         if self.inverter_telemetry_endpoint is not None:
@@ -43,9 +48,18 @@ class OnaConfig:
                 raise ConfigurationError(
                     f"inverter_telemetry_endpoint must use https:// (got: {self.inverter_telemetry_endpoint!r})"
                 )
+        if self.ooda_terminal_endpoint is not None:
+            if not self.ooda_terminal_endpoint.startswith("https://"):
+                raise ConfigurationError(
+                    f"ooda_terminal_endpoint must use https:// (got: {self.ooda_terminal_endpoint!r})"
+                )
         if self.telemetry_polling_interval < 1.0:
             raise ConfigurationError(
                 f"telemetry_polling_interval must be >= 1.0 seconds (got: {self.telemetry_polling_interval})"
+            )
+        if self.ooda_polling_interval < 1.0:
+            raise ConfigurationError(
+                f"ooda_polling_interval must be >= 1.0 seconds (got: {self.ooda_polling_interval})"
             )
 
     @classmethod
@@ -80,4 +94,9 @@ class OnaConfig:
             telemetry_polling_interval=float(os.getenv("TELEMETRY_POLLING_INTERVAL", "5.0")),
             telemetry_5min_table=os.getenv("TELEMETRY_5MIN_TABLE", "ona-platform-telemetry-5min"),
             telemetry_daily_table=os.getenv("TELEMETRY_DAILY_TABLE", "ona-platform-telemetry-daily"),
+            ooda_terminal_endpoint=os.getenv("OODA_TERMINAL_ENDPOINT"),
+            ooda_terminal_api_key=os.getenv("OODA_TERMINAL_API_KEY"),
+            ooda_polling_interval=float(os.getenv("OODA_POLLING_INTERVAL", "5.0")),
+            ooda_5min_table=os.getenv("OODA_5MIN_TABLE", "ona-platform-ooda-5min"),
+            ooda_daily_table=os.getenv("OODA_DAILY_TABLE", "ona-platform-ooda-daily"),
         )

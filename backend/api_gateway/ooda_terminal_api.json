@@ -1,0 +1,110 @@
+{
+  "restApiName": "ooda-terminal-api",
+  "description": "OODA Terminal API — query and stream historical OODA alerts from terminal devices",
+  "endpointConfiguration": {
+    "types": ["REGIONAL"]
+  },
+  "disableExecuteApiEndpoint": false,
+  "domainPolicy": {
+    "securityPolicy": "TLS_1_2",
+    "httpsOnly": true
+  },
+  "resources": [
+    {
+      "path": "/ooda/terminal",
+      "methods": [
+        {
+          "httpMethod": "GET",
+          "authorizationType": "NONE",
+          "apiKeyRequired": true,
+          "integration": {
+            "type": "AWS_PROXY",
+            "httpMethod": "POST",
+            "uri": "arn:aws:apigateway:af-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:af-south-1:905418405543:function:oodaTerminalApi/invocations",
+            "passthroughBehavior": "WHEN_NO_MATCH"
+          },
+          "methodResponses": [
+            { "statusCode": "200" },
+            { "statusCode": "400" },
+            { "statusCode": "401" },
+            { "statusCode": "403" },
+            { "statusCode": "429" },
+            { "statusCode": "500" }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/ooda/site",
+      "methods": [
+        {
+          "httpMethod": "GET",
+          "authorizationType": "NONE",
+          "apiKeyRequired": true,
+          "integration": {
+            "type": "AWS_PROXY",
+            "httpMethod": "POST",
+            "uri": "arn:aws:apigateway:af-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:af-south-1:905418405543:function:oodaTerminalApi/invocations",
+            "passthroughBehavior": "WHEN_NO_MATCH"
+          },
+          "methodResponses": [
+            { "statusCode": "200" },
+            { "statusCode": "400" },
+            { "statusCode": "401" },
+            { "statusCode": "403" },
+            { "statusCode": "429" },
+            { "statusCode": "500" }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/ooda/data-period",
+      "methods": [
+        {
+          "httpMethod": "GET",
+          "authorizationType": "NONE",
+          "apiKeyRequired": true,
+          "integration": {
+            "type": "AWS_PROXY",
+            "httpMethod": "POST",
+            "uri": "arn:aws:apigateway:af-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:af-south-1:905418405543:function:oodaTerminalApi/invocations",
+            "passthroughBehavior": "WHEN_NO_MATCH"
+          },
+          "methodResponses": [
+            { "statusCode": "200" },
+            { "statusCode": "400" },
+            { "statusCode": "401" },
+            { "statusCode": "403" },
+            { "statusCode": "429" },
+            { "statusCode": "500" }
+          ]
+        }
+      ]
+    }
+  ],
+  "usagePlan": {
+    "name": "ooda-terminal-api-usage-plan",
+    "description": "Usage plan for the OODA Terminal API — 60 req/min per API key",
+    "throttle": {
+      "rateLimit": 1.0,
+      "burstLimit": 10
+    },
+    "quota": {
+      "limit": 1000,
+      "period": "DAY"
+    }
+  },
+  "stages": [
+    {
+      "stageName": "prod",
+      "description": "Production stage",
+      "methodSettings": {
+        "*/*": {
+          "throttlingRateLimit": 1.0,
+          "throttlingBurstLimit": 10
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 """
-API key authentication and authorisation for the Inverter Telemetry API.
+API key authentication and authorisation for the OODA Terminal API.
 
 Looks up API keys from the `api_keys` DynamoDB table, validates site access
 via `permitted_site_ids`, and checks optional key expiry via `expires_at`.

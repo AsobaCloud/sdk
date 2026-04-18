@@ -17,6 +17,7 @@ from .services import (
     StandardizationClient,
     TrainingClient,
     InverterTelemetryClient,
+    OodaTerminalClient,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,8 @@ class OnaClient:
         max_retries: Optional[int] = None,
         inverter_telemetry_endpoint: Optional[str] = None,
         inverter_telemetry_api_key: Optional[str] = None,
+        ooda_terminal_endpoint: Optional[str] = None,
+        ooda_terminal_api_key: Optional[str] = None,
     ):
         """Initialize Ona Platform client.
 
@@ -97,6 +100,10 @@ class OnaClient:
                 config.inverter_telemetry_endpoint = inverter_telemetry_endpoint
             if inverter_telemetry_api_key is not None:
                 config.inverter_telemetry_api_key = inverter_telemetry_api_key
+            if ooda_terminal_endpoint is not None:
+                config.ooda_terminal_endpoint = ooda_terminal_endpoint
+            if ooda_terminal_api_key is not None:
+                config.ooda_terminal_api_key = ooda_terminal_api_key
 
         self.config = config
 
@@ -113,6 +120,7 @@ class OnaClient:
         self._standardization = None
         self._training = None
         self._inverter_telemetry = None
+        self._ooda_terminal = None
 
         logger.info("Ona Platform client initialized")
         logger.debug(f"Configuration: {self.config}")
@@ -200,3 +208,10 @@ class OnaClient:
         if self._inverter_telemetry is None:
             self._inverter_telemetry = InverterTelemetryClient(self.config)
         return self._inverter_telemetry
+
+    @property
+    def ooda_terminal(self) -> OodaTerminalClient:
+        """Get OODA Terminal API service client."""
+        if self._ooda_terminal is None:
+            self._ooda_terminal = OodaTerminalClient(self.config)
+        return self._ooda_terminal

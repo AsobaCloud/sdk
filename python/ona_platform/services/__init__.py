@@ -13,6 +13,8 @@ from .standardization import StandardizationClient
 from .training import TrainingClient
 from .inverter_telemetry import InverterTelemetryClient
 
+from .ooda_terminal import OodaTerminalClient
+
 __all__ = [
     "ForecastingClient",
     "TerminalClient",
@@ -26,4 +28,5 @@ __all__ = [
     "StandardizationClient",
     "TrainingClient",
     "InverterTelemetryClient",
+    "OodaTerminalClient",
 ]

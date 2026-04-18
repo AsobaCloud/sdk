@@ -17,6 +17,7 @@ const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
 const { InverterTelemetryClient, RateLimitError: ITRateLimitError, ServiceUnavailableError: ITServiceUnavailableError } = require('./services/InverterTelemetryClient');
+const { OodaTerminalClient, RateLimitError: OTRateLimitError, ServiceUnavailableError: OTServiceUnavailableError } = require('./services/OodaTerminalClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -133,6 +134,16 @@ class OnaSDK {
     } catch (e) {
       this.inverterTelemetry = null;
     }
+
+    /**
+     * OODA Terminal client
+     * @type {OodaTerminalClient|null}
+     */
+    try {
+      this.oodaTerminal = new OodaTerminalClient(this.config);
+    } catch (e) {
+      this.oodaTerminal = null;
+    }
   }
 
   /**
@@ -165,6 +176,7 @@ class OnaSDK {
 module.exports = {
   OnaSDK,
   InverterTelemetryClient,
+  OodaTerminalClient,
   ...errors,
   ...validators
 };
