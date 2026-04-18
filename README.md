@@ -85,6 +85,64 @@ for record in client.inverter_telemetry.stream_inverter(
 
 ---
 
+## Getting Started
+
+### Prerequisites
+
+1. **Node.js 14+** (for JavaScript SDK)
+2. **Python 3.8+** (for Python SDK)
+3. **Valid API Key** for inverter telemetry features (contact support@asoba.co)
+
+### Quick Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AsobaCloud/sdk.git
+   cd sdk
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   # For JavaScript SDK
+   cd javascript && npm install
+   
+   # For Python SDK  
+   cd python && pip install -e .
+   ```
+
+3. **Configure environment variables:**
+   ```bash
+   # Required for inverter telemetry features
+   export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
+   export INVERTER_TELEMETRY_API_KEY=<your_api_key_here>
+   
+   # Optional: AWS credentials for other services
+   export AWS_ACCESS_KEY_ID=your_access_key
+   export AWS_SECRET_ACCESS_KEY=your_secret_key
+   export AWS_REGION=af-south-1
+   ```
+
+4. **Test the setup:**
+   ```bash
+   # JavaScript
+   node javascript/examples/inverter-telemetry-example.js
+   
+   # Python
+   python python/examples/inverter_telemetry_example.py
+   ```
+
+### API Key Setup
+
+The inverter telemetry features require a valid API key. To obtain one:
+
+1. Contact **support@asoba.co** with your use case
+2. You'll receive an API key scoped to specific site IDs
+3. Set the key in your environment: `export INVERTER_TELEMETRY_API_KEY=<your_key>`
+
+**Note:** Each API key is limited to 60 requests/minute and specific site access.
+
+---
+
 ## Installation
 
 ### JavaScript SDK
@@ -234,6 +292,40 @@ See the individual SDK documentation for detailed error handling examples.
 
 ---
 
+## Testing Your Setup
+
+### Verify Inverter Telemetry Access
+
+The easiest way to test your setup is with the inverter telemetry examples:
+
+**JavaScript:**
+```bash
+cd javascript
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_API_KEY=<your_api_key>
+node examples/inverter-telemetry-example.js
+```
+
+**Python:**
+```bash
+cd python
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_API_KEY=<your_api_key>
+python examples/inverter_telemetry_example.py
+```
+
+**Expected Output:**
+- Data period discovery for site 'Sibaya'
+- Historical telemetry records (5-min and daily resolution)
+- Live streaming demo (stops after a few records)
+
+**Common Issues:**
+- `401 Unauthorized`: Invalid or missing API key
+- `403 Forbidden`: API key not scoped to 'Sibaya' site
+- `429 Too Many Requests`: Rate limit exceeded (60 req/min)
+
+---
+
 ## Troubleshooting
 
 **403 Forbidden?** Ensure your API key is valid and scoped to the requested `site_id`.  
@@ -246,6 +338,45 @@ See the individual SDK documentation for detailed error handling examples.
 For more troubleshooting help, see:
 - [JavaScript SDK Documentation](./javascript/README.md)
 - [Python SDK Documentation](./python/README.md)
+
+---
+
+## Development & Handoff
+
+### Repository Structure
+```
+sdk/
+├── javascript/          # JavaScript/TypeScript SDK
+│   ├── src/            # Source code
+│   ├── examples/       # Working examples
+│   └── tests/          # Test suites
+├── python/             # Python SDK
+│   ├── ona_platform/   # Source code
+│   ├── examples/       # Working examples
+│   └── tests/          # Test suites
+└── backend/            # Lambda backend (deployed)
+```
+
+### Key Files for Developers
+- `javascript/examples/inverter-telemetry-example.js` - Complete telemetry workflow
+- `python/examples/inverter_telemetry_example.py` - Complete telemetry workflow
+- `javascript/src/services/InverterTelemetryClient.js` - Core telemetry client
+- `python/ona_platform/services/inverter_telemetry.py` - Core telemetry client
+
+### Backend Infrastructure
+- **API Gateway:** `af5jy5ob3e.execute-api.af-south-1.amazonaws.com`
+- **Lambda Function:** `inverterTelemetryApi` (deployed)
+- **DynamoDB Tables:** `ona-platform-telemetry-5min`, `ona-platform-telemetry-daily`
+- **Region:** `af-south-1`
+- **Account:** `905418405543`
+
+### For New Developers
+1. Follow the **Getting Started** section above
+2. Run the telemetry examples to verify connectivity
+3. Review the individual SDK documentation:
+   - [JavaScript SDK Documentation](./javascript/README.md)
+   - [Python SDK Documentation](./python/README.md)
+4. Check the examples directory for usage patterns
 
 ---
 
