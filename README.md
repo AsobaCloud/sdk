@@ -1,402 +1,240 @@
 # Ona SDK
 
-## Introduction
+## What Works Right Now
 
-The **Ona SDK** provides seamless integration with the **Ona Energy AI Platform**, enabling developers to build applications that interact with Asoba's energy management services. This SDK supports both **JavaScript (Node.js & Browser)** and **Python**, making it easy to integrate Ona into third-party applications.
+This SDK currently provides **Inverter Telemetry Streaming** - query historical and stream live inverter data from solar installations. Other services are planned but not yet implemented.
 
-### Key Features
+**✅ Working Features:**
+- Query historical inverter telemetry (5-minute and daily resolution)
+- Stream live inverter data in real-time
+- Resumable streaming with cursor tokens
+- Built-in rate limiting and cost protection
 
-✔ **Solar Energy Forecasting** – Device, site, and customer-level predictions  
-✔ **Inverter Telemetry Streaming** – Real-time and historical inverter data via API key-authenticated backend  
-✔ **OODA Workflow** – Asset management, fault detection, diagnostics, and maintenance scheduling  
-✔ **Energy Policy Analysis** – RAG-powered queries on energy regulations  
-✔ **Edge Device Management** – Discovery, registration, and capability detection  
-✔ **Data Collection** – Enphase, Huawei, and weather data integration  
-✔ **ML Operations** – Model training, interpolation, and data standardization  
-✔ **Dual SDK Support** – Use in both **JavaScript** and **Python** applications  
-✔ **Comprehensive Error Handling** – Detailed API responses and logging for debugging  
-
----
-
-## SDKs
-
-This repository contains two SDK implementations:
-
-### JavaScript SDK
-Official JavaScript/TypeScript SDK for Node.js and browser environments.
-
-**📖 [View JavaScript SDK Documentation →](./javascript/README.md)**
-
-**Quick Start:**
-```javascript
-const { OnaSDK } = require('@asoba/ona-sdk');
-
-const sdk = new OnaSDK({
-  region: 'af-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-  }
-});
-
-// Get energy forecast
-const forecast = await sdk.forecasting.getSiteForecast({
-  site_id: 'Sibaya',
-  forecast_hours: 24
-});
-
-// Stream live inverter telemetry
-for await (const record of sdk.inverterTelemetry.streamInverter({
-  asset_id: 'INV-1000000054495190',
-  site_id: 'Sibaya',
-})) {
-  console.log(`${record.timestamp}: ${record.power} kW`);
-}
-```
-
-### Python SDK
-Official Python SDK for server-side and data science applications.
-
-**📖 [View Python SDK Documentation →](./python/README.md)**
-
-**Quick Start:**
-```python
-from ona_platform import OnaClient
-
-client = OnaClient()
-
-# Get solar forecast
-forecast = client.forecasting.get_site_forecast('Sibaya', hours=24)
-
-# Run fault detection
-detection = client.terminal.run_detection(
-    customer_id='customer123',
-    asset_id='asset456',
-    lookback_hours=6
-)
-
-# Stream live inverter telemetry
-for record in client.inverter_telemetry.stream_inverter(
-    asset_id='INV-1000000054495190',
-    site_id='Sibaya',
-):
-    print(f"{record.timestamp}: {record.power} kW")
-```
+**🚧 Planned Features:**
+- Solar Energy Forecasting
+- OODA Workflow (fault detection, diagnostics)
+- Energy Policy Analysis
+- Edge Device Management
+- Data Collection integrations
 
 ---
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
+### 1. Get an API Key
+Contact **support@asoba.co** to get an API key for inverter telemetry access.
 
-1. **Node.js 14+** (for JavaScript SDK)
-2. **Python 3.8+** (for Python SDK)
-3. **Valid API Key** for inverter telemetry features (contact support@asoba.co)
+### 2. Install the SDK
 
-### Quick Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/AsobaCloud/sdk.git
-   cd sdk
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   # For JavaScript SDK
-   cd javascript && npm install
-   
-   # For Python SDK  
-   cd python && pip install -e .
-   ```
-
-3. **Configure environment variables:**
-   ```bash
-   # Required for inverter telemetry features
-   export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-   export INVERTER_TELEMETRY_API_KEY=<your_api_key_here>
-   
-   # Optional: AWS credentials for other services
-   export AWS_ACCESS_KEY_ID=your_access_key
-   export AWS_SECRET_ACCESS_KEY=your_secret_key
-   export AWS_REGION=af-south-1
-   ```
-
-4. **Test the setup:**
-   ```bash
-   # JavaScript
-   node javascript/examples/inverter-telemetry-example.js
-   
-   # Python
-   python python/examples/inverter_telemetry_example.py
-   ```
-
-### API Key Setup
-
-The inverter telemetry features require a valid API key. To obtain one:
-
-1. Contact **support@asoba.co** with your use case
-2. You'll receive an API key scoped to specific site IDs
-3. Set the key in your environment: `export INVERTER_TELEMETRY_API_KEY=<your_key>`
-
-**Note:** Each API key is limited to 60 requests/minute and specific site access.
-
----
-
-## Installation
-
-### JavaScript SDK
-
+**JavaScript:**
 ```bash
-# Install from source (development)
-cd javascript
+git clone https://github.com/AsobaCloud/sdk.git
+cd sdk/javascript
 npm install
 ```
 
-For detailed installation and setup instructions, see the [JavaScript SDK Documentation](./javascript/README.md).
-
-### Python SDK
-
+**Python:**
 ```bash
-# Install from source (development)
-cd python
+git clone https://github.com/AsobaCloud/sdk.git
+cd sdk/python
 pip install -e .
 ```
 
-For detailed installation and setup instructions, see the [Python SDK Documentation](./python/README.md).
-
----
-
-## Configuration
-
-Both SDKs support configuration via environment variables or constructor parameters.
-
-### Environment Variables
-
+### 3. Set Environment Variables
 ```bash
-# AWS Configuration
-export AWS_ACCESS_KEY_ID=your_access_key
-export AWS_SECRET_ACCESS_KEY=your_secret_key
-export AWS_REGION=af-south-1
-
-# Service Endpoints (optional)
-export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.co
-export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.co
-
-# Inverter Telemetry (required for telemetry features)
 export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-export INVERTER_TELEMETRY_API_KEY=your_api_key
+export INVERTER_TELEMETRY_API_KEY=<your_api_key_from_support>
 ```
 
-See the individual SDK documentation for complete configuration options:
-- [JavaScript SDK Configuration](./javascript/README.md#configuration)
-- [Python SDK Configuration](./python/README.md#configuration)
-
----
-
-## Services
-
-The Ona SDK provides access to the following platform services:
-
-### Forecasting API
-Generate energy forecasts at device, site, or customer levels.
-
-### Terminal API (OODA Workflow)
-Comprehensive API for Observe, Orient, Decide, Act workflow operations including:
-- Asset management
-- Fault detection
-- AI diagnostics
-- Maintenance scheduling
-- Real-time monitoring
-
-### Energy Analyst (RAG)
-AI-powered energy policy and regulatory compliance analysis.
-
-### Edge Device Registry
-Manage distributed edge devices with automatic capability detection.
-
-### Data Collection
-Integration with Enphase, Huawei, and weather data services.
-
-### ML Operations
-Model training, interpolation, and data standardization services.
-
-### Inverter Telemetry Streaming
-Query historical and stream live inverter telemetry data from DynamoDB-backed storage. Access is gated by API key — no AWS credentials required in the SDK. Each API key is scoped to one or more permitted sites.
-
-- Query 5-minute or daily resolution historical data for a single inverter or all inverters at a site
-- Stream live telemetry with configurable polling interval (minimum 5 seconds)
-- Resumable streams via cursor tokens
-- Built-in cost protection: max 1000 records per query, max 31-day time range
-
-For detailed API documentation, see:
-- [JavaScript SDK API Reference](./javascript/README.md#api-reference)
-- [Python SDK API Reference](./python/README.md#examples)
-
----
-
-## Examples
-
-Both SDKs include comprehensive examples:
-
-### JavaScript Examples
-Located in `javascript/examples/`:
-- `basic-usage.js` – Basic SDK initialization and usage
-- `forecasting-example.js` – Energy forecasting examples
-- `terminal-api-example.js` – OODA workflow examples
-- `edge-device-example.js` – Edge device management examples
-- `inverter-telemetry-example.js` – Inverter telemetry queries and live streaming
-
-### Python Examples
-Located in `python/examples/`:
-- `forecasting_example.py` – Solar forecasting
-- `terminal_ooda_example.py` – OODA workflow
-- `energy_analyst_example.py` – Energy policy queries
-- `edge_device_example.py` – Edge device management
-- `inverter_telemetry_example.py` – Inverter telemetry queries and live streaming
-- `complete_workflow_example.py` – Multi-service workflow
-
----
-
-## Error Handling
-
-Both SDKs provide comprehensive error handling with custom error classes:
-
-### JavaScript
-```javascript
-const {
-  OnaSDKError,
-  APIError,
-  ValidationError,
-  AuthenticationError,
-  TimeoutError,
-  RateLimitError,
-  ServiceUnavailableError
-} = require('@asoba/ona-sdk');
-```
-
-### Python
-```python
-from ona_platform import (
-    OnaError,
-    ConfigurationError,
-    ServiceUnavailableError,
-    ValidationError,
-    ResourceNotFoundError,
-    TimeoutError
-)
-from ona_platform.services.inverter_telemetry import RateLimitError
-```
-
-See the individual SDK documentation for detailed error handling examples.
-
----
-
-## Testing Your Setup
-
-### Verify Inverter Telemetry Access
-
-The easiest way to test your setup is with the inverter telemetry examples:
+### 4. Test It Works
 
 **JavaScript:**
 ```bash
 cd javascript
-export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-export INVERTER_TELEMETRY_API_KEY=<your_api_key>
 node examples/inverter-telemetry-example.js
 ```
 
 **Python:**
 ```bash
 cd python
-export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-export INVERTER_TELEMETRY_API_KEY=<your_api_key>
 python examples/inverter_telemetry_example.py
 ```
 
 **Expected Output:**
-- Data period discovery for site 'Sibaya'
-- Historical telemetry records (5-min and daily resolution)
-- Live streaming demo (stops after a few records)
+```
+=== Step 1: Discover available data period ===
+Site data period:
+  first_record: 2025-11-01T02:40:00
+  last_record: 2025-11-29T23:55:00
 
-**Common Issues:**
-- `401 Unauthorized`: Invalid or missing API key
-- `403 Forbidden`: API key not scoped to 'Sibaya' site
-- `429 Too Many Requests`: Rate limit exceeded (60 req/min)
+=== Step 2: Historical Inverter Telemetry (5-min) ===
+Retrieved 10 records
+  2025-11-01T02:40:00  power=0.0 kW  temp=25.3°C  state=1  error=None
+  ...
+```
+
+---
+
+## Usage Examples
+
+### Query Historical Data
+
+**JavaScript:**
+```javascript
+const { OnaSDK } = require('./src/index');
+
+const sdk = new OnaSDK({
+  endpoints: {
+    inverterTelemetry: process.env.INVERTER_TELEMETRY_ENDPOINT,
+  },
+  inverterTelemetryApiKey: process.env.INVERTER_TELEMETRY_API_KEY,
+});
+
+// Get historical data
+const records = await sdk.inverterTelemetry.getInverterTelemetry({
+  asset_id: 'INV-1000000054495190',
+  site_id: 'Sibaya',
+  time_range: { start: '2025-11-01T00:00:00', end: '2025-11-01T12:00:00' },
+  resolution: '5min',
+  limit: 100,
+});
+
+console.log(`Retrieved ${records.length} records`);
+```
+
+**Python:**
+```python
+from ona_platform import OnaClient
+
+client = OnaClient()
+
+# Get historical data
+records = client.inverter_telemetry.get_inverter_telemetry(
+    asset_id='INV-1000000054495190',
+    site_id='Sibaya',
+    time_range={'start': '2025-11-01T00:00:00', 'end': '2025-11-01T12:00:00'},
+    resolution='5min',
+    limit=100,
+)
+
+print(f"Retrieved {len(records)} records")
+```
+
+### Stream Live Data
+
+**JavaScript:**
+```javascript
+// Stream live telemetry
+for await (const record of sdk.inverterTelemetry.streamInverter({
+  asset_id: 'INV-1000000054495190',
+  site_id: 'Sibaya',
+  polling_interval: 30, // seconds
+})) {
+  console.log(`${record.timestamp}: ${record.power} kW`);
+}
+```
+
+**Python:**
+```python
+# Stream live telemetry
+for record in client.inverter_telemetry.stream_inverter(
+    asset_id='INV-1000000054495190',
+    site_id='Sibaya',
+    polling_interval=30,
+):
+    print(f"{record.timestamp}: {record.power} kW")
+```
+
+---
+
+## API Reference
+
+### Available Methods
+
+**Query Methods:**
+- `getInverterTelemetry()` - Get historical data for a single inverter
+- `getSiteTelemetry()` - Get historical data for all inverters at a site
+- `getDataPeriod()` - Discover available data time range
+
+**Streaming Methods:**
+- `streamInverter()` - Stream live data from a single inverter
+- `streamSite()` - Stream live data from all inverters at a site
+
+**Data Resolutions:**
+- `5min` - 5-minute interval data (default)
+- `daily` - Daily aggregated data
+
+### Rate Limits
+- **60 requests per minute** per API key
+- **Max 1000 records** per query
+- **Max 31-day time range** per query
+- **Min 5-second polling interval** for streaming
 
 ---
 
 ## Troubleshooting
 
-**403 Forbidden?** Ensure your API key is valid and scoped to the requested `site_id`.  
-**401 Unauthorized?** Your API key may be missing, expired, or revoked.  
-**429 Too Many Requests?** You've exceeded the rate limit (60 req/min). Back off and retry.  
-**SignatureDoesNotMatch?** Verify your AWS credentials and region settings.  
-**Connection Timeout?** Check your internet connection and retry.  
-**Service Unavailable?** Verify service endpoints are correct and accessible.
+**Common Issues:**
 
-For more troubleshooting help, see:
-- [JavaScript SDK Documentation](./javascript/README.md)
-- [Python SDK Documentation](./python/README.md)
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `401 Unauthorized` | Invalid/missing API key | Check your API key with support@asoba.co |
+| `403 Forbidden` | API key not scoped to site | Request access to the site_id you're querying |
+| `429 Too Many Requests` | Rate limit exceeded | Wait and retry (60 req/min limit) |
+| `ValidationError` | Invalid parameters | Check time ranges, limits, and required fields |
+
+**Debug Steps:**
+1. Verify environment variables are set: `echo $INVERTER_TELEMETRY_API_KEY`
+2. Test with the provided examples first
+3. Check the console output for detailed error messages
+4. Ensure you're querying a valid site_id (try 'Sibaya' for testing)
 
 ---
 
-## Development & Handoff
+## Development
 
 ### Repository Structure
 ```
 sdk/
-├── javascript/          # JavaScript/TypeScript SDK
-│   ├── src/            # Source code
-│   ├── examples/       # Working examples
-│   └── tests/          # Test suites
-├── python/             # Python SDK
-│   ├── ona_platform/   # Source code
-│   ├── examples/       # Working examples
-│   └── tests/          # Test suites
-└── backend/            # Lambda backend (deployed)
+├── javascript/
+│   ├── src/services/InverterTelemetryClient.js  # Core client
+│   ├── examples/inverter-telemetry-example.js   # Working example
+│   └── tests/                                   # Test suites
+├── python/
+│   ├── ona_platform/services/inverter_telemetry.py  # Core client
+│   ├── examples/inverter_telemetry_example.py       # Working example
+│   └── tests/                                       # Test suites
+└── backend/                                         # Deployed Lambda backend
 ```
 
-### Key Files for Developers
-- `javascript/examples/inverter-telemetry-example.js` - Complete telemetry workflow
-- `python/examples/inverter_telemetry_example.py` - Complete telemetry workflow
-- `javascript/src/services/InverterTelemetryClient.js` - Core telemetry client
-- `python/ona_platform/services/inverter_telemetry.py` - Core telemetry client
-
 ### Backend Infrastructure
-- **API Gateway:** `af5jy5ob3e.execute-api.af-south-1.amazonaws.com`
-- **Lambda Function:** `inverterTelemetryApi` (deployed)
-- **DynamoDB Tables:** `ona-platform-telemetry-5min`, `ona-platform-telemetry-daily`
+- **Endpoint:** `https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod`
 - **Region:** `af-south-1`
-- **Account:** `905418405543`
+- **Authentication:** API key via `x-api-key` header
+- **Data Source:** DynamoDB tables (`ona-platform-telemetry-5min`, `ona-platform-telemetry-daily`)
 
-### For New Developers
-1. Follow the **Getting Started** section above
-2. Run the telemetry examples to verify connectivity
-3. Review the individual SDK documentation:
-   - [JavaScript SDK Documentation](./javascript/README.md)
-   - [Python SDK Documentation](./python/README.md)
-4. Check the examples directory for usage patterns
+### For Contributors
+1. Run the working examples to understand the API
+2. Check existing tests in `tests/` directories
+3. See individual SDK documentation:
+   - [JavaScript SDK Details](./javascript/README.md)
+   - [Python SDK Details](./python/README.md)
 
 ---
 
 ## Support
 
-For support, reach out to:
-- **Email:** support@asoba.co
-- **GitHub Issues:** https://github.com/AsobaCloud/platform/issues
-- **Documentation:** https://docs.asoba.co
+**Need an API Key?** Contact **support@asoba.co** with your use case.
+
+**Issues?** 
+- Check the troubleshooting section above
+- Review the working examples in `examples/` directories
+- Open an issue: https://github.com/AsobaCloud/sdk/issues
+
+**Email:** support@asoba.co
 
 ---
 
 ## License
 
 MIT License
-
----
-
-## Contributing
-
-Contributions are welcome! Please see the individual SDK documentation for contribution guidelines:
-- [JavaScript SDK Contributing](./javascript/README.md#contributing)
-- [Python SDK Contributing](./python/README.md#contributing)
