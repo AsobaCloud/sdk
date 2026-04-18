@@ -1,13 +1,13 @@
-# Contributing to ODS-E
+# Contributing to Ona SDK
 
-Thanks for contributing to ODS-E.
+Thanks for contributing to the SDK.
 
 This guide covers setup, validation, and pull request expectations.
 
 ## Development Setup
 
 ```bash
-git clone https://github.com/AsobaCloud/odse.git
+git clone https://github.com/AsobaCloud/sdk.git
 cd odse
 python3 -m venv .venv
 source .venv/bin/activate
@@ -22,21 +22,6 @@ Run unit tests:
 PYTHONPATH=src/python python3 -m unittest discover -s src/python/tests -v
 ```
 
-Run transform harness (fixture mode):
-
-```bash
-PYTHONPATH=src/python python3 tools/transform_harness.py --mode fixture
-```
-
-## Change Types
-
-Use these labels in pull requests:
-
-- `spec`
-- `runtime`
-- `breaking`
-- `security`
-- `docs`
 
 Decision and approval rules are defined in `GOVERNANCE.md`.
 
