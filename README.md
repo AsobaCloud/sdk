@@ -1,5 +1,8 @@
 # Ona SDK
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/AsobaCloud/odse/actions/workflows/ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/ci.yml)
+
 ## What Works Right Now
 
 This SDK provides two live APIs for solar installation data:
