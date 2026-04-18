@@ -18,6 +18,7 @@ const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
 const { InverterTelemetryClient, RateLimitError: ITRateLimitError, ServiceUnavailableError: ITServiceUnavailableError } = require('./services/InverterTelemetryClient');
 const { OodaTerminalClient, RateLimitError: OTRateLimitError, ServiceUnavailableError: OTServiceUnavailableError } = require('./services/OodaTerminalClient');
+const { FreemiumForecastClient } = require('./services/FreemiumForecastClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -144,6 +145,12 @@ class OnaSDK {
     } catch (e) {
       this.oodaTerminal = null;
     }
+
+    /**
+     * Freemium Forecast client (no API key required)
+     * @type {FreemiumForecastClient}
+     */
+    this.freemiumForecast = new FreemiumForecastClient(this.config);
   }
 
   /**
@@ -177,6 +184,7 @@ module.exports = {
   OnaSDK,
   InverterTelemetryClient,
   OodaTerminalClient,
+  FreemiumForecastClient,
   ...errors,
   ...validators
 };

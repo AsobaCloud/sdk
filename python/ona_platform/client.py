@@ -18,6 +18,7 @@ from .services import (
     TrainingClient,
     InverterTelemetryClient,
     OodaTerminalClient,
+    FreemiumForecastClient,
 )
 
 logger = logging.getLogger(__name__)
@@ -121,6 +122,7 @@ class OnaClient:
         self._training = None
         self._inverter_telemetry = None
         self._ooda_terminal = None
+        self._freemium_forecast = None
 
         logger.info("Ona Platform client initialized")
         logger.debug(f"Configuration: {self.config}")
@@ -215,3 +217,10 @@ class OnaClient:
         if self._ooda_terminal is None:
             self._ooda_terminal = OodaTerminalClient(self.config)
         return self._ooda_terminal
+
+    @property
+    def freemium_forecast(self) -> FreemiumForecastClient:
+        """Get Freemium Forecast client (no API key required)."""
+        if self._freemium_forecast is None:
+            self._freemium_forecast = FreemiumForecastClient(self.config)
+        return self._freemium_forecast
