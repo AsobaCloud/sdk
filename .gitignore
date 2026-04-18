@@ -15,6 +15,10 @@ __pycache__/
 # Lambda deployment artifacts
 backend/package/
 backend/lambda.zip
+backend/*.zip
+
+# Internal planning documents
+SDK_UPDATE_PLAN.md
 
 # macOS metadata
 .DS_Store
