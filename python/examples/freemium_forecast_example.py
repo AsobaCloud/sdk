@@ -12,8 +12,9 @@ The script creates a sample CSV and submits it to the freemium forecast endpoint
 """
 
 import csv
-import tempfile
 import os
+import tempfile
+
 from ona_platform import OnaClient
 
 

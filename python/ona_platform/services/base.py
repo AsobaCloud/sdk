@@ -3,11 +3,12 @@
 import json
 import logging
 from typing import Any, Dict, Optional
+
 import boto3
 from botocore.exceptions import ClientError
 
 from ..config import OnaConfig
-from ..exceptions import ServiceUnavailableError, ResourceNotFoundError, ValidationError
+from ..exceptions import ResourceNotFoundError, ServiceUnavailableError, ValidationError
 from ..utils import retry_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -114,10 +115,10 @@ class BaseServiceClient:
 
         except ClientError as e:
             logger.error(f"Lambda invocation failed: {e}")
-            raise ServiceUnavailableError(f"Lambda invocation failed: {e}")
+            raise ServiceUnavailableError(f"Lambda invocation failed: {e}") from e
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse Lambda response: {e}")
-            raise ServiceUnavailableError(f"Invalid response from service: {e}")
+            raise ServiceUnavailableError(f"Invalid response from service: {e}") from e
 
     def get_s3_object(self, bucket: str, key: str) -> bytes:
         """Get an object from S3.
@@ -138,8 +139,8 @@ class BaseServiceClient:
             return response["Body"].read()
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise ResourceNotFoundError(f"Object not found: s3://{bucket}/{key}")
-            raise ServiceUnavailableError(f"S3 operation failed: {e}")
+                raise ResourceNotFoundError(f"Object not found: s3://{bucket}/{key}") from e
+            raise ServiceUnavailableError(f"S3 operation failed: {e}") from e
 
     def put_s3_object(
         self, bucket: str, key: str, body: bytes, content_type: Optional[str] = None
@@ -161,7 +162,7 @@ class BaseServiceClient:
                 kwargs["ContentType"] = content_type
             self.s3_client.put_object(**kwargs)
         except ClientError as e:
-            raise ServiceUnavailableError(f"S3 operation failed: {e}")
+            raise ServiceUnavailableError(f"S3 operation failed: {e}") from e
 
     def list_s3_objects(self, bucket: str, prefix: str) -> list:
         """List objects in S3.
@@ -180,4 +181,4 @@ class BaseServiceClient:
             response = self.s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
             return [obj["Key"] for obj in response.get("Contents", [])]
         except ClientError as e:
-            raise ServiceUnavailableError(f"S3 operation failed: {e}")
+            raise ServiceUnavailableError(f"S3 operation failed: {e}") from e

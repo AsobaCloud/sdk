@@ -4,7 +4,7 @@ import json
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from hypothesis import given, settings
@@ -16,10 +16,9 @@ from ona_platform.exceptions import (
     ConfigurationError,
     ValidationError,
 )
-from ona_platform.models.telemetry import TimeRange, TelemetryRecord
-from ona_platform.services.inverter_telemetry import InverterTelemetryClient, MAX_LIMIT
+from ona_platform.models.telemetry import TelemetryRecord, TimeRange
+from ona_platform.services.inverter_telemetry import MAX_LIMIT, InverterTelemetryClient
 from ona_platform.services.telemetry_cursor import CursorSerializer
-
 
 # ---------------------------------------------------------------------------
 # Helpers

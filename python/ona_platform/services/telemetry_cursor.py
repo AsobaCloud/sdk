@@ -19,7 +19,7 @@ class CursorSerializer:
             padded = cursor + "=" * (4 - len(cursor) % 4) if len(cursor) % 4 else cursor
             data = json.loads(base64.urlsafe_b64decode(padded).decode())
         except Exception as e:
-            raise ValidationError(f"Cursor is malformed: {e}")
+            raise ValidationError(f"Cursor is malformed: {e}") from e
         if not isinstance(data, dict):
             raise ValidationError("Cursor must decode to a JSON object")
         for field in ("asset_id", "timestamp"):

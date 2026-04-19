@@ -1,10 +1,10 @@
 """Interpolation service client."""
 
 import logging
-from typing import Dict, Any
+from typing import Any, Dict
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 

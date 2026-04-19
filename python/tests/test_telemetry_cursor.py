@@ -4,8 +4,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from ona_platform.services.telemetry_cursor import CursorSerializer
 from ona_platform.exceptions import ValidationError
+from ona_platform.services.telemetry_cursor import CursorSerializer
 
 _printable = st.text(
     min_size=1,

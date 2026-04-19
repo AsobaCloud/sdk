@@ -14,9 +14,9 @@ Prerequisites:
 """
 
 from ona_platform import OnaClient
+from ona_platform.exceptions import AuthenticationError, ValidationError
 from ona_platform.models.telemetry import TimeRange
 from ona_platform.services.inverter_telemetry import RateLimitError
-from ona_platform.exceptions import AuthenticationError, ValidationError
 
 
 def main():
@@ -127,18 +127,18 @@ def main():
     # -------------------------------------------------------------------------
     print("\n=== Step 5: Live Stream — Single Inverter (stops after 3 records) ===")
     try:
-        count = 0
-        for record in it.stream_inverter(
-            asset_id=asset_id,
-            site_id=site_id,
-            polling_interval=30,
+        for count, record in enumerate(
+            it.stream_inverter(
+                asset_id=asset_id,
+                site_id=site_id,
+                polling_interval=30,
+            )
         ):
             print(
                 f"  [{count + 1}] {record.timestamp}  power={record.power} kW  "
                 f"cursor={record.cursor[:24]}..."
             )
-            count += 1
-            if count >= 3:
+            if count >= 2:
                 break  # save record.cursor here to resume later
     except AuthenticationError as e:
         print(f"Auth error: {e}")
@@ -163,16 +163,16 @@ def main():
 
         if saved_cursor:
             print("  Resuming from cursor — only records after the saved position:")
-            count = 0
-            for record in it.stream_inverter(
-                asset_id=asset_id,
-                site_id=site_id,
-                cursor=saved_cursor,
-                polling_interval=30,
+            for count, record in enumerate(
+                it.stream_inverter(
+                    asset_id=asset_id,
+                    site_id=site_id,
+                    cursor=saved_cursor,
+                    polling_interval=30,
+                )
             ):
                 print(f"  {record.timestamp}  power={record.power} kW")
-                count += 1
-                if count >= 2:
+                if count >= 1:
                     break
     except AuthenticationError as e:
         print(f"Auth error: {e}")
@@ -182,16 +182,16 @@ def main():
     # -------------------------------------------------------------------------
     print("\n=== Step 7: Live Stream — All Inverters at Site (stops after 5 records) ===")
     try:
-        count = 0
-        for record in it.stream_site(
-            site_id=site_id,
-            polling_interval=30,
+        for count, record in enumerate(
+            it.stream_site(
+                site_id=site_id,
+                polling_interval=30,
+            )
         ):
             print(
                 f"  [{count + 1}] {record.asset_id} @ {record.timestamp}  power={record.power} kW"
             )
-            count += 1
-            if count >= 5:
+            if count >= 4:
                 break
     except AuthenticationError as e:
         print(f"Auth error: {e}")

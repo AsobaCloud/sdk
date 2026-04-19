@@ -1,18 +1,19 @@
 """Energy Analyst RAG service client."""
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 import requests
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
 from ..exceptions import (
+    ConfigurationError,
+    ResourceNotFoundError,
     ServiceUnavailableError,
     ValidationError,
-    ResourceNotFoundError,
-    ConfigurationError,
 )
 from ..utils import retry_with_backoff
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +93,9 @@ class EnergyAnalystClient(BaseServiceClient):
             return response.json()
 
         except requests.exceptions.Timeout:
-            raise ServiceUnavailableError(f"Request timed out after {self.config.timeout}s")
+            raise ServiceUnavailableError(f"Request timed out after {self.config.timeout}s") from None
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Request failed: {e}")
+            raise ServiceUnavailableError(f"Request failed: {e}") from e
 
     def add_documents(
         self, texts: List[str], metadatas: Optional[List[Dict]] = None
@@ -128,7 +129,7 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to add documents: {e}")
+            raise ServiceUnavailableError(f"Failed to add documents: {e}") from e
 
     def upload_pdfs(self, file_paths: List[str]) -> Dict[str, Any]:
         """Upload and process PDF files.
@@ -149,8 +150,11 @@ class EnergyAnalystClient(BaseServiceClient):
 
         files = []
         try:
+            # Read all files into memory first
             for path in file_paths:
-                files.append(("files", (path.split("/")[-1], open(path, "rb"), "application/pdf")))
+                with open(path, "rb") as fh:
+                    file_content = fh.read()
+                files.append(("files", (path.split("/")[-1], file_content, "application/pdf")))
 
             response = requests.post(
                 url,
@@ -161,12 +165,9 @@ class EnergyAnalystClient(BaseServiceClient):
             return response.json()
 
         except FileNotFoundError as e:
-            raise ValidationError(f"File not found: {e}")
+            raise ValidationError(f"File not found: {e}") from e
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to upload PDFs: {e}")
-        finally:
-            for _, file_tuple in files:
-                file_tuple[1].close()
+            raise ServiceUnavailableError(f"Failed to upload PDFs: {e}") from e
 
     def health(self) -> Dict[str, Any]:
         """Check service health.
@@ -181,7 +182,7 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Health check failed: {e}")
+            raise ServiceUnavailableError(f"Health check failed: {e}") from e
 
     def get_collection_info(self) -> Dict[str, Any]:
         """Get information about the document collection.
@@ -196,7 +197,7 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to get collection info: {e}")
+            raise ServiceUnavailableError(f"Failed to get collection info: {e}") from e
 
     def clear_collection(self) -> Dict[str, Any]:
         """Clear all documents from the collection.
@@ -214,4 +215,4 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to clear collection: {e}")
+            raise ServiceUnavailableError(f"Failed to clear collection: {e}") from e

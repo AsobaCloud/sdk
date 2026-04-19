@@ -1,10 +1,10 @@
 """Global Training service client."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 

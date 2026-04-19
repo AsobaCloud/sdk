@@ -11,7 +11,7 @@ from typing import Union
 
 import requests
 
-from ..exceptions import ValidationError, ServiceUnavailableError
+from ..exceptions import ServiceUnavailableError, ValidationError
 
 logger = logging.getLogger(__name__)
 

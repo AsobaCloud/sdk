@@ -1,12 +1,13 @@
 """Edge Device Registry service client."""
 
 import logging
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 import requests
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
-from ..exceptions import ServiceUnavailableError, ConfigurationError, ResourceNotFoundError
+from ..exceptions import ConfigurationError, ResourceNotFoundError, ServiceUnavailableError
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Health check failed: {e}")
+            raise ServiceUnavailableError(f"Health check failed: {e}") from e
 
     def list_devices(self) -> List[Dict[str, Any]]:
         """Get all registered devices."""
@@ -49,7 +50,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to list devices: {e}")
+            raise ServiceUnavailableError(f"Failed to list devices: {e}") from e
 
     def get_device(self, device_id: str) -> Dict[str, Any]:
         """Get specific device by ID."""
@@ -62,7 +63,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to get device: {e}")
+            raise ServiceUnavailableError(f"Failed to get device: {e}") from e
 
     def discover_device(self, ip: str, username: str) -> Dict[str, Any]:
         """Discover and register a new device."""
@@ -75,7 +76,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Device discovery failed: {e}")
+            raise ServiceUnavailableError(f"Device discovery failed: {e}") from e
 
     def update_device(self, device_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
         """Update device information."""
@@ -90,7 +91,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to update device: {e}")
+            raise ServiceUnavailableError(f"Failed to update device: {e}") from e
 
     def delete_device(self, device_id: str) -> Dict[str, Any]:
         """Delete device from registry."""
@@ -103,7 +104,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to delete device: {e}")
+            raise ServiceUnavailableError(f"Failed to delete device: {e}") from e
 
     def get_device_capabilities(self, device_id: str) -> Dict[str, Any]:
         """Get device capabilities."""
@@ -116,7 +117,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to get capabilities: {e}")
+            raise ServiceUnavailableError(f"Failed to get capabilities: {e}") from e
 
     def get_device_services(self, device_id: str) -> List[Dict[str, Any]]:
         """Get services running on device."""
@@ -129,4 +130,4 @@ class EdgeDeviceClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to get services: {e}")
+            raise ServiceUnavailableError(f"Failed to get services: {e}") from e

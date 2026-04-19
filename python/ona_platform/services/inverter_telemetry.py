@@ -2,16 +2,17 @@
 
 import logging
 import time
+from typing import Dict, Generator, List, Optional
+
 import requests
-from typing import Optional, List, Dict, Generator
 
 from ..config import OnaConfig
 from ..exceptions import (
-    ValidationError,
     AuthenticationError,
-    ServiceUnavailableError,
     ConfigurationError,
     RateLimitError,
+    ServiceUnavailableError,
+    ValidationError,
 )
 from ..models.telemetry import TelemetryRecord, TimeRange
 from .telemetry_cursor import CursorSerializer
@@ -88,7 +89,7 @@ class InverterTelemetryClient:
                 if attempt <= self._max_retries:
                     time.sleep(2 ** (attempt - 1))
                     continue
-                raise ServiceUnavailableError(f"{operation} failed: {e}")
+                raise ServiceUnavailableError(f"{operation} failed: {e}") from e
         raise ServiceUnavailableError(
             f"{operation} for {identifier}: service unavailable after retries"
         )

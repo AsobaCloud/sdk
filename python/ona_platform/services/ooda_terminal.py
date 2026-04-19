@@ -2,18 +2,19 @@
 
 import logging
 import time
+from typing import Dict, Generator, List, Optional
+
 import requests
-from typing import Optional, List, Dict, Generator
 
 from ..config import OnaConfig
 from ..exceptions import (
-    ValidationError,
     AuthenticationError,
-    ServiceUnavailableError,
     ConfigurationError,
     RateLimitError,
+    ServiceUnavailableError,
+    ValidationError,
 )
-from ..models.ooda import OodaAlert, TimeRange, DataPeriod
+from ..models.ooda import DataPeriod, OodaAlert, TimeRange
 from .ooda_cursor import OodaCursorSerializer
 
 MAX_LIMIT = 1000
@@ -88,7 +89,7 @@ class OodaTerminalClient:
                 if attempt <= self._max_retries:
                     time.sleep(2 ** (attempt - 1))
                     continue
-                raise ServiceUnavailableError(f"{operation} failed: {e}")
+                raise ServiceUnavailableError(f"{operation} failed: {e}") from e
         raise ServiceUnavailableError(
             f"{operation} for {identifier}: service unavailable after retries"
         )

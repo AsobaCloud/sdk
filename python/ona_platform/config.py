@@ -1,8 +1,9 @@
 """Configuration management for Ona Platform SDK."""
 
 import os
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
+
 from .exceptions import ConfigurationError
 
 
@@ -43,16 +44,14 @@ class OnaConfig:
     ooda_daily_table: str = "ona-platform-ooda-daily"
 
     def __post_init__(self):
-        if self.inverter_telemetry_endpoint is not None:
-            if not self.inverter_telemetry_endpoint.startswith("https://"):
-                raise ConfigurationError(
-                    f"inverter_telemetry_endpoint must use https:// (got: {self.inverter_telemetry_endpoint!r})"
-                )
-        if self.ooda_terminal_endpoint is not None:
-            if not self.ooda_terminal_endpoint.startswith("https://"):
-                raise ConfigurationError(
-                    f"ooda_terminal_endpoint must use https:// (got: {self.ooda_terminal_endpoint!r})"
-                )
+        if self.inverter_telemetry_endpoint is not None and not self.inverter_telemetry_endpoint.startswith("https://"):
+            raise ConfigurationError(
+                f"inverter_telemetry_endpoint must use https:// (got: {self.inverter_telemetry_endpoint!r})"
+            )
+        if self.ooda_terminal_endpoint is not None and not self.ooda_terminal_endpoint.startswith("https://"):
+            raise ConfigurationError(
+                f"ooda_terminal_endpoint must use https:// (got: {self.ooda_terminal_endpoint!r})"
+            )
         if self.telemetry_polling_interval < 1.0:
             raise ConfigurationError(
                 f"telemetry_polling_interval must be >= 1.0 seconds (got: {self.telemetry_polling_interval})"

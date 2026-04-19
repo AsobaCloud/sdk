@@ -1,6 +1,6 @@
 """Data models for Ona Platform SDK."""
 
-from .telemetry import TelemetryRecord, TimeRange, CursorObject
+from .telemetry import CursorObject, TelemetryRecord, TimeRange
 
 __all__ = [
     "TelemetryRecord",

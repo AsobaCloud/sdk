@@ -16,6 +16,7 @@ Example usage:
 """
 
 from datetime import datetime, timedelta
+
 from ona_platform import OnaClient
 from ona_platform.models.ooda import TimeRange
 

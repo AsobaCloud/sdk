@@ -5,20 +5,20 @@ from typing import Optional
 
 from .config import OnaConfig
 from .services import (
-    ForecastingClient,
-    TerminalClient,
-    EnergyAnalystClient,
-    EdgeDeviceClient,
-    WeatherClient,
-    EnphaseClient,
-    HuaweiClient,
     DataIngestionClient,
+    EdgeDeviceClient,
+    EnergyAnalystClient,
+    EnphaseClient,
+    ForecastingClient,
+    FreemiumForecastClient,
+    HuaweiClient,
     InterpolationClient,
-    StandardizationClient,
-    TrainingClient,
     InverterTelemetryClient,
     OodaTerminalClient,
-    FreemiumForecastClient,
+    StandardizationClient,
+    TerminalClient,
+    TrainingClient,
+    WeatherClient,
 )
 
 logger = logging.getLogger(__name__)
