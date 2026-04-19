@@ -5,7 +5,16 @@ from typing import Optional
 
 from ..exceptions import ValidationError
 
-REQUIRED_FIELDS = ["terminal_device_id", "site_id", "timestamp", "alert_type", "alert_severity", "message", "source_system", "resolved"]
+REQUIRED_FIELDS = [
+    "terminal_device_id",
+    "site_id",
+    "timestamp",
+    "alert_type",
+    "alert_severity",
+    "message",
+    "source_system",
+    "resolved",
+]
 OPTIONAL_FIELDS = ["terminal_ts", "metadata"]
 STRIP_FIELDS = {"expires_at"}
 

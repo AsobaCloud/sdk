@@ -19,7 +19,7 @@ class EnphaseClient(BaseServiceClient):
         self,
         config: OnaConfig,
         realtime_function: str = "enphaseRealTime",
-        historical_function: str = "enphaseHistorical"
+        historical_function: str = "enphaseHistorical",
     ):
         """Initialize Enphase client.
 
@@ -47,11 +47,7 @@ class EnphaseClient(BaseServiceClient):
         return self.invoke_lambda(self.realtime_function, payload)
 
     def collect_historical(
-        self,
-        site_id: str,
-        start_date: str,
-        end_date: str,
-        **kwargs
+        self, site_id: str, start_date: str, end_date: str, **kwargs
     ) -> Dict[str, Any]:
         """Collect historical data from Enphase system.
 
@@ -64,14 +60,8 @@ class EnphaseClient(BaseServiceClient):
         Returns:
             Collection status and data summary
         """
-        payload = {
-            "site_id": site_id,
-            "start_date": start_date,
-            "end_date": end_date,
-            **kwargs
-        }
+        payload = {"site_id": site_id, "start_date": start_date, "end_date": end_date, **kwargs}
         logger.info(
-            f"Collecting historical Enphase data for site: {site_id} "
-            f"({start_date} to {end_date})"
+            f"Collecting historical Enphase data for site: {site_id} ({start_date} to {end_date})"
         )
         return self.invoke_lambda(self.historical_function, payload)

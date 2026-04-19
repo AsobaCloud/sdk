@@ -75,9 +75,9 @@ async function main() {
                   `state=${r.inverter_state}  error=${r.error_type}`)
     );
   } catch (err) {
-    if (err instanceof ValidationError) console.error('Validation error:', err.message);
-    else if (err instanceof AuthenticationError) console.error('Auth error:', err.message);
-    else throw err;
+    if (err instanceof ValidationError) {console.error('Validation error:', err.message);}
+    else if (err instanceof AuthenticationError) {console.error('Auth error:', err.message);}
+    else {throw err;}
   }
 
   // ---------------------------------------------------------------------------
@@ -97,8 +97,8 @@ async function main() {
       console.log(`  ${r.timestamp}  kWh=${r.kWh}  PF=${r.PF}`)
     );
   } catch (err) {
-    if (err instanceof AuthenticationError) console.error('Auth error:', err.message);
-    else throw err;
+    if (err instanceof AuthenticationError) {console.error('Auth error:', err.message);}
+    else {throw err;}
   }
 
   // ---------------------------------------------------------------------------
@@ -120,8 +120,8 @@ async function main() {
                   `first=${recs[0].timestamp}, last=${recs[recs.length - 1].timestamp}`);
     });
   } catch (err) {
-    if (err instanceof AuthenticationError) console.error('Auth error:', err.message);
-    else throw err;
+    if (err instanceof AuthenticationError) {console.error('Auth error:', err.message);}
+    else {throw err;}
   }
 
   // ---------------------------------------------------------------------------
@@ -139,12 +139,12 @@ async function main() {
       console.log(`  [${count + 1}] ${record.timestamp}  power=${record.power} kW  ` +
                   `cursor=${record.cursor.slice(0, 24)}...`);
       count++;
-      if (count >= 3) break; // save record.cursor here to resume later
+      if (count >= 3) {break;} // save record.cursor here to resume later
     }
   } catch (err) {
-    if (err instanceof AuthenticationError) console.error('Auth error:', err.message);
-    else if (err instanceof RateLimitError) console.error('Rate limit exceeded:', err.message);
-    else throw err;
+    if (err instanceof AuthenticationError) {console.error('Auth error:', err.message);}
+    else if (err instanceof RateLimitError) {console.error('Rate limit exceeded:', err.message);}
+    else {throw err;}
   }
 
   // ---------------------------------------------------------------------------
@@ -175,12 +175,12 @@ async function main() {
       })) {
         console.log(`  ${record.timestamp}  power=${record.power} kW`);
         count++;
-        if (count >= 2) break;
+        if (count >= 2) {break;}
       }
     }
   } catch (err) {
-    if (err instanceof AuthenticationError) console.error('Auth error:', err.message);
-    else throw err;
+    if (err instanceof AuthenticationError) {console.error('Auth error:', err.message);}
+    else {throw err;}
   }
 
   // ---------------------------------------------------------------------------
@@ -196,13 +196,13 @@ async function main() {
       console.log(`  [${count + 1}] ${record.asset_id} @ ${record.timestamp}  ` +
                   `power=${record.power} kW`);
       count++;
-      if (count >= 5) break;
+      if (count >= 5) {break;}
     }
   } catch (err) {
-    if (err instanceof AuthenticationError) console.error('Auth error:', err.message);
-    else if (err instanceof RateLimitError) console.error('Rate limit exceeded:', err.message);
-    else if (err instanceof ServiceUnavailableError) console.error('Service unavailable:', err.message);
-    else throw err;
+    if (err instanceof AuthenticationError) {console.error('Auth error:', err.message);}
+    else if (err instanceof RateLimitError) {console.error('Rate limit exceeded:', err.message);}
+    else if (err instanceof ServiceUnavailableError) {console.error('Service unavailable:', err.message);}
+    else {throw err;}
   }
 }
 

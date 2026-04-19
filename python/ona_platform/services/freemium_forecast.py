@@ -87,7 +87,9 @@ class FreemiumForecastClient:
 
         logger.debug(
             "freemium_forecast: site=%s location=%s file=%s",
-            site_name, location, csv_path,
+            site_name,
+            location,
+            csv_path,
         )
 
         try:

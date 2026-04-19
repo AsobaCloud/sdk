@@ -45,10 +45,7 @@ class EdgeDeviceClient(BaseServiceClient):
     def list_devices(self) -> List[Dict[str, Any]]:
         """Get all registered devices."""
         try:
-            response = requests.get(
-                f"{self.base_url}/api/devices",
-                timeout=self.config.timeout
-            )
+            response = requests.get(f"{self.base_url}/api/devices", timeout=self.config.timeout)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -58,8 +55,7 @@ class EdgeDeviceClient(BaseServiceClient):
         """Get specific device by ID."""
         try:
             response = requests.get(
-                f"{self.base_url}/api/devices/{device_id}",
-                timeout=self.config.timeout
+                f"{self.base_url}/api/devices/{device_id}", timeout=self.config.timeout
             )
             if response.status_code == 404:
                 raise ResourceNotFoundError(f"Device not found: {device_id}")
@@ -74,7 +70,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response = requests.post(
                 f"{self.base_url}/api/devices",
                 json={"ip": ip, "username": username},
-                timeout=self.config.timeout
+                timeout=self.config.timeout,
             )
             response.raise_for_status()
             return response.json()
@@ -87,7 +83,7 @@ class EdgeDeviceClient(BaseServiceClient):
             response = requests.put(
                 f"{self.base_url}/api/devices/{device_id}",
                 json=updates,
-                timeout=self.config.timeout
+                timeout=self.config.timeout,
             )
             if response.status_code == 404:
                 raise ResourceNotFoundError(f"Device not found: {device_id}")
@@ -100,8 +96,7 @@ class EdgeDeviceClient(BaseServiceClient):
         """Delete device from registry."""
         try:
             response = requests.delete(
-                f"{self.base_url}/api/devices/{device_id}",
-                timeout=self.config.timeout
+                f"{self.base_url}/api/devices/{device_id}", timeout=self.config.timeout
             )
             if response.status_code == 404:
                 raise ResourceNotFoundError(f"Device not found: {device_id}")
@@ -114,8 +109,7 @@ class EdgeDeviceClient(BaseServiceClient):
         """Get device capabilities."""
         try:
             response = requests.get(
-                f"{self.base_url}/api/devices/{device_id}/capabilities",
-                timeout=self.config.timeout
+                f"{self.base_url}/api/devices/{device_id}/capabilities", timeout=self.config.timeout
             )
             if response.status_code == 404:
                 raise ResourceNotFoundError(f"Device not found: {device_id}")
@@ -128,8 +122,7 @@ class EdgeDeviceClient(BaseServiceClient):
         """Get services running on device."""
         try:
             response = requests.get(
-                f"{self.base_url}/api/devices/{device_id}/services",
-                timeout=self.config.timeout
+                f"{self.base_url}/api/devices/{device_id}/services", timeout=self.config.timeout
             )
             if response.status_code == 404:
                 raise ResourceNotFoundError(f"Device not found: {device_id}")

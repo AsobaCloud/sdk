@@ -5,7 +5,15 @@ from typing import Optional
 
 from ..exceptions import ValidationError
 
-REQUIRED_FIELDS = ["asset_id", "site_id", "timestamp", "power", "kWh", "inverter_state", "run_state"]
+REQUIRED_FIELDS = [
+    "asset_id",
+    "site_id",
+    "timestamp",
+    "power",
+    "kWh",
+    "inverter_state",
+    "run_state",
+]
 OPTIONAL_FIELDS = ["asset_ts", "kVArh", "kVA", "PF", "temperature", "error_code", "error_type"]
 STRIP_FIELDS = {"expires_at"}
 

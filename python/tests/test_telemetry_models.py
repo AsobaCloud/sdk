@@ -8,16 +8,30 @@ from ona_platform.models.telemetry import TelemetryRecord, REQUIRED_FIELDS, OPTI
 from ona_platform.exceptions import ValidationError
 
 # Strategies for required field values
-_required_strategy = st.fixed_dictionaries({
-    "asset_id": st.text(min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="-_")),
-    "site_id": st.text(min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="-_")),
-    "timestamp": st.just("2025-01-01T00:00:00"),
-    "asset_ts": st.just("INV-001#2025-01-01T00:00:00"),
-    "power": st.floats(min_value=0.0, max_value=1000.0, allow_nan=False, allow_infinity=False),
-    "kWh": st.floats(min_value=0.0, max_value=1000000.0, allow_nan=False, allow_infinity=False),
-    "inverter_state": st.integers(min_value=0, max_value=255),
-    "run_state": st.integers(min_value=0, max_value=255),
-})
+_required_strategy = st.fixed_dictionaries(
+    {
+        "asset_id": st.text(
+            min_size=1,
+            max_size=50,
+            alphabet=st.characters(
+                whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="-_"
+            ),
+        ),
+        "site_id": st.text(
+            min_size=1,
+            max_size=50,
+            alphabet=st.characters(
+                whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="-_"
+            ),
+        ),
+        "timestamp": st.just("2025-01-01T00:00:00"),
+        "asset_ts": st.just("INV-001#2025-01-01T00:00:00"),
+        "power": st.floats(min_value=0.0, max_value=1000.0, allow_nan=False, allow_infinity=False),
+        "kWh": st.floats(min_value=0.0, max_value=1000000.0, allow_nan=False, allow_infinity=False),
+        "inverter_state": st.integers(min_value=0, max_value=255),
+        "run_state": st.integers(min_value=0, max_value=255),
+    }
+)
 
 
 # Feature: inverter-telemetry-streaming, Property 9: TelemetryRecord contains all required fields with correct types; expires_at absent

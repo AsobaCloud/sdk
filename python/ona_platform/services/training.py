@@ -15,11 +15,7 @@ class TrainingClient(BaseServiceClient):
     Provides methods for ML model training operations.
     """
 
-    def __init__(
-        self,
-        config: OnaConfig,
-        function_name: str = "globalTrainingService"
-    ):
+    def __init__(self, config: OnaConfig, function_name: str = "globalTrainingService"):
         """Initialize training client.
 
         Args:
@@ -34,7 +30,7 @@ class TrainingClient(BaseServiceClient):
         model_type: str,
         training_data_key: str,
         model_params: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Start model training job.
 
@@ -51,7 +47,7 @@ class TrainingClient(BaseServiceClient):
             "model_type": model_type,
             "training_data_key": training_data_key,
             "model_params": model_params or {},
-            **kwargs
+            **kwargs,
         }
         logger.info(f"Starting training job for model type: {model_type}")
         return self.invoke_lambda(self.function_name, payload)

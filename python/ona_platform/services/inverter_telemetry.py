@@ -48,9 +48,7 @@ class InverterTelemetryClient:
                 f"time_range.start must be <= time_range.end (got start={time_range.start!r}, end={time_range.end!r})"
             )
         if limit > MAX_LIMIT:
-            raise ValidationError(
-                f"limit must not exceed {MAX_LIMIT} (got {limit})"
-            )
+            raise ValidationError(f"limit must not exceed {MAX_LIMIT} (got {limit})")
 
         def _parse_dt(s):
             dt = datetime.fromisoformat(s)
@@ -61,9 +59,7 @@ class InverterTelemetryClient:
         start_dt = _parse_dt(time_range.start)
         end_dt = _parse_dt(time_range.end)
         if (end_dt - start_dt).days > MAX_TIME_RANGE_DAYS:
-            raise ValidationError(
-                f"time_range span must not exceed {MAX_TIME_RANGE_DAYS} days"
-            )
+            raise ValidationError(f"time_range span must not exceed {MAX_TIME_RANGE_DAYS} days")
 
     def _handle_response(self, response, operation: str, identifier: str):
         if response.status_code in (401, 403):
@@ -108,7 +104,11 @@ class InverterTelemetryClient:
     ) -> List[TelemetryRecord]:
         self._logger.debug(
             "get_inverter_telemetry asset_id=%s site_id=%s range=%s-%s cursor=%s",
-            asset_id, site_id, time_range.start, time_range.end, cursor,
+            asset_id,
+            site_id,
+            time_range.start,
+            time_range.end,
+            cursor,
         )
         self._validate_query_params(site_id, time_range, limit)
         params: dict = {
@@ -215,9 +215,7 @@ class InverterTelemetryClient:
         try:
             while True:
                 global_last = (
-                    min(last_ts_per_asset.values())
-                    if last_ts_per_asset
-                    else "1970-01-01T00:00:00"
+                    min(last_ts_per_asset.values()) if last_ts_per_asset else "1970-01-01T00:00:00"
                 )
                 time_range = TimeRange(start=global_last, end="9999-12-31T23:59:59")
                 try:

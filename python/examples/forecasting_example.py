@@ -10,9 +10,7 @@ def main():
     # Example 1: Get device-level forecast
     print("=== Device-Level Forecast ===")
     device_forecast = client.forecasting.get_device_forecast(
-        site_id='Sibaya',
-        device_id='INV001',
-        forecast_hours=24
+        site_id="Sibaya", device_id="INV001", forecast_hours=24
     )
     print(f"Site: {device_forecast['site_id']}")
     print(f"Device: {device_forecast['device_id']}")
@@ -22,9 +20,7 @@ def main():
     # Example 2: Get site-level aggregated forecast
     print("\n=== Site-Level Aggregated Forecast ===")
     site_forecast = client.forecasting.get_site_forecast(
-        site_id='Sibaya',
-        forecast_hours=24,
-        include_device_breakdown=True
+        site_id="Sibaya", forecast_hours=24, include_device_breakdown=True
     )
     print(f"Site: {site_forecast['site_id']}")
     print(f"Devices included: {site_forecast['devices_included']}")
@@ -34,12 +30,11 @@ def main():
     # Example 3: Get customer-level forecast (legacy)
     print("\n=== Customer-Level Forecast ===")
     customer_forecast = client.forecasting.get_customer_forecast(
-        customer_id='customer123',
-        forecast_hours=24
+        customer_id="customer123", forecast_hours=24
     )
     print(f"Customer: {customer_forecast['customer_id']}")
     print(f"Model info: {customer_forecast['model_info']}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -23,7 +23,7 @@ class ServiceUnavailableError extends Error {
 }
 
 class FreemiumForecastClient {
-  constructor(config) {
+  constructor(_config) {
     this._url = FREEMIUM_FORECAST_URL;
   }
 

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def retry_with_backoff(
     max_retries: int = 3,
     backoff_factor: float = 2.0,
-    exceptions: Tuple[Type[Exception], ...] = (ServiceUnavailableError, TimeoutError)
+    exceptions: Tuple[Type[Exception], ...] = (ServiceUnavailableError, TimeoutError),
 ):
     """Decorator to retry a function with exponential backoff.
 
@@ -25,6 +25,7 @@ def retry_with_backoff(
     Returns:
         Decorated function with retry logic
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -37,18 +38,17 @@ def retry_with_backoff(
                     last_exception = e
 
                     if attempt < max_retries:
-                        wait_time = backoff_factor ** attempt
+                        wait_time = backoff_factor**attempt
                         logger.warning(
                             f"Attempt {attempt + 1}/{max_retries + 1} failed: {e}. "
                             f"Retrying in {wait_time}s..."
                         )
                         time.sleep(wait_time)
                     else:
-                        logger.error(
-                            f"All {max_retries + 1} attempts failed. Last error: {e}"
-                        )
+                        logger.error(f"All {max_retries + 1} attempts failed. Last error: {e}")
 
             raise last_exception
 
         return wrapper
+
     return decorator

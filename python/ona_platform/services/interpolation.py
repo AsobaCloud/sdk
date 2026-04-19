@@ -25,12 +25,7 @@ class InterpolationClient(BaseServiceClient):
         super().__init__(config)
         self.function_name = function_name
 
-    def interpolate(
-        self,
-        customer_id: str,
-        dataset_key: str,
-        **kwargs
-    ) -> Dict[str, Any]:
+    def interpolate(self, customer_id: str, dataset_key: str, **kwargs) -> Dict[str, Any]:
         """Interpolate missing data points.
 
         Args:
@@ -41,10 +36,6 @@ class InterpolationClient(BaseServiceClient):
         Returns:
             Interpolation results
         """
-        payload = {
-            "customer_id": customer_id,
-            "dataset_key": dataset_key,
-            **kwargs
-        }
+        payload = {"customer_id": customer_id, "dataset_key": dataset_key, **kwargs}
         logger.info(f"Running interpolation for customer: {customer_id}")
         return self.invoke_lambda(self.function_name, payload)

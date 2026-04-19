@@ -10,7 +10,7 @@ from ..exceptions import (
     ServiceUnavailableError,
     ValidationError,
     ResourceNotFoundError,
-    ConfigurationError
+    ConfigurationError,
 )
 from ..utils import retry_with_backoff
 
@@ -45,7 +45,7 @@ class EnergyAnalystClient(BaseServiceClient):
         question: str,
         n_results: int = 3,
         max_new_tokens: Optional[int] = None,
-        temperature: Optional[float] = None
+        temperature: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Query the RAG system with a question.
 
@@ -68,10 +68,7 @@ class EnergyAnalystClient(BaseServiceClient):
         """
         url = f"{self.base_url}/query"
 
-        payload = {
-            "question": question,
-            "n_results": n_results
-        }
+        payload = {"question": question, "n_results": n_results}
 
         if max_new_tokens is not None:
             payload["max_new_tokens"] = max_new_tokens
@@ -79,36 +76,28 @@ class EnergyAnalystClient(BaseServiceClient):
             payload["temperature"] = temperature
 
         try:
-            response = requests.post(
-                url,
-                json=payload,
-                timeout=self.config.timeout
-            )
+            response = requests.post(url, json=payload, timeout=self.config.timeout)
 
             if response.status_code == 400:
-                error_detail = response.json().get('detail', 'Validation error')
+                error_detail = response.json().get("detail", "Validation error")
                 raise ValidationError(error_detail)
             elif response.status_code == 404:
-                error_detail = response.json().get('detail', 'No relevant documents found')
+                error_detail = response.json().get("detail", "No relevant documents found")
                 raise ResourceNotFoundError(error_detail)
             elif response.status_code >= 500:
-                error_detail = response.json().get('detail', 'Service error')
+                error_detail = response.json().get("detail", "Service error")
                 raise ServiceUnavailableError(f"Service error: {error_detail}")
 
             response.raise_for_status()
             return response.json()
 
         except requests.exceptions.Timeout:
-            raise ServiceUnavailableError(
-                f"Request timed out after {self.config.timeout}s"
-            )
+            raise ServiceUnavailableError(f"Request timed out after {self.config.timeout}s")
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Request failed: {e}")
 
     def add_documents(
-        self,
-        texts: List[str],
-        metadatas: Optional[List[Dict]] = None
+        self, texts: List[str], metadatas: Optional[List[Dict]] = None
     ) -> Dict[str, Any]:
         """Add documents to the vector database.
 
@@ -135,11 +124,7 @@ class EnergyAnalystClient(BaseServiceClient):
             payload["metadatas"] = metadatas
 
         try:
-            response = requests.post(
-                url,
-                json=payload,
-                timeout=self.config.timeout
-            )
+            response = requests.post(url, json=payload, timeout=self.config.timeout)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -165,14 +150,12 @@ class EnergyAnalystClient(BaseServiceClient):
         files = []
         try:
             for path in file_paths:
-                files.append(
-                    ('files', (path.split('/')[-1], open(path, 'rb'), 'application/pdf'))
-                )
+                files.append(("files", (path.split("/")[-1], open(path, "rb"), "application/pdf")))
 
             response = requests.post(
                 url,
                 files=files,
-                timeout=self.config.timeout * 2  # PDFs may take longer
+                timeout=self.config.timeout * 2,  # PDFs may take longer
             )
             response.raise_for_status()
             return response.json()

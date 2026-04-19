@@ -84,12 +84,12 @@ async function main() {
       limit: 5
     });
     
-    const totalAlerts = Object.values(siteAlerts).reduce((sum, alerts) => sum + alerts.length, 0);
+    const totalAlerts = Object.values(siteAlerts).reduce((sum, deviceAlerts) => sum + deviceAlerts.length, 0);
     const deviceCount = Object.keys(siteAlerts).length;
     console.log(`   Found ${totalAlerts} alerts across ${deviceCount} terminal devices`);
     
-    Object.entries(siteAlerts).slice(0, 2).forEach(([terminalId, alerts]) => {
-      console.log(`   • ${terminalId}: ${alerts.length} alerts`);
+    Object.entries(siteAlerts).slice(0, 2).forEach(([terminalId, deviceAlerts]) => {
+      console.log(`   • ${terminalId}: ${deviceAlerts.length} alerts`);
     });
     console.log();
     

@@ -1,7 +1,7 @@
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
-const { ConfigurationError, ValidationError, AuthenticationError, APIError } = require('../utils/errors');
+const { ConfigurationError, ValidationError, AuthenticationError } = require('../utils/errors');
 const OodaCursorSerializer = require('../utils/oodaCursorSerializer');
 const { parseOodaAlert } = require('../utils/oodaAlert');
 
@@ -48,7 +48,7 @@ class OodaTerminalClient {
   }
 
   _validateQueryParams(site_id, time_range, limit) {
-    if (!site_id) throw new ValidationError('site_id is required', 'site_id', site_id);
+    if (!site_id) {throw new ValidationError('site_id is required', 'site_id', site_id);}
     if (time_range.start > time_range.end) {
       throw new ValidationError('time_range.start must be <= time_range.end', 'time_range', time_range);
     }
@@ -65,7 +65,7 @@ class OodaTerminalClient {
     return new Promise((resolve, reject) => {
       const url = new URL(this._endpoint + path);
       for (const [k, v] of Object.entries(params)) {
-        if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+        if (v !== undefined && v !== null) {url.searchParams.set(k, String(v));}
       }
       const options = {
         hostname: url.hostname,
@@ -128,7 +128,7 @@ class OodaTerminalClient {
   async getTerminalAlerts({ terminal_device_id, site_id, time_range, resolution = '5min', limit = 100, cursor } = {}) {
     this._validateQueryParams(site_id, time_range, limit);
     const params = { terminal_device_id, site_id, start: time_range.start, end: time_range.end, resolution, limit };
-    if (cursor) params.cursor = cursor;
+    if (cursor) {params.cursor = cursor;}
     const data = await this._requestWithRetry('/ooda/terminal', params);
     return (data.alerts || []).map(parseOodaAlert);
   }
@@ -145,9 +145,9 @@ class OodaTerminalClient {
   }
 
   async getDataPeriod({ site_id, terminal_device_id } = {}) {
-    if (!site_id) throw new ValidationError('site_id is required', 'site_id', site_id);
+    if (!site_id) {throw new ValidationError('site_id is required', 'site_id', site_id);}
     const params = { site_id };
-    if (terminal_device_id) params.terminal_device_id = terminal_device_id;
+    if (terminal_device_id) {params.terminal_device_id = terminal_device_id;}
     return this._requestWithRetry('/ooda/data-period', params);
   }
 
@@ -217,7 +217,7 @@ class OodaTerminalClient {
           for (const a of alerts) {
             const alert = parseOodaAlert(a);
             const prev = lastTsMap[tid];
-            if (!prev || alert.timestamp > prev) allAlerts.push(alert);
+            if (!prev || alert.timestamp > prev) {allAlerts.push(alert);}
           }
         }
         allAlerts.sort((a, b) => a.timestamp < b.timestamp ? -1 : 1);

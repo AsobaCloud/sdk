@@ -12,11 +12,9 @@ def main():
     # OBSERVE: Run fault detection
     print("=== OBSERVE: Fault Detection ===")
     detection = client.terminal.run_detection(
-        customer_id=customer_id,
-        asset_id=asset_id,
-        lookback_hours=6
+        customer_id=customer_id, asset_id=asset_id, lookback_hours=6
     )
-    detection_id = detection['detection_id']
+    detection_id = detection["detection_id"]
     print(f"Detection ID: {detection_id}")
     print(f"Severity: {detection['analysis']['severity_label']}")
     print(f"Fault type: {detection['analysis']['fault_type']}")
@@ -25,17 +23,14 @@ def main():
     # ORIENT: Run AI diagnostics
     print("\n=== ORIENT: AI Diagnostics ===")
     diagnostic = client.terminal.run_diagnostics(
-        customer_id=customer_id,
-        asset_id=asset_id,
-        detection_id=detection_id,
-        lookback_hours=6
+        customer_id=customer_id, asset_id=asset_id, detection_id=detection_id, lookback_hours=6
     )
     print(f"Diagnostic ID: {diagnostic['diagnostic_id']}")
     print(f"Root cause: {diagnostic['analysis']['root_cause']}")
     print(f"Category: {diagnostic['analysis']['category']}")
     print(f"Confidence: {diagnostic['analysis']['confidence']}")
     print("Recommended actions:")
-    for action in diagnostic['analysis'].get('recommended_actions', []):
+    for action in diagnostic["analysis"].get("recommended_actions", []):
         print(f"  - {action}")
 
     # DECIDE: Create maintenance schedule
@@ -45,7 +40,7 @@ def main():
         asset_id=asset_id,
         description=f"Maintenance for {diagnostic['analysis']['root_cause']}",
         priority="High",
-        estimated_duration_hours=8
+        estimated_duration_hours=8,
     )
     print(f"Schedule created: {schedule['schedule_id']}")
 
@@ -72,5 +67,5 @@ def main():
     print(f"ML-enhanced OODA summaries: {len(ml_ooda)}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

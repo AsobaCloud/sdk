@@ -6,9 +6,7 @@ from typing import Optional
 
 
 def get_logger(
-    name: str,
-    level: Optional[int] = None,
-    format_string: Optional[str] = None
+    name: str, level: Optional[int] = None, format_string: Optional[str] = None
 ) -> logging.Logger:
     """Get or create a logger with standard configuration.
 

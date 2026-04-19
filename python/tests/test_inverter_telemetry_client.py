@@ -25,6 +25,7 @@ from ona_platform.services.telemetry_cursor import CursorSerializer
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_config(endpoint="https://example.com", api_key="test-key", **kwargs):
     return OnaConfig(
         inverter_telemetry_endpoint=endpoint,
@@ -49,6 +50,7 @@ def _make_record(asset_id="INV-001", site_id="Sibaya", timestamp="2025-01-01T00:
 # ---------------------------------------------------------------------------
 # Fake HTTP server for end-to-end tests
 # ---------------------------------------------------------------------------
+
 
 class _FakeHandler(BaseHTTPRequestHandler):
     """Minimal HTTP handler that serves canned responses."""
@@ -92,6 +94,7 @@ def _start_fake_server(response_data: dict):
 # Configuration / instantiation tests
 # ---------------------------------------------------------------------------
 
+
 def test_missing_endpoint_raises_configuration_error():
     config = OnaConfig(inverter_telemetry_endpoint=None, inverter_telemetry_api_key="key")
     with pytest.raises(ConfigurationError, match="inverter_telemetry_endpoint"):
@@ -99,19 +102,24 @@ def test_missing_endpoint_raises_configuration_error():
 
 
 def test_missing_api_key_raises_authentication_error():
-    config = OnaConfig(inverter_telemetry_endpoint="https://example.com", inverter_telemetry_api_key=None)
+    config = OnaConfig(
+        inverter_telemetry_endpoint="https://example.com", inverter_telemetry_api_key=None
+    )
     with pytest.raises(AuthenticationError, match="inverter_telemetry_api_key"):
         InverterTelemetryClient(config)
 
 
 def test_http_endpoint_raises_configuration_error():
     with pytest.raises(ConfigurationError, match="https"):
-        OnaConfig(inverter_telemetry_endpoint="http://example.com", inverter_telemetry_api_key="key")
+        OnaConfig(
+            inverter_telemetry_endpoint="http://example.com", inverter_telemetry_api_key="key"
+        )
 
 
 # ---------------------------------------------------------------------------
 # Validation tests (no network)
 # ---------------------------------------------------------------------------
+
 
 def test_inverted_time_range_raises_validation_error():
     client = InverterTelemetryClient(_make_config())
@@ -155,6 +163,7 @@ def test_duplicate_stream_raises_validation_error():
 # Real HTTP server tests
 # ---------------------------------------------------------------------------
 
+
 def test_get_inverter_telemetry_returns_records():
     records = [_make_record(timestamp=f"2025-01-01T00:0{i}:00") for i in range(3)]
     server = _start_fake_server({"inverter_records": records})
@@ -180,7 +189,9 @@ def test_api_key_header_sent():
     received_headers = {}
 
     class _HeaderCapture(BaseHTTPRequestHandler):
-        def log_message(self, *args): pass
+        def log_message(self, *args):
+            pass
+
         def do_GET(self):
             received_headers.update(dict(self.headers))
             body = json.dumps({"records": []}).encode()
@@ -277,7 +288,8 @@ _ts_strategy = st.datetimes(
 ).map(lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%S"))
 
 _asset_id_strategy = st.text(
-    min_size=1, max_size=30,
+    min_size=1,
+    max_size=30,
     alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd"), whitelist_characters="-_"),
 )
 
@@ -299,12 +311,14 @@ def test_property_6_inverted_time_range_raises_validation_error(start, end):
 
 
 # Feature: inverter-telemetry-streaming, Property 13: Non-HTTPS endpoint always raises ConfigurationError
-@given(st.one_of(
-    st.just("http://example.com"),
-    st.just("ftp://example.com"),
-    st.just("ws://example.com"),
-    st.text(min_size=1, max_size=50).filter(lambda s: not s.startswith("https://")),
-))
+@given(
+    st.one_of(
+        st.just("http://example.com"),
+        st.just("ftp://example.com"),
+        st.just("ws://example.com"),
+        st.text(min_size=1, max_size=50).filter(lambda s: not s.startswith("https://")),
+    )
+)
 @settings(max_examples=100)
 def test_property_13_non_https_endpoint_raises_configuration_error(endpoint):
     """Validates: Requirements 12.1, 12.2"""
@@ -360,10 +374,7 @@ def test_property_3_records_within_time_range(n, limit):
     """Validates: Requirements 1.1 — records from a fake server are within the requested range."""
     start = "2025-01-01T00:00:00"
     end = "2025-01-31T23:59:59"
-    records = [
-        _make_record(timestamp=f"2025-01-{i+1:02d}T00:00:00")
-        for i in range(min(n, 28))
-    ]
+    records = [_make_record(timestamp=f"2025-01-{i + 1:02d}T00:00:00") for i in range(min(n, 28))]
     server = _start_fake_server({"inverter_records": records[:limit]})
     port = server.server_address[1]
 
@@ -389,7 +400,7 @@ def test_property_3_records_within_time_range(n, limit):
 def test_property_4_records_ascending_order(n):
     """Validates: Requirements 1.4"""
     records = sorted(
-        [_make_record(timestamp=f"2025-01-{i+1:02d}T00:00:00") for i in range(min(n, 28))],
+        [_make_record(timestamp=f"2025-01-{i + 1:02d}T00:00:00") for i in range(min(n, 28))],
         key=lambda r: r["timestamp"],
     )
     server = _start_fake_server({"inverter_records": records})
@@ -418,7 +429,9 @@ def test_property_4_records_ascending_order(n):
 @settings(max_examples=100, deadline=None)
 def test_property_5_record_count_respects_limit(total, limit):
     """Validates: Requirements 1.5 — server returns min(total, limit) records."""
-    records = [_make_record(timestamp=f"2025-01-{i+1:02d}T00:00:00") for i in range(min(total, 28))]
+    records = [
+        _make_record(timestamp=f"2025-01-{i + 1:02d}T00:00:00") for i in range(min(total, 28))
+    ]
     # Fake server returns only up to limit records
     server = _start_fake_server({"inverter_records": records[:limit]})
     port = server.server_address[1]
@@ -438,12 +451,15 @@ def test_property_5_record_count_respects_limit(total, limit):
 
 
 # Feature: inverter-telemetry-streaming, Property 7: Stream yields only strictly newer records
-@given(st.lists(
-    st.datetimes(min_value=datetime(2025, 1, 1), max_value=datetime(2025, 12, 31)).map(
-        lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%S")
-    ),
-    min_size=0, max_size=20,
-))
+@given(
+    st.lists(
+        st.datetimes(min_value=datetime(2025, 1, 1), max_value=datetime(2025, 12, 31)).map(
+            lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%S")
+        ),
+        min_size=0,
+        max_size=20,
+    )
+)
 @settings(max_examples=100)
 def test_property_7_stream_yields_only_newer_records(timestamps):
     """Validates: Requirements 3.3"""
@@ -461,10 +477,13 @@ def test_property_7_stream_yields_only_newer_records(timestamps):
 
 
 # Feature: inverter-telemetry-streaming, Property 8: Every streamed record carries a non-null cursor
-@given(st.lists(
-    _ts_strategy,
-    min_size=1, max_size=10,
-))
+@given(
+    st.lists(
+        _ts_strategy,
+        min_size=1,
+        max_size=10,
+    )
+)
 @settings(max_examples=100)
 def test_property_8_every_streamed_record_has_cursor(timestamps):
     """Validates: Requirements 5.1"""
@@ -480,7 +499,13 @@ def test_property_8_every_streamed_record_has_cursor(timestamps):
 
 # Feature: inverter-telemetry-streaming, Property 12: Every request has x-api-key header; no AWS auth headers
 @given(
-    api_key=st.text(min_size=1, max_size=50, alphabet=st.characters(min_codepoint=33, max_codepoint=126).filter(lambda c: c not in '"\\')),
+    api_key=st.text(
+        min_size=1,
+        max_size=50,
+        alphabet=st.characters(min_codepoint=33, max_codepoint=126).filter(
+            lambda c: c not in '"\\'
+        ),
+    ),
 )
 @settings(max_examples=50, deadline=None)
 def test_property_12_api_key_header_no_aws_headers(api_key):
@@ -488,7 +513,9 @@ def test_property_12_api_key_header_no_aws_headers(api_key):
     received_headers = {}
 
     class _Capture(BaseHTTPRequestHandler):
-        def log_message(self, *args): pass
+        def log_message(self, *args):
+            pass
+
         def do_GET(self):
             received_headers.update(dict(self.headers))
             body = json.dumps({"records": []}).encode()

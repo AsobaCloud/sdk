@@ -6,14 +6,14 @@ from ona_platform import OnaClient
 def main():
     # Initialize client
     client = OnaClient(
-        energy_analyst_url='http://localhost:8000'  # Or set ENERGY_ANALYST_URL env var
+        energy_analyst_url="http://localhost:8000"  # Or set ENERGY_ANALYST_URL env var
     )
 
     # Example 1: Query energy policies
     print("=== Query Energy Policies ===")
     result = client.energy_analyst.query(
         question="What are the grid code compliance requirements for solar installations in South Africa?",
-        n_results=3
+        n_results=3,
     )
     print(f"Question: {result.get('question', 'N/A')}")
     print(f"\nAnswer:\n{result['answer']}")
@@ -22,13 +22,12 @@ def main():
 
     # Example 2: Upload policy documents
     print("\n=== Upload Policy Documents ===")
-    upload_result = client.energy_analyst.upload_pdfs([
-        '/path/to/policy1.pdf',
-        '/path/to/policy2.pdf'
-    ])
+    upload_result = client.energy_analyst.upload_pdfs(
+        ["/path/to/policy1.pdf", "/path/to/policy2.pdf"]
+    )
     print(f"Files processed: {upload_result['files_processed']}")
     print(f"Documents added: {upload_result['documents_added']}")
-    for detail in upload_result['details']:
+    for detail in upload_result["details"]:
         print(f"  - {detail['filename']}: {detail['status']}")
 
     # Example 3: Add text documents
@@ -36,12 +35,12 @@ def main():
     add_result = client.energy_analyst.add_documents(
         texts=[
             "NRS 097-2-1 defines the requirements for embedded generation...",
-            "The grid connection process requires compliance with..."
+            "The grid connection process requires compliance with...",
         ],
         metadatas=[
             {"source": "NRS 097-2-1", "document_title": "NRS 097-2-1 Grid Connection Code"},
-            {"source": "Grid Guide", "document_title": "Grid Connection Process Guide"}
-        ]
+            {"source": "Grid Guide", "document_title": "Grid Connection Process Guide"},
+        ],
     )
     print(f"Documents added: {add_result['count']}")
 
@@ -60,5 +59,5 @@ def main():
     print(f"Storage: {info['storage_mb']} MB")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

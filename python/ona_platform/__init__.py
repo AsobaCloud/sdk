@@ -39,7 +39,7 @@ from .exceptions import (
     AuthenticationError,
     ResourceNotFoundError,
     RateLimitError,
-    TimeoutError
+    TimeoutError,
 )
 from .services.inverter_telemetry import InverterTelemetryClient
 from .models.telemetry import TelemetryRecord, TimeRange, CursorObject

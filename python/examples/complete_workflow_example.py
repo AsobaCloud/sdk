@@ -16,10 +16,7 @@ def main():
 
     # Step 1: Get current forecast
     print("Step 1: Get Solar Forecast")
-    forecast = client.forecasting.get_site_forecast(
-        site_id=site_id,
-        forecast_hours=24
-    )
+    forecast = client.forecasting.get_site_forecast(site_id=site_id, forecast_hours=24)
     print(f"  - Site: {forecast['site_id']}")
     print(f"  - Devices: {forecast['device_count']}")
     print(f"  - Next hour forecast: {forecast['forecasts'][0]['kWh_forecast']} kWh")
@@ -27,23 +24,19 @@ def main():
     # Step 2: Check asset health via detection
     print("\nStep 2: Run Fault Detection")
     detection = client.terminal.run_detection(
-        customer_id=customer_id,
-        asset_id=asset_id,
-        lookback_hours=6
+        customer_id=customer_id, asset_id=asset_id, lookback_hours=6
     )
-    detection_id = detection['detection_id']
-    severity = detection['analysis']['severity_label']
+    detection_id = detection["detection_id"]
+    severity = detection["analysis"]["severity_label"]
     print(f"  - Detection ID: {detection_id}")
     print(f"  - Severity: {severity}")
     print(f"  - Status: {detection['analysis']['status']}")
 
     # Step 3: If fault detected, run diagnostics
-    if severity in ['High', 'Medium']:
+    if severity in ["High", "Medium"]:
         print("\nStep 3: Run Diagnostics (fault detected)")
         diagnostic = client.terminal.run_diagnostics(
-            customer_id=customer_id,
-            asset_id=asset_id,
-            detection_id=detection_id
+            customer_id=customer_id, asset_id=asset_id, detection_id=detection_id
         )
         print(f"  - Root cause: {diagnostic['analysis']['root_cause']}")
         print(f"  - Category: {diagnostic['analysis']['category']}")
@@ -54,7 +47,7 @@ def main():
         try:
             compliance_info = client.energy_analyst.query(
                 question=f"What are the maintenance requirements for {diagnostic['analysis']['category']}?",
-                n_results=2
+                n_results=2,
             )
             print(f"  - Answer: {compliance_info['answer'][:200]}...")
         except Exception as e:
@@ -67,7 +60,7 @@ def main():
             asset_id=asset_id,
             description=f"Maintenance: {diagnostic['analysis']['root_cause']}",
             priority="High" if severity == "High" else "Medium",
-            estimated_duration_hours=8
+            estimated_duration_hours=8,
         )
         print(f"  - Schedule created: {schedule['schedule_id']}")
 
@@ -85,16 +78,15 @@ def main():
     print(f"  - Registered models: {len(models)}")
     if models:
         latest_model = models[0]
-        print(f"  - Latest: {latest_model.get('model_name', 'N/A')} "
-              f"(version {latest_model.get('version', 'N/A')})")
+        print(
+            f"  - Latest: {latest_model.get('model_name', 'N/A')} "
+            f"(version {latest_model.get('version', 'N/A')})"
+        )
 
     # Step 8: Get nowcast data for monitoring
     print("\nStep 8: Get Nowcast Data")
-    nowcast = client.terminal.get_nowcast_data(
-        customer_id=customer_id,
-        time_range="1h"
-    )
-    metrics = nowcast.get('latest_metrics', {})
+    nowcast = client.terminal.get_nowcast_data(customer_id=customer_id, time_range="1h")
+    metrics = nowcast.get("latest_metrics", {})
     print(f"  - Total power: {metrics.get('total_power_kw', 0)} kW")
     print(f"  - Active inverters: {metrics.get('active_inverters', 0)}")
     print(f"  - Avg temperature: {metrics.get('avg_temperature_c', 0)}°C")
@@ -102,5 +94,5 @@ def main():
     print("\n=== WORKFLOW COMPLETE ===")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

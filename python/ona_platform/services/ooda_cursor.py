@@ -27,4 +27,6 @@ class OodaCursorSerializer:
                 raise ValidationError(f"Cursor missing required field: '{field}'")
             if not isinstance(data[field], str):
                 raise ValidationError(f"Cursor field '{field}' must be a string")
-        return OodaCursorObject(terminal_device_id=data["terminal_device_id"], timestamp=data["timestamp"])
+        return OodaCursorObject(
+            terminal_device_id=data["terminal_device_id"], timestamp=data["timestamp"]
+        )

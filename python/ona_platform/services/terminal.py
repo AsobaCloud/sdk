@@ -45,15 +45,12 @@ class TerminalClient(BaseServiceClient):
             List of asset objects
         """
         payload = {
-            'httpMethod': 'POST',
-            'path': '/assets',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/assets",
+            "body": json.dumps({"action": "list", "customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('assets', [])
+        return result.get("assets", [])
 
     def add_asset(
         self,
@@ -64,7 +61,7 @@ class TerminalClient(BaseServiceClient):
         capacity_kw: float,
         location: str,
         timezone: str = "Africa/Johannesburg",
-        components: Optional[List[Dict]] = None
+        components: Optional[List[Dict]] = None,
     ) -> Dict[str, Any]:
         """Add a new asset.
 
@@ -82,29 +79,29 @@ class TerminalClient(BaseServiceClient):
             Created asset information
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/assets',
-            'body': json.dumps({
-                'action': 'add',
-                'customer_id': customer_id,
-                'asset_id': asset_id,
-                'name': name,
-                'type': asset_type,
-                'capacity_kw': capacity_kw,
-                'location': location,
-                'timezone': timezone,
-                'components': components or []
-            })
+            "httpMethod": "POST",
+            "path": "/assets",
+            "body": json.dumps(
+                {
+                    "action": "add",
+                    "customer_id": customer_id,
+                    "asset_id": asset_id,
+                    "name": name,
+                    "type": asset_type,
+                    "capacity_kw": capacity_kw,
+                    "location": location,
+                    "timezone": timezone,
+                    "components": components or [],
+                }
+            ),
         }
         return self.invoke_lambda(self.function_name, payload)
 
     # Detection (Observe)
     def run_detection(
-        self,
-        customer_id: str,
-        asset_id: str,
-        lookback_hours: int = 6
+        self, customer_id: str, asset_id: str, lookback_hours: int = 6
     ) -> Dict[str, Any]:
         """Run ML-backed fault detection on an asset.
 
@@ -117,15 +114,18 @@ class TerminalClient(BaseServiceClient):
             Detection analysis with severity, fault type, and metrics
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/detect',
-            'body': json.dumps({
-                'action': 'run',
-                'customer_id': customer_id,
-                'asset_id': asset_id,
-                'lookback_hours': lookback_hours
-            })
+            "httpMethod": "POST",
+            "path": "/detect",
+            "body": json.dumps(
+                {
+                    "action": "run",
+                    "customer_id": customer_id,
+                    "asset_id": asset_id,
+                    "lookback_hours": lookback_hours,
+                }
+            ),
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -139,24 +139,18 @@ class TerminalClient(BaseServiceClient):
             List of detection records
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/detect',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/detect",
+            "body": json.dumps({"action": "list", "customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('detections', [])
+        return result.get("detections", [])
 
     # Diagnostics (Orient)
     def run_diagnostics(
-        self,
-        customer_id: str,
-        asset_id: str,
-        detection_id: str,
-        lookback_hours: int = 6
+        self, customer_id: str, asset_id: str, detection_id: str, lookback_hours: int = 6
     ) -> Dict[str, Any]:
         """Run AI diagnostics on a detected fault.
 
@@ -170,16 +164,19 @@ class TerminalClient(BaseServiceClient):
             Diagnostic analysis with root cause and recommended actions
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/diagnose',
-            'body': json.dumps({
-                'action': 'run',
-                'customer_id': customer_id,
-                'asset_id': asset_id,
-                'detection_id': detection_id,
-                'lookback_hours': lookback_hours
-            })
+            "httpMethod": "POST",
+            "path": "/diagnose",
+            "body": json.dumps(
+                {
+                    "action": "run",
+                    "customer_id": customer_id,
+                    "asset_id": asset_id,
+                    "detection_id": detection_id,
+                    "lookback_hours": lookback_hours,
+                }
+            ),
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -193,16 +190,14 @@ class TerminalClient(BaseServiceClient):
             List of diagnostic records
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/diagnose',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/diagnose",
+            "body": json.dumps({"action": "list", "customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('diagnostics', [])
+        return result.get("diagnostics", [])
 
     # Scheduling (Decide)
     def create_schedule(
@@ -212,7 +207,7 @@ class TerminalClient(BaseServiceClient):
         description: str,
         priority: str = "Medium",
         estimated_duration_hours: int = 4,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Create a maintenance schedule.
 
@@ -228,18 +223,21 @@ class TerminalClient(BaseServiceClient):
             Created schedule information
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/schedule',
-            'body': json.dumps({
-                'action': 'create',
-                'customer_id': customer_id,
-                'asset_id': asset_id,
-                'description': description,
-                'priority': priority,
-                'estimated_duration_hours': estimated_duration_hours,
-                **kwargs
-            })
+            "httpMethod": "POST",
+            "path": "/schedule",
+            "body": json.dumps(
+                {
+                    "action": "create",
+                    "customer_id": customer_id,
+                    "asset_id": asset_id,
+                    "description": description,
+                    "priority": priority,
+                    "estimated_duration_hours": estimated_duration_hours,
+                    **kwargs,
+                }
+            ),
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -253,16 +251,14 @@ class TerminalClient(BaseServiceClient):
             List of schedule records
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/schedule',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/schedule",
+            "body": json.dumps({"action": "list", "customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('schedules', [])
+        return result.get("schedules", [])
 
     # Issues Management
     def list_issues(self, customer_id: str) -> List[Dict[str, Any]]:
@@ -275,16 +271,14 @@ class TerminalClient(BaseServiceClient):
             List of issue records
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/issues',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/issues",
+            "body": json.dumps({"action": "list", "customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('issues', [])
+        return result.get("issues", [])
 
     def create_issue(
         self,
@@ -294,7 +288,7 @@ class TerminalClient(BaseServiceClient):
         issue_type: str,
         description: str,
         priority: str = "Medium",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Create a new issue.
 
@@ -311,19 +305,22 @@ class TerminalClient(BaseServiceClient):
             Created issue information
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/issues',
-            'body': json.dumps({
-                'action': 'create',
-                'customer_id': customer_id,
-                'component': component,
-                'site': site,
-                'issue_type': issue_type,
-                'description': description,
-                'priority': priority,
-                **kwargs
-            })
+            "httpMethod": "POST",
+            "path": "/issues",
+            "body": json.dumps(
+                {
+                    "action": "create",
+                    "customer_id": customer_id,
+                    "component": component,
+                    "site": site,
+                    "issue_type": issue_type,
+                    "description": description,
+                    "priority": priority,
+                    **kwargs,
+                }
+            ),
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -338,16 +335,14 @@ class TerminalClient(BaseServiceClient):
             List of activity records from last 24 hours
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/activities',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/activities",
+            "body": json.dumps({"action": "list", "customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('activities', [])
+        return result.get("activities", [])
 
     # ML Integration
     def get_forecast_results(self, customer_id: str) -> List[Dict[str, Any]]:
@@ -360,15 +355,14 @@ class TerminalClient(BaseServiceClient):
             List of recent forecast results
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/forecast',
-            'body': json.dumps({
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/forecast",
+            "body": json.dumps({"customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('forecast_results', [])
+        return result.get("forecast_results", [])
 
     def get_interpolation_results(self, customer_id: str) -> List[Dict[str, Any]]:
         """Get interpolation results for a customer.
@@ -380,15 +374,14 @@ class TerminalClient(BaseServiceClient):
             List of recent interpolation results
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/interpolation',
-            'body': json.dumps({
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/interpolation",
+            "body": json.dumps({"customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('interpolation_results', [])
+        return result.get("interpolation_results", [])
 
     def get_ml_models(self) -> List[Dict[str, Any]]:
         """Get ML model registry (shared across customers).
@@ -397,13 +390,10 @@ class TerminalClient(BaseServiceClient):
             List of registered models with training metrics
         """
         import json
-        payload = {
-            'httpMethod': 'POST',
-            'path': '/ml-models',
-            'body': json.dumps({})
-        }
+
+        payload = {"httpMethod": "POST", "path": "/ml-models", "body": json.dumps({})}
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('model_metrics', [])
+        return result.get("model_metrics", [])
 
     def get_ml_ooda_summaries(self, customer_id: str) -> List[Dict[str, Any]]:
         """Get ML-enhanced OODA summaries for a customer.
@@ -415,22 +405,18 @@ class TerminalClient(BaseServiceClient):
             List of ML-enhanced OODA activities
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/ooda',
-            'body': json.dumps({
-                'customer_id': customer_id
-            })
+            "httpMethod": "POST",
+            "path": "/ooda",
+            "body": json.dumps({"customer_id": customer_id}),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('ml_enhanced_activities', [])
+        return result.get("ml_enhanced_activities", [])
 
     # Nowcast UI Data
     def get_nowcast_data(
-        self,
-        customer_id: str,
-        time_range: str = "1h",
-        asset_filter: Optional[List[str]] = None
+        self, customer_id: str, time_range: str = "1h", asset_filter: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Get nowcast data for monitoring dashboard.
 
@@ -443,15 +429,18 @@ class TerminalClient(BaseServiceClient):
             Nowcast data with latest metrics and time series
         """
         import json
+
         payload = {
-            'httpMethod': 'POST',
-            'path': '/nowcastUI',
-            'body': json.dumps({
-                'action': 'list',
-                'customer_id': customer_id,
-                'time_range': time_range,
-                'asset_filter': asset_filter or []
-            })
+            "httpMethod": "POST",
+            "path": "/nowcastUI",
+            "body": json.dumps(
+                {
+                    "action": "list",
+                    "customer_id": customer_id,
+                    "time_range": time_range,
+                    "asset_filter": asset_filter or [],
+                }
+            ),
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get('data', {})
+        return result.get("data", {})

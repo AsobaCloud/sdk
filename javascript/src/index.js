@@ -183,7 +183,11 @@ class OnaSDK {
 module.exports = {
   OnaSDK,
   InverterTelemetryClient,
+  RateLimitError: ITRateLimitError,
+  ServiceUnavailableError: ITServiceUnavailableError,
   OodaTerminalClient,
+  OodaRateLimitError: OTRateLimitError,
+  OodaServiceUnavailableError: OTServiceUnavailableError,
   FreemiumForecastClient,
   ...errors,
   ...validators

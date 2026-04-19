@@ -26,10 +26,7 @@ class ForecastingClient(BaseServiceClient):
         self.function_name = function_name
 
     def get_device_forecast(
-        self,
-        site_id: str,
-        device_id: str,
-        forecast_hours: int = 24
+        self, site_id: str, device_id: str, forecast_hours: int = 24
     ) -> Dict[str, Any]:
         """Get forecast for a specific device.
 
@@ -50,24 +47,16 @@ class ForecastingClient(BaseServiceClient):
                 'model_info': {...}
             }
         """
-        payload = {
-            'site_id': site_id,
-            'device_id': device_id,
-            'forecast_hours': forecast_hours
-        }
+        payload = {"site_id": site_id, "device_id": device_id, "forecast_hours": forecast_hours}
 
         logger.info(
-            f"Getting device forecast: site={site_id}, device={device_id}, "
-            f"hours={forecast_hours}"
+            f"Getting device forecast: site={site_id}, device={device_id}, hours={forecast_hours}"
         )
 
         return self.invoke_lambda(self.function_name, payload)
 
     def get_site_forecast(
-        self,
-        site_id: str,
-        forecast_hours: int = 24,
-        include_device_breakdown: bool = False
+        self, site_id: str, forecast_hours: int = 24, include_device_breakdown: bool = False
     ) -> Dict[str, Any]:
         """Get aggregated forecast for an entire site.
 
@@ -89,9 +78,9 @@ class ForecastingClient(BaseServiceClient):
             }
         """
         payload = {
-            'site_id': site_id,
-            'forecast_hours': forecast_hours,
-            'include_device_breakdown': include_device_breakdown
+            "site_id": site_id,
+            "forecast_hours": forecast_hours,
+            "include_device_breakdown": include_device_breakdown,
         }
 
         logger.info(
@@ -101,11 +90,7 @@ class ForecastingClient(BaseServiceClient):
 
         return self.invoke_lambda(self.function_name, payload)
 
-    def get_customer_forecast(
-        self,
-        customer_id: str,
-        forecast_hours: int = 24
-    ) -> Dict[str, Any]:
+    def get_customer_forecast(self, customer_id: str, forecast_hours: int = 24) -> Dict[str, Any]:
         """Get forecast for a customer (legacy method).
 
         Args:
@@ -123,14 +108,8 @@ class ForecastingClient(BaseServiceClient):
                 'model_info': {...}
             }
         """
-        payload = {
-            'customer_id': customer_id,
-            'forecast_hours': forecast_hours
-        }
+        payload = {"customer_id": customer_id, "forecast_hours": forecast_hours}
 
-        logger.info(
-            f"Getting customer forecast: customer={customer_id}, "
-            f"hours={forecast_hours}"
-        )
+        logger.info(f"Getting customer forecast: customer={customer_id}, hours={forecast_hours}")
 
         return self.invoke_lambda(self.function_name, payload)

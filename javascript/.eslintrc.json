@@ -1,0 +1,40 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "commonjs"
+  },
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "no-console": "warn",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+    "no-var": "error",
+    "prefer-const": "error",
+    "no-duplicate-imports": "error",
+    "no-shadow": "error",
+    "no-throw-literal": "error",
+    "handle-callback-err": "error",
+    "no-process-exit": "warn",
+    "semi": ["error", "always"],
+    "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }]
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "coverage/",
+    "dist/"
+  ],
+  "overrides": [
+    {
+      "files": ["examples/**/*.js"],
+      "rules": {
+        "no-console": "off",
+        "no-process-exit": "off"
+      }
+    }
+  ]
+}

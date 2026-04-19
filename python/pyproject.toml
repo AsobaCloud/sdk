@@ -33,8 +33,7 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "flake8>=6.0.0",
+    "ruff>=0.1.0",
     "mypy>=1.0.0",
 ]
 
@@ -42,6 +41,34 @@ dev = [
 Homepage = "https://github.com/AsobaCloud/platform"
 Documentation = "https://github.com/AsobaCloud/platform/tree/main/sdk/python"
 Repository = "https://github.com/AsobaCloud/platform"
+
+[tool.ruff]
+# Target the minimum supported Python version
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+# Enable a broad but practical rule set:
+#   E/W  – pycodestyle errors and warnings
+#   F    – Pyflakes (undefined names, unused imports, etc.)
+#   I    – isort (import ordering)
+#   UP   – pyupgrade (modernise syntax)
+#   B    – flake8-bugbear (likely bugs and design issues)
+#   C4   – flake8-comprehensions (unnecessary comprehensions)
+#   SIM  – flake8-simplify (simplifiable code patterns)
+select = ["E", "W", "F", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+    "E501",   # line-too-long — enforced by the formatter instead
+    "UP007",  # use X | Y for union types — not available in Python 3.8
+    "UP006",  # use type instead of Type — not available in Python 3.8
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ona_platform"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.black]
 line-length = 100

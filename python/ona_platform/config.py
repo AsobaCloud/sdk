@@ -93,7 +93,9 @@ class OnaConfig:
             inverter_telemetry_api_key=os.getenv("INVERTER_TELEMETRY_API_KEY"),
             telemetry_polling_interval=float(os.getenv("TELEMETRY_POLLING_INTERVAL", "5.0")),
             telemetry_5min_table=os.getenv("TELEMETRY_5MIN_TABLE", "ona-platform-telemetry-5min"),
-            telemetry_daily_table=os.getenv("TELEMETRY_DAILY_TABLE", "ona-platform-telemetry-daily"),
+            telemetry_daily_table=os.getenv(
+                "TELEMETRY_DAILY_TABLE", "ona-platform-telemetry-daily"
+            ),
             ooda_terminal_endpoint=os.getenv("OODA_TERMINAL_ENDPOINT"),
             ooda_terminal_api_key=os.getenv("OODA_TERMINAL_API_KEY"),
             ooda_polling_interval=float(os.getenv("OODA_POLLING_INTERVAL", "5.0")),

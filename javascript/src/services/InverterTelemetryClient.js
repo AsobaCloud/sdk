@@ -1,7 +1,7 @@
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
-const { ConfigurationError, ValidationError, AuthenticationError, APIError } = require('../utils/errors');
+const { ConfigurationError, ValidationError, AuthenticationError } = require('../utils/errors');
 const CursorSerializer = require('../utils/cursorSerializer');
 const { parseTelemetryRecord } = require('../utils/telemetryRecord');
 
@@ -48,7 +48,7 @@ class InverterTelemetryClient {
   }
 
   _validateQueryParams(site_id, time_range, limit) {
-    if (!site_id) throw new ValidationError('site_id is required', 'site_id', site_id);
+    if (!site_id) {throw new ValidationError('site_id is required', 'site_id', site_id);}
     if (time_range.start > time_range.end) {
       throw new ValidationError('time_range.start must be <= time_range.end', 'time_range', time_range);
     }
@@ -65,7 +65,7 @@ class InverterTelemetryClient {
     return new Promise((resolve, reject) => {
       const url = new URL(this._endpoint + path);
       for (const [k, v] of Object.entries(params)) {
-        if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+        if (v !== undefined && v !== null) {url.searchParams.set(k, String(v));}
       }
       const options = {
         hostname: url.hostname,
@@ -128,7 +128,7 @@ class InverterTelemetryClient {
   async getInverterTelemetry({ asset_id, site_id, time_range, resolution = '5min', limit = 100, cursor } = {}) {
     this._validateQueryParams(site_id, time_range, limit);
     const params = { asset_id, site_id, start: time_range.start, end: time_range.end, resolution, limit };
-    if (cursor) params.cursor = cursor;
+    if (cursor) {params.cursor = cursor;}
     const data = await this._requestWithRetry('/telemetry/inverter', params);
     return (data.records || []).map(parseTelemetryRecord);
   }
@@ -210,7 +210,7 @@ class InverterTelemetryClient {
           for (const r of recs) {
             const record = parseTelemetryRecord(r);
             const prev = lastTsMap[aid];
-            if (!prev || record.timestamp > prev) allRecords.push(record);
+            if (!prev || record.timestamp > prev) {allRecords.push(record);}
           }
         }
         allRecords.sort((a, b) => a.timestamp < b.timestamp ? -1 : 1);
@@ -226,9 +226,9 @@ class InverterTelemetryClient {
     }
   }
   async getDataPeriod({ site_id, asset_id } = {}) {
-    if (!site_id) throw new ValidationError('site_id is required', 'site_id', site_id);
+    if (!site_id) {throw new ValidationError('site_id is required', 'site_id', site_id);}
     const params = { site_id };
-    if (asset_id) params.asset_id = asset_id;
+    if (asset_id) {params.asset_id = asset_id;}
     return this._requestWithRetry('/telemetry/data-period', params);
   }
 }
