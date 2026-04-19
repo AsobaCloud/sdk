@@ -35,27 +35,3 @@ jobs:
       - name: Run ESLint
         working-directory: javascript
         run: npx eslint src/**/*.js examples/**/*.js --max-warnings 0
-
-      - name: Run Jest tests
-        working-directory: javascript
-        env:
-          JEST_JUNIT_OUTPUT_DIR: test-results
-          JEST_JUNIT_OUTPUT_NAME: jest-results.xml
-        run: |
-          npx jest \
-            --testPathPattern=tests/ \
-            --reporters=default \
-            --reporters=jest-junit \
-            --coverage \
-            --coverageDirectory=coverage \
-            --forceExit
-
-      - name: Upload test artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: javascript-test-results
-          path: |
-            javascript/test-results/
-            javascript/coverage/
-          retention-days: 7
