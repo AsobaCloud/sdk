@@ -15,8 +15,6 @@ Example usage:
     python ooda_terminal_example.py
 """
 
-import os
-import asyncio
 from datetime import datetime, timedelta
 from ona_platform import OnaClient
 from ona_platform.models.ooda import TimeRange

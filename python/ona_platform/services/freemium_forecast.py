@@ -6,7 +6,6 @@ and returns a 24-hour energy forecast.
 """
 
 import logging
-import os
 from pathlib import Path
 from typing import Union
 

@@ -12,8 +12,6 @@ from .interpolation import InterpolationClient
 from .standardization import StandardizationClient
 from .training import TrainingClient
 from .inverter_telemetry import InverterTelemetryClient
-
-from .inverter_telemetry import InverterTelemetryClient
 from .ooda_terminal import OodaTerminalClient
 from .freemium_forecast import FreemiumForecastClient
 
