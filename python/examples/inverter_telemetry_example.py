@@ -35,7 +35,7 @@ def main():
     print('=== Step 1: Discover available data period ===')
     try:
         period = it.get_data_period(site_id=site_id)
-        print(f'Site data period:')
+        print('Site data period:')
         print(f'  first_record: {period["first_record"]}')
         print(f'  last_record:  {period["last_record"]}')
 
