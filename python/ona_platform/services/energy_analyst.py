@@ -93,7 +93,9 @@ class EnergyAnalystClient(BaseServiceClient):
             return response.json()
 
         except requests.exceptions.Timeout:
-            raise ServiceUnavailableError(f"Request timed out after {self.config.timeout}s") from None
+            raise ServiceUnavailableError(
+                f"Request timed out after {self.config.timeout}s"
+            ) from None
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Request failed: {e}") from e
 
