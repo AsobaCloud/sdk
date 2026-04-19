@@ -1,0 +1,61 @@
+name: JavaScript SDK CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'javascript/**'
+      - '**/package.json'
+      - '**/package-lock.json'
+      - '.github/workflows/javascript-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'javascript/**'
+      - '**/package.json'
+      - '**/package-lock.json'
+  workflow_dispatch:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: javascript
+        run: npm install
+
+      - name: Run ESLint
+        working-directory: javascript
+        run: npx eslint src/**/*.js examples/**/*.js --max-warnings 0
+
+      - name: Run Jest tests
+        working-directory: javascript
+        env:
+          JEST_JUNIT_OUTPUT_DIR: test-results
+          JEST_JUNIT_OUTPUT_NAME: jest-results.xml
+        run: |
+          npx jest \
+            --testPathPattern=tests/ \
+            --reporters=default \
+            --reporters=jest-junit \
+            --coverage \
+            --coverageDirectory=coverage \
+            --forceExit
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: javascript-test-results
+          path: |
+            javascript/test-results/
+            javascript/coverage/
+          retention-days: 7

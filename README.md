@@ -1,7 +1,8 @@
 # Ona SDK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/AsobaCloud/odse/actions/workflows/ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/ci.yml)
+[![Python CI](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml)
+[![JavaScript CI](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml)
 
 ## What Works Right Now
 
