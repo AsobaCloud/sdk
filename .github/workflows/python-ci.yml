@@ -37,11 +37,11 @@ jobs:
 
       - name: Run Ruff
         working-directory: python
-        run: ruff check . --output-format github
+        run: python -m ruff check . --output-format github
 
       - name: Run Ruff format check
         working-directory: python
-        run: ruff format --check .
+        run: python -m ruff format --check .
 
       - name: Run pytest
         working-directory: python
