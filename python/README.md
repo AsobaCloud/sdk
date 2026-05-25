@@ -571,7 +571,7 @@ MIT License - see LICENSE file for details.
 For issues and questions:
 
 - GitHub Issues: https://github.com/AsobaCloud/platform/issues
-- Email: info@asoba.co
+- Email: support@asoba.org
 
 ## Contributing
 

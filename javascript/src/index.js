@@ -49,8 +49,8 @@ class OnaSDK {
    *     secretAccessKey: 'YOUR_SECRET_KEY'
    *   },
    *   endpoints: {
-   *     forecasting: 'https://forecasting.api.asoba.co',
-   *     terminal: 'https://terminal.api.asoba.co',
+   *     forecasting: 'https://forecasting.api.asoba.org',
+   *     terminal: 'https://terminal.api.asoba.org',
    *     edgeRegistry: 'http://edge-registry:8082',
    *     energyAnalyst: 'http://energy-analyst:8000'
    *   }

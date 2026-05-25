@@ -30,7 +30,7 @@ This code applies in all project spaces, including issues, pull requests, discus
 
 Report conduct concerns to:
 
-- support@asoba.co
+- support@asoba.org
 
 Maintainers will review reports promptly and may remove, edit, or reject comments, commits, code, or contributions that violate this code.
 

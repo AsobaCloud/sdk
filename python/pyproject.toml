@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Python SDK for Ona Energy Management Platform"
 readme = "README.md"
 authors = [
-    {name = "Asoba Energy", email = "info@asoba.co"}
+    {name = "Asoba Energy", email = "support@asoba.org"}
 ]
 license = {text = "MIT"}
 classifiers = [

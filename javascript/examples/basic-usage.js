@@ -14,8 +14,8 @@ async function main() {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     },
     endpoints: {
-      forecasting: process.env.ONA_FORECASTING_ENDPOINT || 'https://forecasting.api.asoba.co',
-      terminal: process.env.ONA_TERMINAL_ENDPOINT || 'https://terminal.api.asoba.co',
+      forecasting: process.env.ONA_FORECASTING_ENDPOINT || 'https://forecasting.api.asoba.org',
+      terminal: process.env.ONA_TERMINAL_ENDPOINT || 'https://terminal.api.asoba.org',
       edgeRegistry: process.env.ONA_EDGE_REGISTRY_ENDPOINT || 'http://edge-registry:8082',
       energyAnalyst: process.env.ONA_ENERGY_ANALYST_ENDPOINT || 'http://energy-analyst:8000'
     }

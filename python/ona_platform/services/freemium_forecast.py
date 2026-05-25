@@ -1,6 +1,6 @@
 """Freemium Forecast client for Ona Platform SDK.
 
-Wraps the public POST https://api.asoba.co/v1/freemium-forecast endpoint.
+Wraps the public POST https://api.asoba.org/v1/freemium-forecast endpoint.
 No API key required — accepts a CSV file of historical solar production data
 and returns a 24-hour energy forecast.
 """
@@ -15,7 +15,7 @@ from ..exceptions import ServiceUnavailableError, ValidationError
 
 logger = logging.getLogger(__name__)
 
-FREEMIUM_FORECAST_URL = "https://api.asoba.co/v1/freemium-forecast"
+FREEMIUM_FORECAST_URL = "https://api.asoba.org/v1/freemium-forecast"
 
 
 class FreemiumForecastClient:

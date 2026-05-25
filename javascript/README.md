@@ -33,8 +33,8 @@ const sdk = new OnaSDK({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   },
   endpoints: {
-    forecasting: 'https://forecasting.api.asoba.co',
-    terminal: 'https://terminal.api.asoba.co',
+    forecasting: 'https://forecasting.api.asoba.org',
+    terminal: 'https://terminal.api.asoba.org',
     edgeRegistry: 'http://edge-registry:8082',
     energyAnalyst: 'http://energy-analyst:8000'
   }
@@ -320,8 +320,8 @@ const sdk = new OnaSDK({
 
   // Service endpoints
   endpoints: {
-    forecasting: 'https://forecasting.api.asoba.co',
-    terminal: 'https://terminal.api.asoba.co',
+    forecasting: 'https://forecasting.api.asoba.org',
+    terminal: 'https://terminal.api.asoba.org',
     edgeRegistry: 'http://edge-registry:8082',
     energyAnalyst: 'http://energy-analyst:8000',
     // ... other endpoints
@@ -346,8 +346,8 @@ You can also configure the SDK using environment variables:
 export AWS_ACCESS_KEY_ID=your_access_key
 export AWS_SECRET_ACCESS_KEY=your_secret_key
 export AWS_REGION=af-south-1
-export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.co
-export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.co
+export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.org
+export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.org
 ```
 
 ## Error Handling
@@ -491,7 +491,7 @@ MIT
 
 For issues and questions:
 - GitHub Issues: https://github.com/AsobaCloud/platform/issues
-- Documentation: https://docs.asoba.co
+- Documentation: https://docs.asoba.org
 
 ## Contributing
 

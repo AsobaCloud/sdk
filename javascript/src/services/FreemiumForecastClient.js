@@ -1,7 +1,7 @@
 /**
  * Freemium Forecast Client
  *
- * Wraps the public POST https://api.asoba.co/v1/freemium-forecast endpoint.
+ * Wraps the public POST https://api.asoba.org/v1/freemium-forecast endpoint.
  * No API key required — upload a CSV of historical solar production data
  * and receive a 24-hour energy forecast.
  */
@@ -12,7 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const { ValidationError } = require('../utils/errors');
 
-const FREEMIUM_FORECAST_URL = 'https://api.asoba.co/v1/freemium-forecast';
+const FREEMIUM_FORECAST_URL = 'https://api.asoba.org/v1/freemium-forecast';
 
 class ServiceUnavailableError extends Error {
   constructor(message) {

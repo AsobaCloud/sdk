@@ -9,7 +9,7 @@ setup(
     name="ona-platform",
     version="1.0.0",
     author="Asoba Energy",
-    author_email="info@asoba.co",
+    author_email="support@asoba.org",
     description="Python SDK for Ona Energy Management Platform",
     long_description=long_description,
     long_description_content_type="text/markdown",

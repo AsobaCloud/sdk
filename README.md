@@ -25,7 +25,7 @@ This SDK provides two live APIs for solar installation data:
 ## Quick Start
 
 ### 1. Get an API Key
-Contact **support@asoba.co** to get an API key.
+Contact **support@asoba.org** to get an API key.
 
 ### 2. Install the SDK
 
@@ -267,7 +267,7 @@ for alert in client.ooda_terminal.stream_terminal(
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `401 Unauthorized` | Invalid/missing API key | Check your API key with support@asoba.co |
+| `401 Unauthorized` | Invalid/missing API key | Check your API key with support@asoba.org |
 | `403 Forbidden` | API key not scoped to site | Request access to the site_id you're querying |
 | `429 Too Many Requests` | Rate limit exceeded | Wait and retry (60 req/min limit) |
 | `ValidationError` | Invalid parameters | Check time ranges, limits, and required fields |
@@ -302,11 +302,11 @@ sdk/
 
 ## Support
 
-**Need an API Key?** Contact **support@asoba.co** with your use case.
+**Need an API Key?** Contact **support@asoba.org** with your use case.
 
 **Issues?** Open one at https://github.com/AsobaCloud/sdk/issues
 
-**Email:** support@asoba.co
+**Email:** support@asoba.org
 
 ---
 

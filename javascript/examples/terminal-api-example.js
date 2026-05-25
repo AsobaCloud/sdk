@@ -13,7 +13,7 @@ async function main() {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     },
     endpoints: {
-      terminal: process.env.ONA_TERMINAL_ENDPOINT || 'https://terminal.api.asoba.co'
+      terminal: process.env.ONA_TERMINAL_ENDPOINT || 'https://terminal.api.asoba.org'
     }
   });
 
