@@ -15,6 +15,7 @@ from .services import (
     InterpolationClient,
     InverterTelemetryClient,
     OodaTerminalClient,
+    PartnerApiClient,
     StandardizationClient,
     TerminalClient,
     TrainingClient,
@@ -59,6 +60,8 @@ class OnaClient:
         inverter_telemetry_api_key: Optional[str] = None,
         ooda_terminal_endpoint: Optional[str] = None,
         ooda_terminal_api_key: Optional[str] = None,
+        partner_api_endpoint: Optional[str] = None,
+        partner_api_key: Optional[str] = None,
     ):
         """Initialize Ona Platform client.
 
@@ -105,6 +108,10 @@ class OnaClient:
                 config.ooda_terminal_endpoint = ooda_terminal_endpoint
             if ooda_terminal_api_key is not None:
                 config.ooda_terminal_api_key = ooda_terminal_api_key
+            if partner_api_endpoint is not None:
+                config.partner_api_endpoint = partner_api_endpoint
+            if partner_api_key is not None:
+                config.partner_api_key = partner_api_key
 
         self.config = config
 
@@ -123,6 +130,7 @@ class OnaClient:
         self._inverter_telemetry = None
         self._ooda_terminal = None
         self._freemium_forecast = None
+        self._partner_api = None
 
         logger.info("Ona Platform client initialized")
         logger.debug(f"Configuration: {self.config}")
@@ -224,3 +232,10 @@ class OnaClient:
         if self._freemium_forecast is None:
             self._freemium_forecast = FreemiumForecastClient(self.config)
         return self._freemium_forecast
+
+    @property
+    def partner_api(self) -> PartnerApiClient:
+        """Get Partner API service client."""
+        if self._partner_api is None:
+            self._partner_api = PartnerApiClient(self.config)
+        return self._partner_api

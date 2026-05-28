@@ -11,7 +11,8 @@ This SDK provides two live APIs for solar installation data:
 **✅ Working Features:**
 - **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution)
 - **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
-- Resumable streaming with cursor tokens for both APIs
+- **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts) with sub-100ms response times via ETag caching
+- Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
 
 **🚧 Planned Features:**
@@ -57,7 +58,13 @@ export OODA_TERMINAL_ENDPOINT=https://3lpq00xevg.execute-api.af-south-1.amazonaw
 export OODA_TERMINAL_API_KEY=<your_api_key>
 ```
 
-> The same API key works for both endpoints — just set it in both variables.
+**Partner API:**
+```bash
+export PARTNER_API_ENDPOINT=https://<endpoint>.execute-api.af-south-1.amazonaws.com/prod
+export PARTNER_API_KEY=<your_api_key>
+```
+
+> The same API key works for all endpoints — just set it in the respective variables.
 
 ### 4. Test It Works
 
@@ -66,6 +73,7 @@ export OODA_TERMINAL_API_KEY=<your_api_key>
 cd javascript
 node examples/inverter-telemetry-example.js
 node examples/ooda-terminal-example.js
+node examples/partner-api-example.js
 ```
 
 **Python:**
@@ -73,6 +81,7 @@ node examples/ooda-terminal-example.js
 cd python
 python3 examples/inverter_telemetry_example.py
 python3 examples/ooda_terminal_example.py
+python3 examples/partner_api_example.py
 ```
 
 ---
@@ -218,6 +227,49 @@ for alert in client.ooda_terminal.stream_terminal(
 
 ---
 
+## Partner API
+
+Fetch pre-computed JSON snapshots for embedding and partner integrations. This API is optimized for speed using ETag-based conditional GETs and in-memory caching.
+
+### JavaScript
+```javascript
+const { OnaSDK } = require('./src/index');
+
+const sdk = new OnaSDK({
+  endpoints: {
+    partnerApi: process.env.PARTNER_API_ENDPOINT,
+  },
+  partnerApiKey: process.env.PARTNER_API_KEY,
+});
+
+// Fetch KPI rollup (first call: full fetch)
+const kpis = await sdk.partnerApi.getKpiRollup({ site_id: 'Sibaya' });
+console.log('KPIs fetched');
+
+// Fetch again (second call: returns cached data if ETag matches)
+const cachedKpis = await sdk.partnerApi.getKpiRollup({ site_id: 'Sibaya' });
+console.log('KPIs served from cache');
+```
+
+### Python
+```python
+from ona_platform import OnaClient
+
+client = OnaClient()
+
+# Fetch KPI rollup
+kpis = client.partner_api.get_kpi_rollup(site_id='Sibaya')
+print(f"KPIs: {kpis}")
+
+# Fetch signals since a timestamp
+signals = client.partner_api.get_maintenance_signals(
+    site_id='Sibaya', 
+    since='2025-11-01T00:00:00'
+)
+```
+
+---
+
 ## API Reference
 
 ### Inverter Telemetry Methods
@@ -237,6 +289,14 @@ for alert in client.ooda_terminal.stream_terminal(
 | `getDataPeriod` / `get_data_period` | Discover available alert time range |
 | `streamTerminal` / `stream_terminal` | Stream live alerts from a single terminal device |
 | `streamSite` / `stream_site` | Stream live alerts from all terminal devices at a site |
+
+### Partner API Methods
+| Method | Description |
+|--------|-------------|
+| `getKpiRollup` / `get_kpi_rollup` | Site-level KPI summary snapshot |
+| `getMaintenanceSignals` / `get_maintenance_signals` | Pending maintenance and health signals |
+| `getForecastSnapshot` / `get_forecast_snapshot` | Pre-computed solar forecast snapshot |
+| `getSnapshot` / `get_snapshot` | Generic snapshot fetch by kind |
 
 ### Shared Parameters
 | Parameter | Description |
@@ -260,6 +320,7 @@ for alert in client.ooda_terminal.stream_terminal(
 |-----|----------|
 | Inverter Telemetry | `https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod` |
 | OODA Terminal Alerts | `https://3lpq00xevg.execute-api.af-south-1.amazonaws.com/prod` |
+| Partner API | `https://<endpoint>.execute-api.af-south-1.amazonaws.com/prod` |
 
 ---
 
@@ -286,16 +347,21 @@ sdk/
 ├── javascript/
 │   ├── src/services/InverterTelemetryClient.js
 │   ├── src/services/OodaTerminalClient.js
+│   ├── src/services/PartnerApiClient.js
 │   ├── examples/inverter-telemetry-example.js
-│   └── examples/ooda-terminal-example.js
+│   ├── examples/ooda-terminal-example.js
+│   └── examples/partner-api-example.js
 ├── python/
 │   ├── ona_platform/services/inverter_telemetry.py
 │   ├── ona_platform/services/ooda_terminal.py
+│   ├── ona_platform/services/partner_api.py
 │   ├── examples/inverter_telemetry_example.py
-│   └── examples/ooda_terminal_example.py
+│   ├── examples/ooda_terminal_example.py
+│   └── examples/partner_api_example.py
 └── backend/
     ├── inverter_telemetry_api/   # Deployed Lambda
-    └── ooda_terminal_api/        # Deployed Lambda
+    ├── ooda_terminal_api/        # Deployed Lambda
+    └── partner_api/              # Deployed Lambda
 ```
 
 ---

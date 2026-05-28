@@ -42,6 +42,8 @@ class OnaConfig:
     ooda_polling_interval: float = 5.0
     ooda_5min_table: str = "ona-platform-ooda-5min"
     ooda_daily_table: str = "ona-platform-ooda-daily"
+    partner_api_endpoint: Optional[str] = None
+    partner_api_key: Optional[str] = None
 
     def __post_init__(self):
         if (
@@ -56,6 +58,13 @@ class OnaConfig:
         ):
             raise ConfigurationError(
                 f"ooda_terminal_endpoint must use https:// (got: {self.ooda_terminal_endpoint!r})"
+            )
+        if (
+            self.partner_api_endpoint is not None
+            and not self.partner_api_endpoint.startswith("https://")
+        ):
+            raise ConfigurationError(
+                f"partner_api_endpoint must use https:// (got: {self.partner_api_endpoint!r})"
             )
         if self.telemetry_polling_interval < 1.0:
             raise ConfigurationError(
@@ -79,6 +88,8 @@ class OnaConfig:
             ENERGY_ANALYST_URL: Energy Analyst RAG service URL
             ONA_TIMEOUT: Request timeout in seconds
             ONA_MAX_RETRIES: Maximum retry attempts
+            PARTNER_API_ENDPOINT: Partner API endpoint
+            PARTNER_API_KEY: Partner API key
 
         Returns:
             OnaConfig instance with values from environment
@@ -105,4 +116,6 @@ class OnaConfig:
             ooda_polling_interval=float(os.getenv("OODA_POLLING_INTERVAL", "5.0")),
             ooda_5min_table=os.getenv("OODA_5MIN_TABLE", "ona-platform-ooda-5min"),
             ooda_daily_table=os.getenv("OODA_DAILY_TABLE", "ona-platform-ooda-daily"),
+            partner_api_endpoint=os.getenv("PARTNER_API_ENDPOINT"),
+            partner_api_key=os.getenv("PARTNER_API_KEY"),
         )

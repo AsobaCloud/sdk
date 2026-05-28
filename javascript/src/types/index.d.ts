@@ -24,6 +24,8 @@ export interface Endpoints {
   terminal?: string;
   weather?: string;
   inverterTelemetry?: string;
+  oodaTerminal?: string;
+  partnerApi?: string;
 }
 
 export interface SDKOptions {
@@ -35,6 +37,9 @@ export interface SDKOptions {
   retryDelay?: number;
   inverterTelemetryApiKey?: string;
   telemetryPollingInterval?: number;
+  oodaTerminalApiKey?: string;
+  oodaPollingInterval?: number;
+  partnerApiKey?: string;
 }
 
 // Error types
@@ -112,6 +117,62 @@ export class InverterTelemetryClient {
   streamInverter(options: InverterTelemetryOptions): AsyncIterable<TelemetryRecord>;
   streamSite(options: InverterTelemetryOptions): AsyncIterable<TelemetryRecord>;
   getDataPeriod(options: { site_id: string; asset_id?: string }): Promise<{ site_id: string; asset_id?: string; first_record: string | null; last_record: string | null }>;
+}
+
+// OODA Terminal types
+export interface OodaAlert {
+  terminal_device_id: string;
+  site_id: string;
+  timestamp: string;
+  alert_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  metadata?: Record<string, any>;
+  cursor?: string;
+}
+
+export class OodaTerminalClient {
+  constructor(config: any);
+  getTerminalAlerts(options: { terminal_device_id: string; site_id: string; time_range: TimeRange; resolution?: string; limit?: number; cursor?: string }): Promise<OodaAlert[]>;
+  getSiteAlerts(options: { site_id: string; time_range: TimeRange; resolution?: string; limit?: number }): Promise<Record<string, OodaAlert[]>>;
+  getDataPeriod(options: { site_id: string; terminal_device_id?: string }): Promise<any>;
+  streamTerminal(options: { terminal_device_id: string; site_id: string; cursor?: string; polling_interval?: number }): AsyncIterable<OodaAlert>;
+  streamSite(options: { site_id: string; cursor?: string; polling_interval?: number }): AsyncIterable<OodaAlert>;
+}
+
+// Partner API types
+export interface KpiRollupSnapshot {
+  site_id: string;
+  timestamp: string;
+  kpis: Record<string, any>;
+}
+
+export interface MaintenanceSignal {
+  id: string;
+  timestamp: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  metadata?: Record<string, any>;
+}
+
+export interface MaintenanceSignalsSnapshot {
+  site_id: string;
+  timestamp: string;
+  signals: MaintenanceSignal[];
+}
+
+export interface ForecastSnapshot {
+  site_id: string;
+  timestamp: string;
+  forecasts: Record<string, any>;
+}
+
+export class PartnerApiClient {
+  constructor(httpClient: any, config: any);
+  getKpiRollup(params: { site_id: string }): Promise<KpiRollupSnapshot>;
+  getMaintenanceSignals(params: { site_id: string; since?: string; severity?: string }): Promise<MaintenanceSignalsSnapshot>;
+  getForecastSnapshot(params: { site_id: string; horizon?: string }): Promise<ForecastSnapshot>;
+  getSnapshot(params: { site_id: string; kind: string; [key: string]: any }): Promise<any>;
 }
 
 // Forecasting types
@@ -325,6 +386,9 @@ export class OnaSDK {
   enphase: EnphaseClient;
   huawei: HuaweiClient;
   inverterTelemetry: InverterTelemetryClient | null;
+  oodaTerminal: OodaTerminalClient | null;
+  freemiumForecast: any;
+  partnerApi: PartnerApiClient | null;
 
   setEndpoint(serviceName: string, endpoint: string): void;
   getConfig(): any;

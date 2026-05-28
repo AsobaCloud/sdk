@@ -19,6 +19,7 @@ const HuaweiClient = require('./services/HuaweiClient');
 const { InverterTelemetryClient, RateLimitError: ITRateLimitError, ServiceUnavailableError: ITServiceUnavailableError } = require('./services/InverterTelemetryClient');
 const { OodaTerminalClient, RateLimitError: OTRateLimitError, ServiceUnavailableError: OTServiceUnavailableError } = require('./services/OodaTerminalClient');
 const { FreemiumForecastClient } = require('./services/FreemiumForecastClient');
+const PartnerApiClient = require('./services/PartnerApiClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -40,19 +41,14 @@ class OnaSDK {
    * @param {number} [options.timeout=30000] - Request timeout in milliseconds
    * @param {number} [options.retries=3] - Number of retries for failed requests
    * @param {number} [options.retryDelay=1000] - Delay between retries in milliseconds
+   * @param {string} [options.partnerApiKey] - Partner API key
    *
    * @example
    * const sdk = new OnaSDK({
    *   region: 'af-south-1',
-   *   credentials: {
-   *     accessKeyId: 'YOUR_ACCESS_KEY',
-   *     secretAccessKey: 'YOUR_SECRET_KEY'
-   *   },
+   *   partnerApiKey: 'YOUR_PARTNER_API_KEY',
    *   endpoints: {
-   *     forecasting: 'https://forecasting.api.asoba.org',
-   *     terminal: 'https://terminal.api.asoba.org',
-   *     edgeRegistry: 'http://edge-registry:8082',
-   *     energyAnalyst: 'http://energy-analyst:8000'
+   *     partnerApi: 'https://partner.api.asoba.org'
    *   }
    * });
    */
@@ -151,6 +147,16 @@ class OnaSDK {
      * @type {FreemiumForecastClient}
      */
     this.freemiumForecast = new FreemiumForecastClient(this.config);
+
+    /**
+     * Partner API client
+     * @type {PartnerApiClient|null}
+     */
+    try {
+      this.partnerApi = new PartnerApiClient(this.httpClient, this.config);
+    } catch (e) {
+      this.partnerApi = null;
+    }
   }
 
   /**
@@ -175,7 +181,7 @@ class OnaSDK {
    * @returns {string} SDK version
    */
   static getVersion() {
-    return '1.0.0';
+    return '1.1.0';
   }
 }
 
@@ -189,6 +195,7 @@ module.exports = {
   OodaRateLimitError: OTRateLimitError,
   OodaServiceUnavailableError: OTServiceUnavailableError,
   FreemiumForecastClient,
+  PartnerApiClient,
   ...errors,
   ...validators
 };

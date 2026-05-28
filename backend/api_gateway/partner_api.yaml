@@ -1,0 +1,62 @@
+openapi: "3.0.1"
+info:
+  title: "Partner API"
+  version: "1.1.0"
+paths:
+  /kpi-rollup:
+    get:
+      parameters:
+        - name: "site_id"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "KPI Rollup Snapshot"
+        304:
+          description: "Not Modified"
+  /maintenance-signals:
+    get:
+      parameters:
+        - name: "site_id"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Maintenance Signals Snapshot"
+        304:
+          description: "Not Modified"
+  /forecast-snapshot:
+    get:
+      parameters:
+        - name: "site_id"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Forecast Snapshot"
+        304:
+          description: "Not Modified"
+  /snapshot:
+    get:
+      parameters:
+        - name: "site_id"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "kind"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Generic Snapshot"
+        304:
+          description: "Not Modified"

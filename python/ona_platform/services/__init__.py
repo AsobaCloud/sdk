@@ -10,6 +10,7 @@ from .huawei import HuaweiClient
 from .interpolation import InterpolationClient
 from .inverter_telemetry import InverterTelemetryClient
 from .ooda_terminal import OodaTerminalClient
+from .partner_api import PartnerApiClient
 from .standardization import StandardizationClient
 from .terminal import TerminalClient
 from .training import TrainingClient
@@ -30,4 +31,5 @@ __all__ = [
     "InverterTelemetryClient",
     "OodaTerminalClient",
     "FreemiumForecastClient",
+    "PartnerApiClient",
 ]

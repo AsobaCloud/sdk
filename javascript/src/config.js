@@ -27,7 +27,8 @@ const DEFAULTS = {
     terminal: null,
     weather: null,
     inverterTelemetry: null,
-    oodaTerminal: null
+    oodaTerminal: null,
+    partnerApi: null
   }
 };
 
@@ -47,6 +48,7 @@ class Config {
    * @param {number} [options.timeout] - Request timeout in milliseconds
    * @param {number} [options.retries] - Number of retries for failed requests
    * @param {number} [options.retryDelay] - Delay between retries in milliseconds
+   * @param {string} [options.partnerApiKey] - Partner API key
    */
   constructor(options = {}) {
     this.region = options.region || DEFAULTS.region;
@@ -81,6 +83,14 @@ class Config {
     // endpoint comes from options.endpoints.oodaTerminal or env var
     if (!this.endpoints.oodaTerminal && process.env.OODA_TERMINAL_ENDPOINT) {
       this.endpoints.oodaTerminal = process.env.OODA_TERMINAL_ENDPOINT;
+    }
+
+    this.partnerApiKey = options.partnerApiKey
+      || process.env.PARTNER_API_KEY
+      || null;
+    // endpoint comes from options.endpoints.partnerApi or env var
+    if (!this.endpoints.partnerApi && process.env.PARTNER_API_ENDPOINT) {
+      this.endpoints.partnerApi = process.env.PARTNER_API_ENDPOINT;
     }
 
     this.validate();
@@ -141,6 +151,15 @@ class Config {
       throw new ConfigurationError(
         'oodaTerminal endpoint must use https://',
         ['endpoints.oodaTerminal']
+      );
+    }
+
+    // Validate partnerApi endpoint scheme if set
+    const paEndpoint = this.endpoints.partnerApi;
+    if (paEndpoint && !paEndpoint.startsWith('https://')) {
+      throw new ConfigurationError(
+        'partnerApi endpoint must use https://',
+        ['endpoints.partnerApi']
       );
     }
   }
