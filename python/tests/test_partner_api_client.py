@@ -25,7 +25,6 @@ from ona_platform.exceptions import (
 )
 from ona_platform.services.partner_api import PartnerApiClient
 
-
 # ---------------------------------------------------------------------------
 # Sample payloads matching the live S3 snapshot shapes
 # ---------------------------------------------------------------------------
