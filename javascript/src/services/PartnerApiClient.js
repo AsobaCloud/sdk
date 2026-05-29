@@ -91,6 +91,22 @@ class PartnerApiClient {
   }
 
   /**
+   * Get the preventive-maintenance schedule snapshot for a site (SEP-062).
+   *
+   * Returns a forward-looking 90-day task list grouped by inverter, derived
+   * from rolling-window anomaly frequency and configurable manufacturer
+   * service intervals. Companion to getMaintenanceSignals().
+   *
+   * @param {Object} params - Parameters
+   * @param {string} params.site_id - Site identifier
+   * @param {string} [params.since] - Optional ISO timestamp filter
+   * @returns {Promise<Object>} Maintenance schedule snapshot
+   */
+  async getMaintenanceSchedule({ site_id, since } = {}) {
+    return this._request('/maintenance-schedule', site_id, { since });
+  }
+
+  /**
    * Get a generic snapshot for a site.
    * @param {Object} params - Parameters
    * @param {string} params.site_id - Site identifier

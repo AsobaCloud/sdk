@@ -104,6 +104,23 @@ class PartnerApiClient:
             params["horizon"] = horizon
         return self._request("/forecast-snapshot", params)
 
+    def get_maintenance_schedule(
+        self,
+        site_id: str,
+        since: Optional[str] = None,
+    ) -> dict:
+        """Get the preventive-maintenance schedule snapshot for a site.
+
+        Returns a forward-looking 90-day task list grouped by inverter,
+        derived from rolling-window anomaly frequency and configurable
+        manufacturer service intervals. Companion to maintenance-signals
+        (which reports detected anomalies). See SEP-062.
+        """
+        params = {"site_id": site_id}
+        if since:
+            params["since"] = since
+        return self._request("/maintenance-schedule", params)
+
     def get_snapshot(self, site_id: str, kind: str, **kwargs) -> dict:
         """Get a generic snapshot for a site."""
         params = {"site_id": site_id, "kind": kind}

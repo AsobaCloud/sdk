@@ -38,6 +38,18 @@ def main():
         )
         print("Signals:", json.dumps(signals, indent=2))
 
+        print("\n--- Fetching Maintenance Schedule (SEP-062) ---")
+        schedule = client.partner_api.get_maintenance_schedule(site_id=site_id)
+        summary = schedule.get("summary", {})
+        print(f"Horizon: {schedule.get('horizon')}")
+        print(f"Total tasks: {summary.get('total_tasks')}")
+        print(f"By priority: {summary.get('by_priority')}")
+        tasks = schedule.get("tasks", [])
+        if tasks:
+            print(f"First task: {json.dumps(tasks[0], indent=2)}")
+        else:
+            print("No scheduled maintenance tasks yet (insufficient anomaly history).")
+
     except Exception as e:
         print(f"Error: {e}")
 

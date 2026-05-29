@@ -167,11 +167,36 @@ export interface ForecastSnapshot {
   forecasts: Record<string, any>;
 }
 
+/** Single maintenance task derived from rolling-window anomaly frequency. */
+export interface MaintenanceTask {
+  asset_id: string;
+  task_type: string;
+  reason: string;
+  recommended_date: string;
+  estimated_duration_hours: number;
+  priority: 'High' | 'Medium' | 'Low';
+}
+
+/** Preventive-maintenance schedule snapshot (SEP-062). */
+export interface MaintenanceScheduleSnapshot {
+  site_id: string;
+  generated_at: string;
+  horizon: { start: string; end: string };
+  tasks: MaintenanceTask[];
+  summary: {
+    total_tasks: number;
+    by_priority: Record<string, number>;
+    by_task_type: Record<string, number>;
+    by_asset: Record<string, number>;
+  };
+}
+
 export class PartnerApiClient {
   constructor(httpClient: any, config: any);
   getKpiRollup(params: { site_id: string }): Promise<KpiRollupSnapshot>;
   getMaintenanceSignals(params: { site_id: string; since?: string; severity?: string }): Promise<MaintenanceSignalsSnapshot>;
   getForecastSnapshot(params: { site_id: string; horizon?: string }): Promise<ForecastSnapshot>;
+  getMaintenanceSchedule(params: { site_id: string; since?: string }): Promise<MaintenanceScheduleSnapshot>;
   getSnapshot(params: { site_id: string; kind: string; [key: string]: any }): Promise<any>;
 }
 

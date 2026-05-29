@@ -11,7 +11,7 @@ This SDK provides two live APIs for solar installation data:
 **✅ Working Features:**
 - **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution)
 - **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
-- **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts) with sub-100ms response times via ETag caching
+- **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
 
@@ -266,6 +266,21 @@ signals = client.partner_api.get_maintenance_signals(
     site_id='Sibaya', 
     since='2025-11-01T00:00:00'
 )
+
+# Fetch the 90-day preventive-maintenance schedule (SEP-062)
+schedule = client.partner_api.get_maintenance_schedule(site_id='Sibaya')
+print(f"Tasks: {schedule['summary']['total_tasks']}")
+for task in schedule['tasks']:
+    print(f"  {task['recommended_date']} — {task['asset_id']} — {task['task_type']} ({task['priority']})")
+```
+
+**JavaScript — maintenance schedule:**
+```javascript
+const schedule = await sdk.partnerApi.getMaintenanceSchedule({ site_id: 'Sibaya' });
+console.log(`Tasks: ${schedule.summary.total_tasks}`);
+for (const task of schedule.tasks) {
+  console.log(`  ${task.recommended_date} — ${task.asset_id} — ${task.task_type} (${task.priority})`);
+}
 ```
 
 ---
@@ -296,6 +311,7 @@ signals = client.partner_api.get_maintenance_signals(
 | `getKpiRollup` / `get_kpi_rollup` | Site-level KPI summary snapshot |
 | `getMaintenanceSignals` / `get_maintenance_signals` | Pending maintenance and health signals |
 | `getForecastSnapshot` / `get_forecast_snapshot` | Pre-computed solar forecast snapshot |
+| `getMaintenanceSchedule` / `get_maintenance_schedule` | Preventive-maintenance task list for the next 90 days (per inverter) |
 | `getSnapshot` / `get_snapshot` | Generic snapshot fetch by kind |
 
 ### Shared Parameters

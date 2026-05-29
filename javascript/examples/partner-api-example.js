@@ -46,6 +46,19 @@ async function main() {
     });
     console.log('Signals:', JSON.stringify(signals, null, 2));
 
+    console.log(`\n--- Fetching Maintenance Schedule (SEP-062) ---`);
+    const schedule = await sdk.partnerApi.getMaintenanceSchedule({ site_id: siteId });
+    const summary = schedule.summary || {};
+    console.log('Horizon:', JSON.stringify(schedule.horizon));
+    console.log('Total tasks:', summary.total_tasks);
+    console.log('By priority:', JSON.stringify(summary.by_priority));
+    const tasks = schedule.tasks || [];
+    if (tasks.length > 0) {
+      console.log('First task:', JSON.stringify(tasks[0], null, 2));
+    } else {
+      console.log('No scheduled maintenance tasks yet (insufficient anomaly history).');
+    }
+
   } catch (error) {
     console.error('Error:', error.message);
     if (error.response) {
