@@ -6,7 +6,7 @@
 
 ## What Works Right Now
 
-This SDK provides two live APIs for solar installation data:
+This SDK provides three live APIs for solar installation data:
 
 **✅ Working Features:**
 - **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution)
@@ -242,13 +242,27 @@ const sdk = new OnaSDK({
   partnerApiKey: process.env.PARTNER_API_KEY,
 });
 
-// Fetch KPI rollup (first call: full fetch)
+// 1. KPI rollup (first call: full fetch; second call: returns cached if ETag matches)
 const kpis = await sdk.partnerApi.getKpiRollup({ site_id: 'Sibaya' });
-console.log('KPIs fetched');
-
-// Fetch again (second call: returns cached data if ETag matches)
 const cachedKpis = await sdk.partnerApi.getKpiRollup({ site_id: 'Sibaya' });
-console.log('KPIs served from cache');
+
+// 2. Maintenance signals (detected anomalies) — optional `since` and `severity` filters
+const signals = await sdk.partnerApi.getMaintenanceSignals({
+  site_id: 'Sibaya',
+  since: '2025-11-01T00:00:00',
+  severity: 'high',
+});
+
+// 3. Forecast snapshot — pre-computed 24h solar forecast (optional `horizon`)
+const forecast = await sdk.partnerApi.getForecastSnapshot({ site_id: 'Sibaya' });
+console.log(`Forecast horizon: ${forecast.horizon_hours}h, intervals: ${forecast.intervals.length}`);
+
+// 4. Maintenance schedule (90-day preventive tasks) — SEP-062
+const schedule = await sdk.partnerApi.getMaintenanceSchedule({ site_id: 'Sibaya' });
+console.log(`Tasks: ${schedule.summary.total_tasks}`);
+for (const task of schedule.tasks) {
+  console.log(`  ${task.recommended_date} — ${task.asset_id} — ${task.task_type} (${task.priority})`);
+}
 ```
 
 ### Python
@@ -257,30 +271,26 @@ from ona_platform import OnaClient
 
 client = OnaClient()
 
-# Fetch KPI rollup
+# 1. KPI rollup (first call: full fetch; second call: returns cached if ETag matches)
 kpis = client.partner_api.get_kpi_rollup(site_id='Sibaya')
-print(f"KPIs: {kpis}")
+cached_kpis = client.partner_api.get_kpi_rollup(site_id='Sibaya')
 
-# Fetch signals since a timestamp
+# 2. Maintenance signals (detected anomalies) — optional `since` and `severity` filters
 signals = client.partner_api.get_maintenance_signals(
-    site_id='Sibaya', 
-    since='2025-11-01T00:00:00'
+    site_id='Sibaya',
+    since='2025-11-01T00:00:00',
+    severity='high',
 )
 
-# Fetch the 90-day preventive-maintenance schedule (SEP-062)
+# 3. Forecast snapshot — pre-computed 24h solar forecast (optional `horizon`)
+forecast = client.partner_api.get_forecast_snapshot(site_id='Sibaya')
+print(f"Forecast horizon: {forecast['horizon_hours']}h, intervals: {len(forecast['intervals'])}")
+
+# 4. Maintenance schedule (90-day preventive tasks) — SEP-062
 schedule = client.partner_api.get_maintenance_schedule(site_id='Sibaya')
 print(f"Tasks: {schedule['summary']['total_tasks']}")
 for task in schedule['tasks']:
     print(f"  {task['recommended_date']} — {task['asset_id']} — {task['task_type']} ({task['priority']})")
-```
-
-**JavaScript — maintenance schedule:**
-```javascript
-const schedule = await sdk.partnerApi.getMaintenanceSchedule({ site_id: 'Sibaya' });
-console.log(`Tasks: ${schedule.summary.total_tasks}`);
-for (const task of schedule.tasks) {
-  console.log(`  ${task.recommended_date} — ${task.asset_id} — ${task.task_type} (${task.priority})`);
-}
 ```
 
 ---
@@ -322,7 +332,7 @@ for (const task of schedule.tasks) {
 | `cursor` | Resume pagination from a previous position |
 | `polling_interval` | Seconds between polls for streaming (min 5, default 5) |
 
-### Rate Limits (both APIs)
+### Rate Limits (all APIs)
 - **60 requests per minute** per API key
 - **Max 1000 records** per query
 - **Max 31-day time range** per query
@@ -351,7 +361,9 @@ for (const task of schedule.tasks) {
 | `ConfigurationError` | Missing endpoint or API key | Verify environment variables are set |
 
 **Debug Steps:**
-1. Verify env vars: `echo $INVERTER_TELEMETRY_API_KEY` / `echo $OODA_TERMINAL_API_KEY`
+1. Verify all three env vars are set to the same API key:
+   `echo $INVERTER_TELEMETRY_API_KEY` / `echo $OODA_TERMINAL_API_KEY` / `echo $PARTNER_API_KEY`
+   (a single key value, exported under three names — see Quick Start §3)
 2. Run the provided examples first — they test the full flow
 3. Ensure you're querying a valid `site_id` (try `Sibaya` for testing)
 
@@ -364,16 +376,24 @@ sdk/
 │   ├── src/services/InverterTelemetryClient.js
 │   ├── src/services/OodaTerminalClient.js
 │   ├── src/services/PartnerApiClient.js
+│   ├── src/types/index.d.ts          # TypeScript declarations
 │   ├── examples/inverter-telemetry-example.js
 │   ├── examples/ooda-terminal-example.js
-│   └── examples/partner-api-example.js
+│   ├── examples/partner-api-example.js
+│   └── tests/
+│       ├── inverterTelemetry.test.js
+│       └── partnerApi.test.js
 ├── python/
 │   ├── ona_platform/services/inverter_telemetry.py
 │   ├── ona_platform/services/ooda_terminal.py
 │   ├── ona_platform/services/partner_api.py
 │   ├── examples/inverter_telemetry_example.py
 │   ├── examples/ooda_terminal_example.py
-│   └── examples/partner_api_example.py
+│   ├── examples/partner_api_example.py
+│   └── tests/
+│       ├── test_client.py
+│       ├── test_inverter_telemetry_client.py
+│       └── test_partner_api_client.py
 └── backend/
     ├── inverter_telemetry_api/   # Deployed Lambda
     ├── ooda_terminal_api/        # Deployed Lambda
