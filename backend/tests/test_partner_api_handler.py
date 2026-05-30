@@ -453,3 +453,223 @@ def test_inv2_if_none_match_forwarded_to_s3(mock_rate_limit, mock_auth, mock_s3)
     assert if_none_match == '"my-etag"', (
         f"Expected IfNoneMatch='\"my-etag\"' forwarded to s3.get_object, got: {if_none_match}"
     )
+
+
+# ===========================================================================
+# NEW TESTS — CORS, multi-word site_id, traversal rejection
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# CORS-1 — Access-Control-Allow-Origin: * on a 200 /kpi-rollup response
+#           Also verifies CORS is additive (ETag and Content-Type still present)
+# ---------------------------------------------------------------------------
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_cors1_200_response_has_cors_header(mock_rate_limit, mock_auth, mock_s3):
+    """A 200 response from /kpi-rollup must include Access-Control-Allow-Origin: *."""
+    mock_body = MagicMock()
+    mock_body.read.return_value = b'{"kpi": 1}'
+    mock_s3.get_object.return_value = {"Body": mock_body, "ETag": '"cors-etag"'}
+
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "SiteCorA"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 200
+    assert response["headers"].get("Access-Control-Allow-Origin") == "*", (
+        f"Expected Access-Control-Allow-Origin: * on 200 response, "
+        f"got headers: {response['headers']}"
+    )
+
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_cors1_200_response_cors_is_additive_etag_and_content_type_still_present(
+    mock_rate_limit, mock_auth, mock_s3
+):
+    """CORS header is additive: ETag and Content-Type must still be present on the 200 response."""
+    mock_body = MagicMock()
+    mock_body.read.return_value = b'{"kpi": 2}'
+    mock_s3.get_object.return_value = {"Body": mock_body, "ETag": '"additive-etag"'}
+
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "SiteCorB"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 200
+    headers = response["headers"]
+    assert headers.get("Access-Control-Allow-Origin") == "*", (
+        f"Missing CORS header; headers: {headers}"
+    )
+    assert headers.get("ETag") == '"additive-etag"', (
+        f"ETag disappeared after CORS was added; headers: {headers}"
+    )
+    assert headers.get("Content-Type") == "application/json", (
+        f"Content-Type disappeared after CORS was added; headers: {headers}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# CORS-2 — Access-Control-Allow-Origin: * on a 401 (missing x-api-key)
+# ---------------------------------------------------------------------------
+
+def test_cors2_401_missing_api_key_has_cors_header():
+    """A 401 response (missing x-api-key) must include Access-Control-Allow-Origin: *."""
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "AnySite"},
+        "headers": {},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 401
+    assert response["headers"].get("Access-Control-Allow-Origin") == "*", (
+        f"Expected Access-Control-Allow-Origin: * on 401 response, "
+        f"got headers: {response['headers']}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# CORS-3 — Access-Control-Allow-Origin: * on a 404 (NoSuchKey from S3)
+# ---------------------------------------------------------------------------
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_cors3_404_no_such_key_has_cors_header(mock_rate_limit, mock_auth, mock_s3):
+    """A 404 response (S3 NoSuchKey) must include Access-Control-Allow-Origin: *."""
+    mock_s3.get_object.side_effect = _s3_client_error("NoSuchKey")
+
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "GhostSite"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 404
+    assert response["headers"].get("Access-Control-Allow-Origin") == "*", (
+        f"Expected Access-Control-Allow-Origin: * on 404 response, "
+        f"got headers: {response['headers']}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# SPACE-1 — Multi-word site_id with spaces is accepted → HTTP 200
+#            S3 key must use the literal site_id including spaces
+# ---------------------------------------------------------------------------
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_space1_site_id_with_spaces_returns_200(mock_rate_limit, mock_auth, mock_s3):
+    """GET /kpi-rollup with site_id='Sibaya Main Campus' must return HTTP 200."""
+    mock_body = MagicMock()
+    mock_body.read.return_value = b'{"kpi": 99}'
+    mock_s3.get_object.return_value = {"Body": mock_body, "ETag": '"space-etag"'}
+
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "Sibaya Main Campus"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 200, (
+        f"Expected 200 for site_id with spaces, got {response['statusCode']}: {response['body']}. "
+        "The validator must allow spaces in site_id."
+    )
+
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_space1_site_id_with_spaces_uses_correct_s3_key(mock_rate_limit, mock_auth, mock_s3):
+    """GET /kpi-rollup with site_id='Sibaya Main Campus' must call s3.get_object with Key='Sibaya Main Campus/kpi-rollup.json'."""
+    mock_body = MagicMock()
+    mock_body.read.return_value = b'{"kpi": 99}'
+    mock_s3.get_object.return_value = {"Body": mock_body, "ETag": '"space-etag"'}
+
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "Sibaya Main Campus"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    lambda_handler(event, None)
+
+    assert mock_s3.get_object.called, "s3.get_object was not called at all"
+    call_kwargs = mock_s3.get_object.call_args
+    actual_key = call_kwargs.kwargs.get("Key") or call_kwargs[1].get("Key")
+    assert actual_key == "Sibaya Main Campus/kpi-rollup.json", (
+        f"Expected Key='Sibaya Main Campus/kpi-rollup.json', got Key='{actual_key}'. "
+        "The site_id with spaces must pass through to S3 unchanged."
+    )
+
+
+# ---------------------------------------------------------------------------
+# TRAVERSAL-1 — site_id containing "/" is rejected with HTTP 400, S3 not called
+# ---------------------------------------------------------------------------
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_traversal1_forward_slash_in_site_id_returns_400(mock_rate_limit, mock_auth, mock_s3):
+    """site_id='a/b' must return HTTP 400 and must NOT call s3.get_object."""
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "a/b"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 400, (
+        f"Expected 400 for site_id='a/b', got {response['statusCode']}"
+    )
+    mock_s3.get_object.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# TRAVERSAL-2 — site_id containing ".." is rejected with HTTP 400, S3 not called
+# ---------------------------------------------------------------------------
+
+@patch("partner_api.lambda_handler.s3")
+@patch("partner_api.lambda_handler.authenticate")
+@patch("partner_api.lambda_handler.check_rate_limit")
+def test_traversal2_dotdot_in_site_id_returns_400(mock_rate_limit, mock_auth, mock_s3):
+    """site_id='../secret' must return HTTP 400 and must NOT call s3.get_object."""
+    event = {
+        "path": "/kpi-rollup",
+        "httpMethod": "GET",
+        "queryStringParameters": {"site_id": "../secret"},
+        "headers": {"x-api-key": "validkey"},
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 400, (
+        f"Expected 400 for site_id='../secret', got {response['statusCode']}"
+    )
+    mock_s3.get_object.assert_not_called()

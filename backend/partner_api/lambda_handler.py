@@ -31,7 +31,10 @@ _5XX_MESSAGE = "Service unavailable"
 def _response(status_code: int, body: dict, headers: dict = None) -> dict:
     resp = {
         "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
         "body": json.dumps(body),
     }
     if headers:

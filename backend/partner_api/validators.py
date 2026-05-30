@@ -3,7 +3,7 @@ Input validation for the Partner API.
 """
 import re
 
-SAFE_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')
+SAFE_ID_PATTERN = re.compile(r'^[a-zA-Z0-9_ -]+$')
 
 class ValidationError(Exception):
     """Raised when input parameters fail validation."""
