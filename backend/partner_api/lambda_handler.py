@@ -43,7 +43,7 @@ def _error(status_code: int) -> dict:
     return _response(status_code, {"error": message})
 
 def _get_snapshot(kind: str, site_id: str, if_none_match: str = None):
-    key = f"{kind}/{site_id}.json"
+    key = f"{site_id}/{kind}.json"
     try:
         params = {"Bucket": S3_BUCKET, "Key": key}
         if if_none_match:
@@ -86,10 +86,12 @@ def lambda_handler(event: dict, context) -> dict:
         kind = None
         if path == "/kpi-rollup":
             kind = "kpi-rollup"
+        elif path == "/maintenance-schedule":
+            kind = "maintenance-schedule"
         elif path == "/maintenance-signals":
             kind = "maintenance-signals"
         elif path == "/forecast-snapshot":
-            kind = "forecast-snapshot"
+            kind = "forecast"
         elif path == "/snapshot":
             kind = validated["kind"]
         

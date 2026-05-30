@@ -60,7 +60,7 @@ export OODA_TERMINAL_API_KEY=<your_api_key>
 
 **Partner API:**
 ```bash
-export PARTNER_API_ENDPOINT=https://<endpoint>.execute-api.af-south-1.amazonaws.com/prod
+export PARTNER_API_ENDPOINT=https://8el3o25tc1.execute-api.af-south-1.amazonaws.com/prod
 export PARTNER_API_KEY=<your_api_key>
 ```
 
@@ -394,7 +394,7 @@ print(f"Training status: {status['status']}")
 |-----|----------|
 | Inverter Telemetry | `https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod` |
 | OODA Terminal Alerts | `https://3lpq00xevg.execute-api.af-south-1.amazonaws.com/prod` |
-| Partner API | `https://<endpoint>.execute-api.af-south-1.amazonaws.com/prod` |
+| Partner API | `https://8el3o25tc1.execute-api.af-south-1.amazonaws.com/prod` |
 
 ---
 
