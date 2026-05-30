@@ -424,7 +424,7 @@ sdk/
 │   ├── src/services/InverterTelemetryClient.js
 │   ├── src/services/OodaTerminalClient.js
 │   ├── src/services/PartnerApiClient.js
-│   ├── src/types/index.d.ts          # TypeScript declarations
+│   ├── src/types/index.d.ts          
 │   ├── examples/inverter-telemetry-example.js
 │   ├── examples/ooda-terminal-example.js
 │   ├── examples/partner-api-example.js
@@ -443,9 +443,9 @@ sdk/
 │       ├── test_inverter_telemetry_client.py
 │       └── test_partner_api_client.py
 └── backend/
-    ├── inverter_telemetry_api/   # Deployed Lambda
-    ├── ooda_terminal_api/        # Deployed Lambda
-    └── partner_api/              # Deployed Lambda
+    ├── inverter_telemetry_api/   
+    ├── ooda_terminal_api/        
+    └── partner_api/              
 ```
 
 ---
