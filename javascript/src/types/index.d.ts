@@ -21,6 +21,7 @@ export interface Endpoints {
   huaweiRealTime?: string;
   globalTraining?: string;
   interpolation?: string;
+  gapDetection?: string;
   terminal?: string;
   weather?: string;
   inverterTelemetry?: string;
@@ -140,44 +141,104 @@ export class OodaTerminalClient {
   streamSite(options: { site_id: string; cursor?: string; polling_interval?: number }): AsyncIterable<OodaAlert>;
 }
 
-// Partner API types
+// Partner API types (Snapshots)
 export interface KpiRollupSnapshot {
   site_id: string;
-  timestamp: string;
-  kpis: Record<string, any>;
+  period: { start: string; end: string };
+  generated_at: string;
+  system: {
+    rated_capacity_kw: number;
+    device_count: number;
+  };
+  energy_balance: {
+    consumption_kwh: number;
+    solar_production_kwh: number;
+    grid_purchases_kwh: number;
+    solar_offset_pct: number;
+  };
+  performance: {
+    system_pr: number;
+    pr_target: number;
+    pr_status: string;
+    true_uptime_pct: number;
+    state_uptime_pct: number;
+    availability_pct: number;
+    availability_target: number;
+  };
+  ear: {
+    energy_lost_kwh: number;
+    energy_lost_pct: number;
+    capacity_utilization_pct: number;
+    recovery_potential_kwh: {
+      "50pct": number;
+      "75pct": number;
+      "95pct": number;
+    };
+    value_lost_zar: number;
+    annual_projection_zar: number;
+  };
+  financial: {
+    tariff_currency: string;
+    shortfall_cost_zar: number;
+    tou_breakdown: Record<string, any>;
+  };
 }
 
 export interface MaintenanceSignal {
   id: string;
   timestamp: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
-  metadata?: Record<string, any>;
+  asset_id: string;
+  type: 'Critical State' | 'Warning State' | 'Temperature' | 'Capacity Underperformance' | 'Zero Production';
+  severity: 'Critical' | 'High' | 'Medium' | 'Low';
+  state_code?: string | null;
+  rated_kw?: number | null;
+  expected_kw?: number | null;
+  actual_kw?: number | null;
+  capacity_pct?: number | null;
+  irradiance_wm2?: number | null;
+  description: string;
 }
 
 export interface MaintenanceSignalsSnapshot {
   site_id: string;
-  timestamp: string;
+  generated_at: string;
+  cursor: string;
   signals: MaintenanceSignal[];
+  summary: {
+    by_type: Record<string, number>;
+    by_severity: Record<string, number>;
+    by_asset: Record<string, number>;
+  };
 }
 
 export interface ForecastSnapshot {
   site_id: string;
-  timestamp: string;
-  forecasts: Record<string, any>;
+  model_id: string;
+  generated_at: string;
+  horizon_hours: number;
+  resolution: string;
+  intervals: Array<{
+    ts: string;
+    p50_kw: number;
+    p10_kw: number;
+    p90_kw: number;
+    revenue_zar: number;
+  }>;
+  totals: {
+    total_kwh: number;
+    total_revenue_zar: number;
+  };
 }
 
-/** Single maintenance task derived from rolling-window anomaly frequency. */
 export interface MaintenanceTask {
   asset_id: string;
-  task_type: string;
+  task_type: 'inspection' | 'corrective_maintenance' | 'scheduled_service';
   reason: string;
   recommended_date: string;
-  estimated_duration_hours: number;
-  priority: 'High' | 'Medium' | 'Low';
+  estimated_duration_hours?: number;
+  priority: 'Critical' | 'High' | 'Medium' | 'Low';
 }
 
-/** Preventive-maintenance schedule snapshot (SEP-062). */
 export interface MaintenanceScheduleSnapshot {
   site_id: string;
   generated_at: string;
@@ -216,23 +277,33 @@ export interface SiteForecastParams {
 export interface CustomerForecastParams {
   customer_id: string;
   forecast_hours?: number;
+  capacity_kw?: number;
+  manufacturer?: string;
 }
 
 export interface ForecastResult {
+  customer_id?: string;
+  site_id?: string;
+  device_id?: string;
+  forecast_hours: number;
+  generated_at: string;
   forecasts: Array<{
     timestamp: string;
     hour_ahead: number;
-    kWh_forecast?: number;
-    kVArh_forecast?: number;
-    kVA_forecast?: number;
-    PF_forecast?: number;
+    kWh_forecast: number;
+    weather?: {
+      temp?: number;
+      cloudcover?: number;
+      solarradiation?: number;
+      conditions?: string;
+    };
   }>;
   model_info: {
     model_type: string;
-    training_level?: string;
-    aggregation_method?: string;
+    optimization_strategy?: string;
+    model_timestamp?: string;
+    customer_validation_loss?: number;
   };
-  generated_at: string;
 }
 
 // Terminal API types
@@ -315,11 +386,96 @@ export interface Device {
   ip: string;
   username: string;
   name: string;
-  type: string;
-  status: string;
-  capabilities: Record<string, any>;
+  type: 'unknown' | 'full-platform' | 'docker-ready' | 'legacy-edge' | 'basic-edge';
+  status: 'discovering' | 'online' | 'offline';
+  capabilities: {
+    system?: {
+      available: boolean;
+      service?: string;
+      version?: string;
+      timestamp?: string;
+    };
+    docker?: {
+      installed: boolean;
+      version?: string | null;
+      containers?: any[];
+    };
+    platformEdge?: {
+      deployed: boolean;
+      version?: string | null;
+      services?: any[];
+    };
+    services?: Array<{
+      name: string;
+      status: string;
+      port: number;
+    }>;
+  };
   lastSeen: string;
   createdAt: string;
+}
+
+// Gap Detection types
+export interface GapDetectionParams {
+  customer_id: string;
+  client_id?: string;
+  region?: string;
+  location?: string;
+  manufacturer?: string;
+  lookback_days?: number;
+  min_gap_minutes?: number;
+}
+
+export interface GapDetectionResult {
+  customer_id: string;
+  scan_period: { start: string; end: string };
+  gaps_found: Array<{
+    asset_id: string;
+    gap_start: string;
+    gap_end: string;
+    missing_intervals: number;
+  }>;
+  dates_needing_backfill: string[];
+  backfill_targets?: Record<string, string[]>;
+  total_missing_intervals: number;
+  needs_backfill: boolean;
+}
+
+// Global Training types
+export interface TrainRequest {
+  customer_id: string;
+  force?: boolean;
+  promote?: boolean;
+  test_only?: boolean;
+}
+
+export interface TrainingStatusResponse {
+  customer_id: string;
+  status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+  processing_job_name: string | null;
+  last_updated: string | null;
+  training_job_name?: string | null;
+  processing_progress?: {
+    elapsed_seconds: number;
+    estimated_total_seconds: number;
+    estimated_percent: number;
+  } | null;
+  training_progress?: {
+    secondary_status: 'Starting' | 'Downloading' | 'Training' | 'Uploading' | 'Completed';
+    elapsed_seconds: number;
+  } | null;
+}
+
+export interface TrainResponseBatch {
+  message: string;
+  jobs_started: number;
+  jobs_failed: number;
+  jobs_skipped: number;
+  total_requested: number;
+  jobs: Array<{ customer_id: string; processing_job_name: string }>;
+  failures?: Array<{ customer_id: string; error: string; error_code: string }> | null;
+  skipped?: Array<{ customer_id: string; reason: string; processing_job_name: string }> | null;
+  note: string;
 }
 
 // Service client classes
@@ -375,12 +531,24 @@ export class EdgeDeviceRegistryClient {
   getHealth(): Promise<any>;
 }
 
+export class GapDetectionClient {
+  detectGaps(params: GapDetectionParams): Promise<GapDetectionResult>;
+}
+
+export class GlobalTrainingClient {
+  triggerTraining(params: TrainRequest): Promise<TrainResponseBatch>;
+  getTrainingStatus(customerId: string): Promise<TrainingStatusResponse>;
+}
+
 export class DataIngestionClient {
   ingest(payload: any): Promise<any>;
 }
 
 export class InterpolationClient {
   interpolate(payload: any): Promise<any>;
+  splineInterpolation(params: { customer_id: string; dataset_key: string; spline_type?: string }): Promise<any>;
+  gaussianProcessInterpolation(params: { customer_id: string; dataset_key: string; kernel?: string }): Promise<any>;
+  physicsBasedInterpolation(params: { customer_id: string; dataset_key: string }): Promise<any>;
 }
 
 export class WeatherClient {
@@ -405,6 +573,8 @@ export class OnaSDK {
   terminal: TerminalClient;
   energyAnalyst: EnergyAnalystClient;
   edgeRegistry: EdgeDeviceRegistryClient;
+  gapDetection: GapDetectionClient;
+  globalTraining: GlobalTrainingClient;
   dataIngestion: DataIngestionClient;
   interpolation: InterpolationClient;
   weather: WeatherClient;

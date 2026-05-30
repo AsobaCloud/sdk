@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class TrainingClient(BaseServiceClient):
     """Client for Global Training service.
 
-    Provides methods for ML model training operations.
+    Provides methods for ML model training and management operations.
     """
 
     def __init__(self, config: OnaConfig, function_name: str = "globalTrainingService"):
@@ -25,52 +25,46 @@ class TrainingClient(BaseServiceClient):
         super().__init__(config)
         self.function_name = function_name
 
-    def start_training(
+    def trigger_training(
         self,
-        model_type: str,
-        training_data_key: str,
-        model_params: Optional[Dict[str, Any]] = None,
+        customer_id: str,
+        force: bool = False,
+        promote: bool = False,
+        test_only: bool = False,
         **kwargs,
     ) -> Dict[str, Any]:
-        """Start model training job.
+        """Trigger a model training job.
 
         Args:
-            model_type: Type of model to train
-            training_data_key: S3 key for training data
-            model_params: Model hyperparameters
-            **kwargs: Additional training parameters
+            customer_id: Customer ID or 'generic'
+            force: Force training if job already running
+            promote: Auto-promote if validation passes
+            test_only: Data prep only, no SageMaker training
+            **kwargs: Additional parameters
 
         Returns:
-            Training job information
+            Job initiation results
         """
         payload = {
-            "model_type": model_type,
-            "training_data_key": training_data_key,
-            "model_params": model_params or {},
+            "customer_id": customer_id,
+            "force": force,
+            "promote": promote,
+            "test_only": test_only,
             **kwargs,
         }
-        logger.info(f"Starting training job for model type: {model_type}")
+        logger.info(f"Triggering training for customer: {customer_id}")
         return self.invoke_lambda(self.function_name, payload)
 
-    def get_training_status(self, job_id: str) -> Dict[str, Any]:
-        """Get status of training job.
+    def get_training_status(self, customer_id: str) -> Dict[str, Any]:
+        """Get status of training job for a customer.
 
         Args:
-            job_id: Training job identifier
+            customer_id: Customer identifier
 
         Returns:
-            Job status and metrics
+            Current status, progress, and metadata
         """
-        payload = {"action": "status", "job_id": job_id}
-        logger.info(f"Getting training status for job: {job_id}")
-        return self.invoke_lambda(self.function_name, payload)
-
-    def list_models(self) -> Dict[str, Any]:
-        """List trained models.
-
-        Returns:
-            List of available models
-        """
-        payload = {"action": "list_models"}
-        logger.info("Listing trained models")
+        # Note: Implementation might vary if status is a separate endpoint or action
+        payload = {"action": "status", "customer_id": customer_id}
+        logger.info(f"Getting training status for customer: {customer_id}")
         return self.invoke_lambda(self.function_name, payload)

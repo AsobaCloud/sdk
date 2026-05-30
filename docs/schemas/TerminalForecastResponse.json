@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TerminalForecastResponse",
+  "description": "Response body containing stored ML forecast results for a customer from the /terminal/forecast endpoint.",
+  "type": "object",
+  "properties": {
+    "success": {
+      "type": "boolean"
+    },
+    "customer_id": {
+      "type": "string"
+    },
+    "forecast_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "forecast_id": {"type": "string"},
+          "site_id": {"type": "string"},
+          "generated_at": {"type": "string", "format": "date-time"},
+          "model_name": {"type": "string"},
+          "model_version": {"type": "string"},
+          "horizon_hours": {"type": "integer"},
+          "forecast_points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {"type": "string", "format": "date-time"},
+                "hour_ahead": {"type": "integer"},
+                "predicted_power_kw": {"type": "number"},
+                "lower_conf_kw": {"type": "number"},
+                "upper_conf_kw": {"type": "number"}
+              },
+              "required": ["timestamp", "hour_ahead", "predicted_power_kw", "lower_conf_kw", "upper_conf_kw"]
+            }
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "training_rmse": {"type": "number"},
+              "validation_rmse": {"type": "number"},
+              "mape_percent": {"type": "number"},
+              "smape_percent": {"type": "number"}
+            }
+          },
+          "weather_context": {
+            "type": "object",
+            "properties": {
+              "avg_temperature_c": {"type": "number"},
+              "avg_irradiance_wm2": {"type": "number"},
+              "avg_wind_speed_ms": {"type": "number"}
+            }
+          }
+        },
+        "required": ["forecast_id", "site_id", "generated_at", "model_name", "model_version", "horizon_hours", "forecast_points"]
+      }
+    },
+    "count": {
+      "type": "integer"
+    }
+  },
+  "required": ["success", "customer_id", "forecast_results", "count"]
+}

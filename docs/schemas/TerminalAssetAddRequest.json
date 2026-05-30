@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TerminalAssetAddRequest",
+  "description": "Request body for adding a new asset via the Terminal API's /terminal/assets endpoint.",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "The action to perform.",
+      "enum": ["add"]
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "The unique identifier for the asset."
+    },
+    "name": {
+      "type": "string",
+      "description": "The human-readable name of the asset."
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the asset.",
+      "examples": ["Solar Inverter"]
+    },
+    "capacity_kw": {
+      "type": "number",
+      "description": "The capacity of the asset in kilowatts."
+    },
+    "location": {
+      "type": "string",
+      "description": "The location of the asset."
+    },
+    "components": {
+      "type": "array",
+      "description": "A list of components that make up the asset.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "oem": {
+            "type": "string",
+            "description": "The original equipment manufacturer."
+          },
+          "model": {
+            "type": "string",
+            "description": "The model number of the component."
+          },
+          "serial": {
+            "type": "string",
+            "description": "The serial number of the component."
+          }
+        },
+        "required": ["oem", "model", "serial"]
+      }
+    }
+  },
+  "required": ["action", "asset_id", "name", "type", "capacity_kw", "location"]
+}

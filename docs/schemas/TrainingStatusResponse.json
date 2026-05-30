@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TrainingStatusResponse",
+  "description": "Response schema for training status check in globalTrainingService.",
+  "type": "object",
+  "required": ["customer_id", "status", "processing_job_name", "last_updated"],
+  "properties": {
+    "customer_id": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["NOT_STARTED", "RUNNING", "SUCCEEDED", "FAILED"]
+    },
+    "processing_job_name": { "type": ["string", "null"] },
+    "last_updated": { "type": ["string", "null"], "format": "date-time" },
+    "training_job_name": { "type": ["string", "null"] },
+    "processing_progress": {
+      "type": ["object", "null"],
+      "properties": {
+        "elapsed_seconds": { "type": "integer" },
+        "estimated_total_seconds": { "type": "integer" },
+        "estimated_percent": { "type": "integer" }
+      }
+    },
+    "training_progress": {
+      "type": ["object", "null"],
+      "properties": {
+        "secondary_status": {
+          "type": "string",
+          "enum": ["Starting", "Downloading", "Training", "Uploading", "Completed"]
+        },
+        "elapsed_seconds": { "type": "integer" }
+      }
+    }
+  }
+}

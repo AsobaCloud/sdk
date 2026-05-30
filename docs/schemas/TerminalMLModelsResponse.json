@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TerminalMLModelsResponse",
+  "description": "Response body containing the shared catalog of ML models from the /terminal/ml-models endpoint.",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "model_metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_name": { "type": "string" },
+          "model_version": { "type": "string" },
+          "model_type": { "type": "string" },
+          "status": { "type": "string" },
+          "last_trained_at": { "type": "string", "format": "date-time" },
+          "training_data_window": {
+            "type": "object",
+            "properties": {
+              "start": { "type": "string", "format": "date-time" },
+              "end": { "type": "string", "format": "date-time" }
+            },
+            "required": ["start", "end"]
+          },
+          "hyperparameters": {
+            "type": "object",
+            "properties": {
+              "layers": {
+                "type": "array",
+                "items": { "type": "integer" }
+              },
+              "learning_rate": { "type": "number" },
+              "dropout": { "type": "number" },
+              "optimizer": { "type": "string" }
+            }
+          },
+          "training_metrics": {
+            "type": "object",
+            "properties": {
+              "epochs": { "type": "integer" },
+              "train_loss": { "type": "number" },
+              "validation_loss": { "type": "number" },
+              "early_stop_epoch": { "type": "integer" }
+            }
+          },
+          "artifact_locations": {
+            "type": "object",
+            "properties": {
+              "model": { "type": "string", "format": "uri" },
+              "encoders": { "type": "string", "format": "uri" },
+              "config": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "required": ["model_name", "model_version", "model_type", "status", "last_trained_at"]
+      }
+    },
+    "count": { "type": "integer" }
+  },
+  "required": ["success", "model_metrics", "count"]
+}

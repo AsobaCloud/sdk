@@ -12,6 +12,8 @@ const TerminalClient = require('./services/TerminalClient');
 const EnergyAnalystClient = require('./services/EnergyAnalystClient');
 const EdgeDeviceRegistryClient = require('./services/EdgeDeviceRegistryClient');
 const DataIngestionClient = require('./services/DataIngestionClient');
+const GapDetectionClient = require('./services/GapDetectionClient');
+const GlobalTrainingClient = require('./services/GlobalTrainingClient');
 const InterpolationClient = require('./services/InterpolationClient');
 const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
@@ -97,6 +99,18 @@ class OnaSDK {
      * @type {DataIngestionClient}
      */
     this.dataIngestion = new DataIngestionClient(this.httpClient, this.config);
+
+    /**
+     * Gap Detection client
+     * @type {GapDetectionClient}
+     */
+    this.gapDetection = new GapDetectionClient(this.httpClient, this.config);
+
+    /**
+     * Global Training client
+     * @type {GlobalTrainingClient}
+     */
+    this.globalTraining = new GlobalTrainingClient(this.httpClient, this.config);
 
     /**
      * Interpolation Service client

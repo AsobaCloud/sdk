@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TerminalInterpolationResponse",
+  "description": "Response body containing stored interpolation results for a customer from the /terminal/interpolation endpoint.",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "customer_id": { "type": "string" },
+    "interpolation_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "result_id": { "type": "string" },
+          "site_id": { "type": "string" },
+          "processed_at": { "type": "string", "format": "date-time" },
+          "method": { "type": "string" },
+          "asset_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "data_window": {
+            "type": "object",
+            "properties": {
+              "start": { "type": "string", "format": "date-time" },
+              "end": { "type": "string", "format": "date-time" }
+            },
+            "required": ["start", "end"]
+          },
+          "gap_statistics": {
+            "type": "object",
+            "properties": {
+              "total_gaps": { "type": "integer" },
+              "average_gap_minutes": { "type": "number" },
+              "largest_gap_minutes": { "type": "number" },
+              "coverage_improvement_percent": { "type": "number" }
+            }
+          },
+          "performance_metrics": {
+            "type": "object",
+            "properties": {
+              "rmse_kw": { "type": "number" },
+              "mae_kw": { "type": "number" },
+              "r2_score": { "type": "number" },
+              "nrmse_percent": { "type": "number" }
+            }
+          },
+          "weather_features": {
+            "type": "object",
+            "properties": {
+              "mean_temperature_c": { "type": "number" },
+              "mean_irradiance_wm2": { "type": "number" }
+            }
+          }
+        },
+        "required": ["result_id", "site_id", "processed_at", "method", "asset_ids", "data_window"]
+      }
+    },
+    "count": { "type": "integer" }
+  },
+  "required": ["success", "customer_id", "interpolation_results", "count"]
+}

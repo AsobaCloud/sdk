@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForecastResponse",
+  "description": "Updated response body for the /forecast endpoint of forecastingApi.",
+  "type": "object",
+  "required": ["customer_id", "forecast_hours", "forecasts", "generated_at"],
+  "properties": {
+    "customer_id": { "type": "string" },
+    "forecast_hours": { "type": "integer" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "forecasts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "hour_ahead", "kWh_forecast"],
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time" },
+          "hour_ahead": { "type": "integer" },
+          "kWh_forecast": { "type": "number" },
+          "weather": {
+            "type": "object",
+            "properties": {
+              "temp": { "type": "number" },
+              "cloudcover": { "type": "number" },
+              "solarradiation": { "type": "number" },
+              "conditions": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "model_info": {
+      "type": "object",
+      "properties": {
+        "model_type": { "type": "string" },
+        "optimization_strategy": { "type": "string" },
+        "model_timestamp": { "type": "string" },
+        "customer_validation_loss": { "type": "number" }
+      }
+    }
+  }
+}

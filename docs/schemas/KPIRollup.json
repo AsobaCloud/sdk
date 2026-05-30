@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KPIRollup",
+  "description": "Schema for site-level KPI rollup snapshots produced by assetIntelligenceService.",
+  "type": "object",
+  "required": ["site_id", "period", "generated_at", "system", "energy_balance", "performance", "ear", "financial"],
+  "properties": {
+    "site_id": { "type": "string" },
+    "period": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "system": {
+      "type": "object",
+      "required": ["rated_capacity_kw", "device_count"],
+      "properties": {
+        "rated_capacity_kw": { "type": "number" },
+        "device_count": { "type": "integer" }
+      }
+    },
+    "energy_balance": {
+      "type": "object",
+      "required": ["consumption_kwh", "solar_production_kwh", "grid_purchases_kwh", "solar_offset_pct"],
+      "properties": {
+        "consumption_kwh": { "type": "number" },
+        "solar_production_kwh": { "type": "number" },
+        "grid_purchases_kwh": { "type": "number" },
+        "solar_offset_pct": { "type": "number" }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "required": ["system_pr", "pr_target", "pr_status", "true_uptime_pct", "state_uptime_pct", "availability_pct", "availability_target"],
+      "properties": {
+        "system_pr": { "type": "number" },
+        "pr_target": { "type": "number" },
+        "pr_status": { "type": "string" },
+        "true_uptime_pct": { "type": "number" },
+        "state_uptime_pct": { "type": "number" },
+        "availability_pct": { "type": "number" },
+        "availability_target": { "type": "number" }
+      }
+    },
+    "ear": {
+      "type": "object",
+      "required": ["energy_lost_kwh", "energy_lost_pct", "capacity_utilization_pct", "recovery_potential_kwh", "value_lost_zar", "annual_projection_zar"],
+      "properties": {
+        "energy_lost_kwh": { "type": "number" },
+        "energy_lost_pct": { "type": "number" },
+        "capacity_utilization_pct": { "type": "number" },
+        "recovery_potential_kwh": {
+          "type": "object",
+          "required": ["50pct", "75pct", "95pct"],
+          "properties": {
+            "50pct": { "type": "number" },
+            "75pct": { "type": "number" },
+            "95pct": { "type": "number" }
+          }
+        },
+        "value_lost_zar": { "type": "number" },
+        "annual_projection_zar": { "type": "number" }
+      }
+    },
+    "financial": {
+      "type": "object",
+      "required": ["tariff_currency", "shortfall_cost_zar", "tou_breakdown"],
+      "properties": {
+        "tariff_currency": { "type": "string" },
+        "shortfall_cost_zar": { "type": "number" },
+        "tou_breakdown": { "type": "object" }
+      }
+    }
+  }
+}

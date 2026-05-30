@@ -16,9 +16,9 @@ This SDK provides three live APIs for solar installation data:
 - Built-in rate limiting and cost protection
 
 **🚧 Planned Features:**
-- Solar Energy Forecasting
+- Solar Energy Forecasting (Working)
 - Energy Policy Analysis
-- Edge Device Management
+- Edge Device Management (Working)
 - Data Collection integrations
 
 ---
@@ -227,6 +227,30 @@ for alert in client.ooda_terminal.stream_terminal(
 
 ---
 
+## Advanced ML Services
+
+Trigger model training, detect data gaps, and manage edge devices directly via the SDK.
+
+### Gap Detection
+```javascript
+const results = await sdk.gapDetection.detectGaps({ customer_id: 'Sibaya' });
+if (results.needs_backfill) {
+  console.log(`Missing intervals: ${results.total_missing_intervals}`);
+}
+```
+
+### Global Training
+```python
+# Trigger a new training job
+client.training.trigger_training(customer_id='Sibaya', promote=True)
+
+# Check status
+status = client.training.get_training_status(customer_id='Sibaya')
+print(f"Training status: {status['status']}")
+```
+
+---
+
 ## Partner API
 
 Fetch pre-computed JSON snapshots for embedding and partner integrations. This API is optimized for speed using ETag-based conditional GETs and in-memory caching.
@@ -315,7 +339,31 @@ for task in schedule['tasks']:
 | `streamTerminal` / `stream_terminal` | Stream live alerts from a single terminal device |
 | `streamSite` / `stream_site` | Stream live alerts from all terminal devices at a site |
 
-### Partner API Methods
+### Advanced ML Services
+
+Trigger model training, detect data gaps, and manage edge devices directly via the SDK.
+
+### Gap Detection
+```javascript
+const results = await sdk.gapDetection.detectGaps({ customer_id: 'Sibaya' });
+if (results.needs_backfill) {
+  console.log(`Missing intervals: ${results.total_missing_intervals}`);
+}
+```
+
+### Global Training
+```python
+# Trigger a new training job
+client.training.trigger_training(customer_id='Sibaya', promote=True)
+
+# Check status
+status = client.training.get_training_status(customer_id='Sibaya')
+print(f"Training status: {status['status']}")
+```
+
+---
+
+## Partner API Methods
 | Method | Description |
 |--------|-------------|
 | `getKpiRollup` / `get_kpi_rollup` | Site-level KPI summary snapshot |

@@ -6,6 +6,7 @@ from .energy_analyst import EnergyAnalystClient
 from .enphase import EnphaseClient
 from .forecasting import ForecastingClient
 from .freemium_forecast import FreemiumForecastClient
+from .gap_detection import GapDetectionClient
 from .huawei import HuaweiClient
 from .interpolation import InterpolationClient
 from .inverter_telemetry import InverterTelemetryClient
@@ -28,6 +29,7 @@ __all__ = [
     "InterpolationClient",
     "StandardizationClient",
     "TrainingClient",
+    "GapDetectionClient",
     "InverterTelemetryClient",
     "OodaTerminalClient",
     "FreemiumForecastClient",

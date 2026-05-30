@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ODSERecord",
+  "description": "Canonical schema for a single ODS-E production-timeseries record (usually CSV row).",
+  "type": "object",
+  "required": ["timestamp", "kWh", "error_type"],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "kWh": { "type": "number", "minimum": 0 },
+    "error_type": {
+      "type": "string",
+      "enum": ["normal", "warning", "critical", "fault", "offline", "standby", "unknown"]
+    },
+    "error_code": { "type": ["string", "null"] },
+    "kVArh": { "type": "number" },
+    "kVA": { "type": "number", "minimum": 0 },
+    "PF": { "type": "number", "minimum": 0, "maximum": 1 },
+    "asset_id": { "type": "string" },
+    "device_id": { "type": "string" }
+  }
+}

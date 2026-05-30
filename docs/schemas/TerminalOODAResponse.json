@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TerminalOODAResponse",
+  "description": "Response body containing ML-enhanced OODA summaries for a customer from the /terminal/ooda endpoint.",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean" },
+    "customer_id": { "type": "string" },
+    "ml_enhanced_activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "summary_id": { "type": "string" },
+          "asset_id": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "last_detection_at": { "type": "string", "format": "date-time" },
+          "model_version": { "type": "string" },
+          "fault_family": { "type": "string" },
+          "severity_label": { "type": "string" },
+          "confidence": { "type": "number" },
+          "energy_at_risk_kw": { "type": "number" },
+          "root_cause": { "type": "string" },
+          "recommended_actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "priority": { "type": "string" },
+                "action": { "type": "string" }
+              },
+              "required": ["priority", "action"]
+            }
+          },
+          "detections": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": [
+          "summary_id",
+          "asset_id",
+          "created_at",
+          "last_detection_at",
+          "model_version",
+          "fault_family",
+          "severity_label",
+          "confidence",
+          "energy_at_risk_kw",
+          "root_cause",
+          "recommended_actions",
+          "detections"
+        ]
+      }
+    },
+    "count": { "type": "integer" }
+  },
+  "required": ["success", "customer_id", "ml_enhanced_activities", "count"]
+}

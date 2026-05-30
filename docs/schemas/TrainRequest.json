@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TrainRequest",
+  "description": "Request schema for triggering a model training job in globalTrainingService.",
+  "type": "object",
+  "required": ["customer_id"],
+  "properties": {
+    "customer_id": { "type": "string", "description": "Customer ID or 'generic' for batch training." },
+    "force": { "type": "boolean", "default": false, "description": "Force training even if a job is already running." },
+    "promote": { "type": "boolean", "default": false, "description": "Automatically promote the model if it passes validation." },
+    "test_only": { "type": "boolean", "default": false, "description": "Run data preparation only, do not start SageMaker training." }
+  }
+}

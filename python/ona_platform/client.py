@@ -11,6 +11,7 @@ from .services import (
     EnphaseClient,
     ForecastingClient,
     FreemiumForecastClient,
+    GapDetectionClient,
     HuaweiClient,
     InterpolationClient,
     InverterTelemetryClient,
@@ -127,6 +128,7 @@ class OnaClient:
         self._interpolation = None
         self._standardization = None
         self._training = None
+        self._gap_detection = None
         self._inverter_telemetry = None
         self._ooda_terminal = None
         self._freemium_forecast = None

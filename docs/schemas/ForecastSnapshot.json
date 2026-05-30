@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForecastSnapshot",
+  "description": "SEP-061 Forecast snapshot schema written to S3 for partner consumption.",
+  "type": "object",
+  "required": ["site_id", "model_id", "generated_at", "horizon_hours", "resolution", "intervals", "totals"],
+  "properties": {
+    "site_id": { "type": "string" },
+    "model_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "horizon_hours": { "type": "integer" },
+    "resolution": { "type": "string", "example": "1h" },
+    "intervals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ts", "p50_kw", "p10_kw", "p90_kw", "revenue_zar"],
+        "properties": {
+          "ts": { "type": "string", "format": "date-time" },
+          "p50_kw": { "type": "number" },
+          "p10_kw": { "type": "number" },
+          "p90_kw": { "type": "number" },
+          "revenue_zar": { "type": "number" }
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "required": ["total_kwh", "total_revenue_zar"],
+      "properties": {
+        "total_kwh": { "type": "number" },
+        "total_revenue_zar": { "type": "number" }
+      }
+    }
+  }
+}

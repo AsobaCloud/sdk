@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TrainResponseBatch",
+  "description": "Response schema for batch training initiation in globalTrainingService.",
+  "type": "object",
+  "required": ["message", "jobs_started", "jobs_failed", "jobs_skipped", "total_requested", "jobs", "note"],
+  "properties": {
+    "message": { "type": "string" },
+    "jobs_started": { "type": "integer" },
+    "jobs_failed": { "type": "integer" },
+    "jobs_skipped": { "type": "integer" },
+    "total_requested": { "type": "integer" },
+    "jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "customer_id": { "type": "string" },
+          "processing_job_name": { "type": "string" }
+        }
+      }
+    },
+    "failures": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "customer_id": { "type": "string" },
+          "error": { "type": "string" },
+          "error_code": { "type": "string" }
+        }
+      }
+    },
+    "skipped": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "customer_id": { "type": "string" },
+          "reason": { "type": "string" },
+          "processing_job_name": { "type": "string" }
+        }
+      }
+    },
+    "note": { "type": "string" }
+  }
+}

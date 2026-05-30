@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EdgeDevice",
+  "description": "Schema for edge device objects managed by the Edge Device Registry.",
+  "type": "object",
+  "required": ["id", "ip", "username", "status", "createdAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "ip": { "type": "string", "format": "ipv4" },
+    "username": { "type": "string" },
+    "name": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["unknown", "full-platform", "docker-ready", "legacy-edge", "basic-edge"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["discovering", "online", "offline"]
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "object",
+          "properties": {
+            "available": { "type": "boolean" },
+            "service": { "type": "string" },
+            "version": { "type": "string" },
+            "timestamp": { "type": "string" }
+          }
+        },
+        "docker": {
+          "type": "object",
+          "properties": {
+            "installed": { "type": "boolean" },
+            "version": { "type": ["string", "null"] },
+            "containers": { "type": "array" }
+          }
+        },
+        "platformEdge": {
+          "type": "object",
+          "properties": {
+            "deployed": { "type": "boolean" },
+            "version": { "type": ["string", "null"] },
+            "services": { "type": "array" }
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "status": { "type": "string" },
+              "port": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "lastSeen": { "type": "string", "format": "date-time" },
+    "createdAt": { "type": "string", "format": "date-time" }
+  }
+}

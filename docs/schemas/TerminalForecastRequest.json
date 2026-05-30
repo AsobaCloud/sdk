@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TerminalForecastRequest",
+  "description": "Request body for retrieving stored ML forecast results for a customer from the /terminal/forecast endpoint.",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "description": "The identifier for the customer.",
+      "examples": ["demo-customer"]
+    }
+  },
+  "required": ["customer_id"]
+}
