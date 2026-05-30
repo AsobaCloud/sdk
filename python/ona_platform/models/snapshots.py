@@ -1,7 +1,8 @@
 """Snapshot data models for Ona Platform Partner API."""
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
 
 @dataclass
 class KpiRollupSnapshot:

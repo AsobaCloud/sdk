@@ -11,7 +11,6 @@ from .services import (
     EnphaseClient,
     ForecastingClient,
     FreemiumForecastClient,
-    GapDetectionClient,
     HuaweiClient,
     InterpolationClient,
     InverterTelemetryClient,

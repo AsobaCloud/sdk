@@ -59,7 +59,7 @@ def check_rate_limit(api_key: str) -> None:
     
     # Check if we're at the limit
     if len(times) >= _RATE_LIMIT_PER_MINUTE:
-        raise RateLimitError(f"Rate limit exceeded for API key")
+        raise RateLimitError("Rate limit exceeded for API key")
     
     # Add current request timestamp
     times.append(now)

@@ -1,4 +1,3 @@
-import os
 
 path = '/Users/shingi/Workbench/asobacloud.github.io/sdk/snapshots.md'
 content = """---
@@ -122,4 +121,3 @@ The `getSnapshot({ site_id, kind })` method allows access to experimental or cus
 
 with open(path, 'w') as f:
     f.write(content)
-"""

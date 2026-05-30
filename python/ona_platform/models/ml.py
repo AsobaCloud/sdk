@@ -1,7 +1,8 @@
 """ML and training data models for Ona Platform SDK."""
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 
 @dataclass
 class GapDetectionResult:

@@ -65,7 +65,7 @@ def _get_snapshot(kind: str, site_id: str, if_none_match: str = None):
 def lambda_handler(event: dict, context) -> dict:
     """Main Lambda entry point."""
     path = event.get("path") or event.get("rawPath", "")
-    method = event.get("httpMethod") or event.get("requestContext", {}).get("http", {}).get("method", "")
+    _ = event.get("httpMethod") or event.get("requestContext", {}).get("http", {}).get("method", "")
     params = event.get("queryStringParameters") or {}
     headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
     api_key = headers.get("x-api-key", "")

@@ -1,5 +1,4 @@
 import json
-import pytest
 from unittest.mock import MagicMock, patch
 from partner_api.lambda_handler import lambda_handler
 
