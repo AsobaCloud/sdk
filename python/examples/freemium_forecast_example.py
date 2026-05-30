@@ -3,12 +3,16 @@
 Freemium Forecast Example
 
 Generate a 24-hour solar energy forecast from a CSV file.
-No API key required.
+No API key required, but the endpoint uses a two-step email-verification flow:
+  1. request_verification_code(email) — a one-time code is emailed to you.
+  2. get_forecast(..., verification_code=..., capacity_kw=...) — submit the CSV.
 
 Usage:
     python3 freemium_forecast_example.py
 
-The script creates a sample CSV and submits it to the freemium forecast endpoint.
+The script creates a sample CSV, requests a verification code, prompts you to
+paste the code from your email, then submits the forecast request. Set the
+EMAIL and CAPACITY_KW env vars to override the defaults.
 """
 
 import csv
@@ -54,16 +58,30 @@ def main():
         tmp_path = tmp.name
     create_sample_csv(tmp_path)
 
+    email = os.environ.get("EMAIL", "demo@example.com")
+    capacity_kw = float(os.environ.get("CAPACITY_KW", "500"))
+
     print("=== Freemium Forecast Example ===")
-    print(f"CSV: {tmp_path}")
+    print(f"CSV:   {tmp_path}")
+    print(f"Email: {email}")
     print()
 
     try:
+        # Step 1 — request a one-time verification code (emailed to `email`).
+        print("Requesting verification code...")
+        client.freemium_forecast.request_verification_code(email=email)
+        verification_code = input("Enter the verification code from your email: ").strip()
+
+        # Step 2 — submit the CSV with the code and installed capacity.
         result = client.freemium_forecast.get_forecast(
             csv_path=tmp_path,
-            email="demo@example.com",
+            email=email,
+            verification_code=verification_code,
             site_name="Demo Solar Site",
             location="Durban",
+            capacity_kw=capacity_kw,
+            tou_accepted=True,      # you must accept the Terms of Use to use this service
+            marketing_opt_in=False,  # optional
         )
 
         forecast = result["forecast"]

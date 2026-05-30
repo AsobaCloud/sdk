@@ -3,16 +3,26 @@
  * Freemium Forecast Example
  *
  * Generate a 24-hour solar energy forecast from a CSV file.
- * No API key required.
+ * No API key required, but the endpoint uses a two-step email-verification flow:
+ *   1. requestVerificationCode({ email }) — a one-time code is emailed to you.
+ *   2. getForecast({ ..., verificationCode, capacityKw }) — submit the CSV.
  *
  * Usage:
  *   node freemium-forecast-example.js
+ *
+ * Set EMAIL and CAPACITY_KW env vars to override the defaults.
  */
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const readline = require('readline');
 const { OnaSDK } = require('../src/index');
+
+function prompt(question) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise(resolve => rl.question(question, answer => { rl.close(); resolve(answer.trim()); }));
+}
 
 function createSampleCsv(filePath) {
   const rows = [
@@ -46,16 +56,30 @@ async function main() {
   const csvPath = path.join(os.tmpdir(), `ona-sample-${Date.now()}.csv`);
   createSampleCsv(csvPath);
 
+  const email = process.env.EMAIL || 'demo@example.com';
+  const capacityKw = parseFloat(process.env.CAPACITY_KW || '500');
+
   console.log('=== Freemium Forecast Example ===');
-  console.log(`CSV: ${csvPath}`);
+  console.log(`CSV:   ${csvPath}`);
+  console.log(`Email: ${email}`);
   console.log();
 
   try {
+    // Step 1 — request a one-time verification code (emailed to `email`).
+    console.log('Requesting verification code...');
+    await sdk.freemiumForecast.requestVerificationCode({ email });
+    const verificationCode = await prompt('Enter the verification code from your email: ');
+
+    // Step 2 — submit the CSV with the code and installed capacity.
     const result = await sdk.freemiumForecast.getForecast({
       csvPath,
-      email: 'demo@example.com',
+      email,
+      verificationCode,
       siteName: 'Demo Solar Site',
       location: 'Durban',
+      capacityKw,
+      touAccepted: true,      // you must accept the Terms of Use to use this service
+      marketingOptIn: false,  // optional
     });
 
     const { forecast } = result;
