@@ -93,7 +93,10 @@ class TerminalClient(BaseServiceClient):
         capacity_kw: float,
         location: str,
         timezone: str = "Africa/Johannesburg",
-        components: Optional[List[Dict]] = None
+        components: Optional[List[Dict]] = None,
+        capacity_kwh: Optional[float] = None,
+        warranty_expiry_date: Optional[str] = None,
+        warranty_throughput_kwh: Optional[float] = None
     ) -> Dict[str, Any]:
         """Add a new asset.
 
@@ -106,25 +109,36 @@ class TerminalClient(BaseServiceClient):
             location: Asset location
             timezone: Asset timezone (default: Africa/Johannesburg)
             components: Optional list of asset components
+            capacity_kwh: Optional battery capacity in kWh
+            warranty_expiry_date: Optional warranty expiry date (YYYY-MM-DD)
+            warranty_throughput_kwh: Optional warranty throughput limit in kWh
 
         Returns:
             Created asset information
         """
         import json
+        body = {
+            'action': 'add',
+            'customer_id': customer_id,
+            'asset_id': asset_id,
+            'name': name,
+            'type': asset_type,
+            'capacity_kw': capacity_kw,
+            'location': location,
+            'timezone': timezone,
+            'components': components or []
+        }
+        if capacity_kwh is not None:
+            body['capacity_kwh'] = capacity_kwh
+        if warranty_expiry_date:
+            body['warranty_expiry_date'] = warranty_expiry_date
+        if warranty_throughput_kwh is not None:
+            body['warranty_throughput_kwh'] = warranty_throughput_kwh
+
         payload = {
             'httpMethod': 'POST',
             'path': '/assets',
-            'body': json.dumps({
-                'action': 'add',
-                'customer_id': customer_id,
-                'asset_id': asset_id,
-                'name': name,
-                'type': asset_type,
-                'capacity_kw': capacity_kw,
-                'location': location,
-                'timezone': timezone,
-                'components': components or []
-            })
+            'body': json.dumps(body)
         }
         return self.invoke_lambda(self.function_name, payload)
 

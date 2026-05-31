@@ -147,18 +147,47 @@ activities = client.terminal.list_activities(
 
 ```python
 # List assets
+#### Asset Management
+
+```python
+# List all assets
 assets = client.terminal.list_assets(customer_id='customer123')
 
-# Add new asset
+# Get specific asset (including battery details)
+asset = client.terminal.get_asset(
+    customer_id='customer123',
+    asset_id='BAT-789'
+)
+
+# Add new battery asset
 asset = client.terminal.add_asset(
     customer_id='customer123',
-    asset_id='asset789',
-    name='Solar Array 1',
-    asset_type='solar',
-    capacity_kw=150.0,
+    asset_id='BAT-789',
+    name='Home Battery 1',
+    asset_type='battery',
+    capacity_kw=5.0,
     location='Durban',
-    timezone='Africa/Johannesburg'
+    capacity_kwh=13.5,
+    warranty_expiry_date='2030-01-01',
+    warranty_throughput_kwh=10000.0
 )
+```
+
+#### Battery Warranty Tracking
+
+Calculate remaining warranty life based on time and energy throughput:
+
+```python
+# Calculate remaining warranty
+warranty = client.terminal.calculate_remaining_warranty_life(
+    warranty_expiry_date='2030-01-01',
+    warranty_throughput_kwh=10000.0,
+    current_throughput_kwh=2500.0
+)
+
+print(f"Status: {warranty['warranty_status']}")
+print(f"Days left: {warranty['days_remaining']}")
+print(f"Limiting factor: {warranty['limiting_factor']}")
 ```
 
 #### ML Integration
@@ -347,6 +376,48 @@ result = client.standardization.standardize(
 result = client.data_ingestion.ingest()
 ```
 
+##### Local Record Validation (Pre-Upload)
+
+Validate records locally against the ODSE schema before uploading to the platform:
+
+```python
+from ona_platform.models.odse import (
+    ODSE_REQUIRED_FIELDS,
+    ODSE_ALLOWED_FIELDS,
+    ODSE_ERROR_TYPES
+)
+
+# Records to validate
+records = [
+    {"timestamp": "2025-01-01T00:00:00Z", "kWh": 100.5, "error_type": "normal", "asset_id": "INV001"},
+    {"timestamp": "invalid-date", "kWh": "not-a-number", "error_type": "unknown"},
+]
+
+# Validate locally
+result = client.data_ingestion.validate_local_records(records)
+
+print(f"Total: {result['summary']['total']}")
+print(f"Valid: {result['summary']['valid']}")
+print(f"Invalid: {result['summary']['invalid']}")
+
+# Access valid records for upload
+for record in result['valid_records']:
+    print(f"Valid: {record}")
+
+# Review invalid records and errors
+for item in result['invalid_records']:
+    print(f"Record {item['index']}: {item['errors']}")
+```
+
+The validation checks:
+- **Required fields**: `timestamp`, `kWh`, `error_type`
+- **Allowed fields**: `timestamp`, `kWh`, `error_type`, `error_code`, `kVArh`, `kVA`, `PF`, `asset_id`, `device_id`
+- **Numeric validation**: `kWh` (non-negative), `kVArh`, `kVA` (non-negative), `PF` (0-1)
+- **Timestamp format**: ISO 8601 with timezone
+- **Error types**: `normal`, `warning`, `critical`, `fault`, `offline`, `standby`, `unknown`
+
+This client-side validation provides 100% parity with service-side validation, allowing you to catch issues before uploading.
+
 ### ML Training
 
 ```python
@@ -459,8 +530,10 @@ The SDK is organized into the following components:
   - `weather.py`, `enphase.py`, `huawei.py` - Data collection clients
   - `data_ingestion.py`, `interpolation.py`, `standardization.py` - Data processing
   - `training.py` - ML training client
-- `utils/` - Utilities (retry, logging)
-- `models/` - Data models (future expansion)
+- `utils/` - Utilities (retry, logging, validation)
+  - `validation.py` - ODSE record validation with pandas-free service parity
+- `models/` - Data models
+  - `odse.py` - ODSE schema constants (required/allowed fields, error types)
 
 ## Requirements
 
@@ -494,6 +567,13 @@ For issues and questions:
 Contributions are welcome! Please follow the existing code style and include tests for new features.
 
 ## Changelog
+
+### Version 1.1.0 (2026-05-31)
+
+- **Data Ingestion Validation** - Added `validate_local_records()` method for client-side ODSE record validation with 100% service parity
+- **ODSE Models** - New `ona_platform.models.odse` module with schema constants
+- **Site Intelligence** - Enhanced Terminal API with soiling analysis and asset prognostics via `get_site_summary()`
+- **Battery Health** - Added battery State of Health (SOH) and warranty tracking support
 
 ### Version 1.0.0 (2025-01-29)
 

@@ -13,6 +13,7 @@ This SDK provides three live APIs for solar installation data:
 - **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
 - **Battery Health & Warranty Tracking** — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
 - **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
+- **Data Ingestion Validation (Python)** — client-side ODSE record validation with 100% service parity for pre-upload checks
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
 
@@ -320,6 +321,120 @@ for task in schedule['tasks']:
 
 ---
 
+## Data Ingestion Validation (Python SDK)
+
+Validate records locally against the ODSE schema before uploading to catch issues early.
+
+```python
+from ona_platform import OnaClient
+from ona_platform.models.odse import ODSE_REQUIRED_FIELDS, ODSE_ERROR_TYPES
+
+client = OnaClient()
+
+# Records to validate
+records = [
+    {"timestamp": "2025-01-01T00:00:00Z", "kWh": 100.5, "error_type": "normal", "asset_id": "INV001"},
+    {"timestamp": "invalid-date", "kWh": "not-a-number", "error_type": "unknown"},
+]
+
+# Validate locally (no service call)
+result = client.data_ingestion.validate_local_records(records)
+
+print(f"Valid: {result['summary']['valid']}/{result['summary']['total']}")
+
+# Access valid records for upload
+for record in result['valid_records']:
+    print(f"Ready for upload: {record}")
+
+# Review invalid records
+for item in result['invalid_records']:
+    print(f"Errors: {item['errors']}")
+```
+
+Validation checks include: required fields, allowed field whitelist, numeric bounds, timestamp format, and error type enum matching. This provides 100% parity with service-side validation.
+
+---
+
+## Performance Intelligence & Battery Health
+
+The Terminal API provides advanced intelligence for asset health, soiling analysis, and battery warranty tracking.
+
+### Site Summary & Intelligence
+Get high-level KPIs and automated analysis for a site.
+
+#### JavaScript
+```javascript
+const summary = await sdk.terminal.getSiteSummary({ site_id: 'Sibaya' });
+
+console.log(`Fleet PR: ${summary.fleet_pr_pct}%`);
+
+// Soiling Analysis
+if (summary.soiling) {
+  console.log(`Soiling Rate: ${summary.soiling.soiling_rate_pct_day}%/day`);
+  console.log(`Last Wash Gain: ${summary.soiling.recovery_gain_kwh_last_event} kWh`);
+}
+
+// Asset Prognostics
+if (summary.prognostics) {
+  console.log(`Health Score: ${summary.prognostics.health_score}/100`);
+  console.log(`Est. Retirement: ${summary.prognostics.battery_retirement_date}`);
+}
+```
+
+#### Python
+```python
+summary = client.terminal.get_site_summary(site_id='Sibaya')
+
+print(f"Fleet PR: {summary['fleet_pr_pct']}%")
+
+# Soiling Analysis
+if 'soiling' in summary:
+    soiling = summary['soiling']
+    print(f"Soiling Rate: {soiling['soiling_rate_pct_day']}%/day")
+
+# Battery Health (aggregated)
+if 'battery' in summary:
+    bat = summary['battery']
+    print(f"Avg SOH: {bat['avg_soh']}%")
+```
+
+### Battery Warranty Tracking
+Monitor individual battery assets and calculate remaining warranty life based on both date and throughput.
+
+#### JavaScript
+```javascript
+// 1. Get asset with warranty details
+const asset = await sdk.terminal.getAsset({ 
+  customer_id: 'cust123', 
+  asset_id: 'BAT-001' 
+});
+
+// 2. Calculate remaining warranty life
+const status = sdk.terminal.constructor.calculateRemainingWarrantyLife({
+  warranty_expiry_date: asset.warranty_expiry_date,
+  warranty_throughput_kwh: asset.warranty_throughput_kwh,
+  current_throughput_kwh: 5420.5 // From telemetry
+});
+
+console.log(`Warranty Status: ${status.warranty_status}`);
+console.log(`Limiting Factor: ${status.limiting_factor}`);
+```
+
+#### Python
+```python
+# Calculate remaining warranty life
+status = client.terminal.calculate_remaining_warranty_life(
+    warranty_expiry_date='2030-12-31',
+    warranty_throughput_kwh=10000.0,
+    current_throughput_kwh=8500.0
+)
+
+print(f"Warranty Status: {status['warranty_status']}")
+print(f"Throughput Remaining: {status['throughput_remaining_pct']}%")
+```
+
+---
+
 ## API Reference
 
 ### Inverter Telemetry Methods
@@ -438,13 +553,17 @@ sdk/
 │   ├── ona_platform/services/inverter_telemetry.py
 │   ├── ona_platform/services/ooda_terminal.py
 │   ├── ona_platform/services/partner_api.py
+│   ├── ona_platform/services/data_ingestion.py
+│   ├── ona_platform/utils/validation.py
+│   ├── ona_platform/models/odse.py
 │   ├── examples/inverter_telemetry_example.py
 │   ├── examples/ooda_terminal_example.py
 │   ├── examples/partner_api_example.py
 │   └── tests/
 │       ├── test_client.py
 │       ├── test_inverter_telemetry_client.py
-│       └── test_partner_api_client.py
+│       ├── test_partner_api_client.py
+│       └── test_validation.py
 └── backend/
     ├── inverter_telemetry_api/   
     ├── ooda_terminal_api/        
