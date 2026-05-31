@@ -71,33 +71,11 @@ class TimeoutError extends OnaSDKError {
   }
 }
 
-/**
- * Error thrown when backend rate limit is exceeded (HTTP 429)
- */
-class RateLimitError extends OnaSDKError {
-  constructor(message) {
-    super(message, 'RATE_LIMIT_ERROR');
-    this.name = 'RateLimitError';
-  }
-}
-
-/**
- * Error thrown when service is unavailable after retries exhausted
- */
-class ServiceUnavailableError extends OnaSDKError {
-  constructor(message) {
-    super(message, 'SERVICE_UNAVAILABLE_ERROR');
-    this.name = 'ServiceUnavailableError';
-  }
-}
-
 module.exports = {
   OnaSDKError,
   APIError,
   ConfigurationError,
   ValidationError,
   AuthenticationError,
-  TimeoutError,
-  RateLimitError,
-  ServiceUnavailableError
+  TimeoutError
 };

@@ -20,10 +20,9 @@ class HTTPClient {
       timeout: config.timeout,
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': '@asoba/ona-sdk/1.1.0'
+        'User-Agent': '@asoba/ona-sdk/1.0.0'
       }
     });
-    this.etagCache = new Map();
   }
 
   /**
@@ -50,14 +49,6 @@ class HTTPClient {
         requestConfig.data = options.data;
       }
 
-      // Handle ETags for GET requests
-      if (options.method === 'GET') {
-        const cached = this.etagCache.get(options.url);
-        if (cached) {
-          requestConfig.headers['If-None-Match'] = cached.etag;
-        }
-      }
-
       // Sign request if AWS credentials are available and signRequest is true
       if (options.signRequest && this.config.hasCredentials()) {
         this.signRequest(requestConfig);
@@ -66,28 +57,8 @@ class HTTPClient {
       // Make the request
       const response = await this.axios.request(requestConfig);
 
-      // Store ETag if present in response for GET requests
-      if (options.method === 'GET' && response.headers.etag) {
-        this.etagCache.set(options.url, {
-          etag: response.headers.etag,
-          data: response.data
-        });
-      }
-
       return response.data;
     } catch (error) {
-      // Handle 304 Not Modified
-      if (
-        error.response &&
-        error.response.status === 304 &&
-        options.method === 'GET'
-      ) {
-        const cached = this.etagCache.get(options.url);
-        if (cached) {
-          return cached.data;
-        }
-      }
-
       // Handle timeout errors
       if (error.code === 'ECONNABORTED') {
         throw new TimeoutError(

@@ -1,10 +1,11 @@
 """Data Ingestion service client."""
 
 import logging
-from typing import Any, Dict
+from typing import Dict, Any, List
 
-from ..config import OnaConfig
 from .base import BaseServiceClient
+from ..config import OnaConfig
+from ..utils.validation import validate_batch
 
 logger = logging.getLogger(__name__)
 
@@ -37,3 +38,15 @@ class DataIngestionClient(BaseServiceClient):
         payload = kwargs
         logger.info("Triggering data ingestion")
         return self.invoke_lambda(self.function_name, payload)
+
+    def validate_local_records(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Validate records locally against ODSE schema without calling the service.
+
+        Args:
+            records: List of records to validate
+
+        Returns:
+            A dictionary containing valid_records, invalid_records, and a summary.
+        """
+        logger.info(f"Validating {len(records)} records locally")
+        return validate_batch(records)

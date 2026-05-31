@@ -4,8 +4,7 @@ Official JavaScript SDK for the Asoba Ona Energy Management Platform. This SDK p
 
 ## Features
 
-- ✅ **Complete Service Coverage** - Access all Ona platform services including inverter telemetry streaming
-- ✅ **Inverter Telemetry Streaming** - Real-time and historical inverter data via API key, no AWS credentials needed
+- ✅ **Complete Service Coverage** - Access all 13 Ona platform services
 - ✅ **TypeScript Support** - Full TypeScript type definitions included
 - ✅ **Modern JavaScript** - ES6+ syntax with Promise-based API
 - ✅ **Automatic Retries** - Built-in retry logic for failed requests
@@ -33,8 +32,8 @@ const sdk = new OnaSDK({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   },
   endpoints: {
-    forecasting: 'https://forecasting.api.asoba.org',
-    terminal: 'https://terminal.api.asoba.org',
+    forecasting: 'https://forecasting.api.asoba.co',
+    terminal: 'https://terminal.api.asoba.co',
     edgeRegistry: 'http://edge-registry:8082',
     energyAnalyst: 'http://energy-analyst:8000'
   }
@@ -87,17 +86,6 @@ const assets = await sdk.terminal.listAssets({
   customer_id: 'customer123'
 });
 
-// Get a specific asset (returns null if not found)
-const asset = await sdk.terminal.getAsset({
-  customer_id: 'customer123',
-  asset_id: 'asset789'
-});
-
-// Get site-level battery KPIs
-const summary = await sdk.terminal.getSiteSummary({
-  site_id: 'site789'
-});
-
 // Run fault detection (Observe)
 const detection = await sdk.terminal.runDetection({
   customer_id: 'customer123',
@@ -125,6 +113,21 @@ const nowcast = await sdk.terminal.getNowcastData({
   customer_id: 'customer123',
   time_range: '1h'
 });
+
+// Get high-level site summary with intelligence data
+const summary = await sdk.terminal.getSiteSummary({
+  site_id: 'Sibaya'
+});
+
+console.log(`Site PR: ${summary.fleet_pr_pct}%`);
+
+if (summary.soiling) {
+  console.log(`Soiling Rate: ${summary.soiling.soiling_rate_pct_day}%/day`);
+}
+
+if (summary.prognostics) {
+  console.log(`Asset Health: ${summary.prognostics.health_score}/100`);
+}
 ```
 
 ### Energy Analyst (RAG)
@@ -208,111 +211,6 @@ const huaweiRealtime = await sdk.huawei.getRealTimeData({
 });
 ```
 
-### Inverter Telemetry
-
-Query historical or stream live inverter telemetry. Access is gated by API key — no AWS credentials needed. Each key is scoped to permitted sites.
-
-**Always call `getDataPeriod` first** to discover what time range has data before making historical queries. Querying an empty time window returns `[]` with no error — knowing the available range upfront avoids wasted calls.
-
-The backend caches API key lookups for 60 seconds. Only successful lookups are cached — a failed lookup is never cached, so retries are immediate.
-
-```javascript
-const sdk = new OnaSDK({
-  endpoints: {
-    inverterTelemetry: 'https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod',
-  },
-  inverterTelemetryApiKey: process.env.INVERTER_TELEMETRY_API_KEY,
-});
-
-// Step 1: discover what time range has data before querying
-const period = await sdk.inverterTelemetry.getDataPeriod({ site_id: 'Sibaya' });
-console.log(`Data available from ${period.first_record} to ${period.last_record}`);
-// e.g. Data available from 2025-11-01T02:40:00 to 2026-04-18T06:56:56
-
-// Step 2: query a specific inverter using the discovered range
-const records = await sdk.inverterTelemetry.getInverterTelemetry({
-  asset_id: 'INV-1000000054495190',
-  site_id: 'Sibaya',
-  time_range: { start: period.first_record, end: '2025-11-01T06:00:00' },
-  resolution: '5min', // or 'daily'
-  limit: 100,
-});
-records.forEach(r => console.log(`${r.timestamp}: ${r.power} kW, ${r.temperature}°C`));
-
-// Check data period for a specific inverter
-const invPeriod = await sdk.inverterTelemetry.getDataPeriod({
-  site_id: 'Sibaya',
-  asset_id: 'INV-1000000054495190',
-});
-console.log(`Inverter data: ${invPeriod.first_record} → ${invPeriod.last_record}`);
-
-// Query all inverters at a site
-const siteData = await sdk.inverterTelemetry.getSiteTelemetry({
-  site_id: 'Sibaya',
-  time_range: { start: '2025-11-01T02:00:00', end: '2025-11-01T06:00:00' },
-});
-for (const [assetId, recs] of Object.entries(siteData)) {
-  console.log(`${assetId}: ${recs.length} records`);
-}
-
-// Stream live telemetry (polls every 30s, minimum 5s)
-for await (const record of sdk.inverterTelemetry.streamInverter({
-  asset_id: 'INV-1000000054495190',
-  site_id: 'Sibaya',
-  polling_interval: 30,
-})) {
-  console.log(`${record.timestamp}: ${record.power} kW  cursor=${record.cursor}`);
-  // Save record.cursor to resume after a disconnection
-}
-
-// Resume a stream from a saved cursor
-for await (const record of sdk.inverterTelemetry.streamInverter({
-  asset_id: 'INV-1000000054495190',
-  site_id: 'Sibaya',
-  cursor: '<saved cursor>',
-  polling_interval: 30,
-})) {
-  console.log(record.timestamp);
-}
-
-// Stream all inverters at a site
-for await (const record of sdk.inverterTelemetry.streamSite({ site_id: 'Sibaya' })) {
-  console.log(`${record.asset_id} @ ${record.timestamp}: ${record.power} kW`);
-}
-```
-
-#### Telemetry Configuration
-
-```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-export INVERTER_TELEMETRY_API_KEY=your_api_key
-```
-
-#### How the cache works
-
-The backend caches each API key lookup for **60 seconds** after a successful authentication. This means:
-- The first request for a given key hits DynamoDB; subsequent requests within 60 seconds are served from cache
-- If a key is revoked, it will continue to work for up to 60 seconds before the cache expires
-- **Failed lookups are never cached** — if you use a wrong or expired key, every retry hits DynamoDB immediately with no delay
-
-#### Telemetry Error Handling
-
-```javascript
-const { RateLimitError, ServiceUnavailableError } = require('@asoba/ona-sdk');
-
-try {
-  const records = await sdk.inverterTelemetry.getInverterTelemetry({ ... });
-} catch (err) {
-  if (err instanceof RateLimitError) {
-    // HTTP 429 — back off and retry manually
-  } else if (err instanceof AuthenticationError) {
-    // HTTP 401/403 — invalid or expired API key, or site not permitted
-  } else if (err instanceof ServiceUnavailableError) {
-    // Backend unavailable after retries
-  }
-}
-```
-
 ## Configuration
 
 ### SDK Options
@@ -331,8 +229,8 @@ const sdk = new OnaSDK({
 
   // Service endpoints
   endpoints: {
-    forecasting: 'https://forecasting.api.asoba.org',
-    terminal: 'https://terminal.api.asoba.org',
+    forecasting: 'https://forecasting.api.asoba.co',
+    terminal: 'https://terminal.api.asoba.co',
     edgeRegistry: 'http://edge-registry:8082',
     energyAnalyst: 'http://energy-analyst:8000',
     // ... other endpoints
@@ -357,8 +255,8 @@ You can also configure the SDK using environment variables:
 export AWS_ACCESS_KEY_ID=your_access_key
 export AWS_SECRET_ACCESS_KEY=your_secret_key
 export AWS_REGION=af-south-1
-export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.org
-export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.org
+export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.co
+export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.co
 ```
 
 ## Error Handling
@@ -372,9 +270,7 @@ const {
   ConfigurationError,
   ValidationError,
   AuthenticationError,
-  TimeoutError,
-  RateLimitError,
-  ServiceUnavailableError
+  TimeoutError
 } = require('@asoba/ona-sdk');
 
 try {
@@ -422,13 +318,12 @@ const result: ForecastResult = await sdk.forecasting.getSiteForecast(params);
 
 ## Examples
 
-See the `examples/` directory for complete usage examples:
+See the `examples/` directory for complete working examples:
 
 - `basic-usage.js` - Basic SDK initialization and usage
 - `forecasting-example.js` - Energy forecasting examples
 - `terminal-api-example.js` - OODA workflow examples
 - `edge-device-example.js` - Edge device management examples
-- `inverter-telemetry-example.js` - Inverter telemetry queries and live streaming
 
 ## API Reference
 
@@ -440,12 +335,10 @@ See the `examples/` directory for complete usage examples:
 
 ### Terminal Client
 
-**Assets & Battery:**
-- `listAssets(params)` - List all assets (includes battery fields)
-- `addAsset(params)` - Add a new asset (supports battery/warranty fields)
+**Assets:**
+- `listAssets(params)` - List all assets
+- `addAsset(params)` - Add a new asset
 - `getAsset(params)` - Get specific asset
-- `getSiteSummary(params)` - Get site summary with battery health KPIs
-- `TerminalClient.calculateRemainingWarrantyLife(params)` - Static helper for warranty tracking
 
 **Detection (Observe):**
 - `runDetection(params)` - Run fault detection
@@ -504,7 +397,7 @@ MIT
 
 For issues and questions:
 - GitHub Issues: https://github.com/AsobaCloud/platform/issues
-- Documentation: https://docs.asoba.org
+- Documentation: https://docs.asoba.co
 
 ## Contributing
 

@@ -13,7 +13,7 @@ async function main() {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     },
     endpoints: {
-      forecasting: process.env.ONA_FORECASTING_ENDPOINT || 'https://forecasting.api.asoba.org'
+      forecasting: process.env.ONA_FORECASTING_ENDPOINT || 'https://forecasting.api.asoba.co'
     }
   });
 

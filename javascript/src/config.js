@@ -25,10 +25,7 @@ const DEFAULTS = {
     globalTraining: null,
     interpolation: null,
     terminal: null,
-    weather: null,
-    inverterTelemetry: null,
-    oodaTerminal: null,
-    partnerApi: null
+    weather: null
   }
 };
 
@@ -48,7 +45,6 @@ class Config {
    * @param {number} [options.timeout] - Request timeout in milliseconds
    * @param {number} [options.retries] - Number of retries for failed requests
    * @param {number} [options.retryDelay] - Delay between retries in milliseconds
-   * @param {string} [options.partnerApiKey] - Partner API key
    */
   constructor(options = {}) {
     this.region = options.region || DEFAULTS.region;
@@ -62,36 +58,6 @@ class Config {
       ...DEFAULTS.endpoints,
       ...(options.endpoints || {})
     };
-
-    this.inverterTelemetryApiKey = options.inverterTelemetryApiKey
-      || process.env.INVERTER_TELEMETRY_API_KEY
-      || null;
-    this.telemetryPollingInterval = options.telemetryPollingInterval !== undefined
-      ? options.telemetryPollingInterval
-      : 5;
-    // endpoint comes from options.endpoints.inverterTelemetry or env var
-    if (!this.endpoints.inverterTelemetry && process.env.INVERTER_TELEMETRY_ENDPOINT) {
-      this.endpoints.inverterTelemetry = process.env.INVERTER_TELEMETRY_ENDPOINT;
-    }
-
-    this.oodaTerminalApiKey = options.oodaTerminalApiKey
-      || process.env.OODA_TERMINAL_API_KEY
-      || null;
-    this.oodaPollingInterval = options.oodaPollingInterval !== undefined
-      ? options.oodaPollingInterval
-      : 5;
-    // endpoint comes from options.endpoints.oodaTerminal or env var
-    if (!this.endpoints.oodaTerminal && process.env.OODA_TERMINAL_ENDPOINT) {
-      this.endpoints.oodaTerminal = process.env.OODA_TERMINAL_ENDPOINT;
-    }
-
-    this.partnerApiKey = options.partnerApiKey
-      || process.env.PARTNER_API_KEY
-      || null;
-    // endpoint comes from options.endpoints.partnerApi or env var
-    if (!this.endpoints.partnerApi && process.env.PARTNER_API_ENDPOINT) {
-      this.endpoints.partnerApi = process.env.PARTNER_API_ENDPOINT;
-    }
 
     this.validate();
   }
@@ -134,33 +100,6 @@ class Config {
           missingFields
         );
       }
-    }
-
-    // Validate inverterTelemetry endpoint scheme if set
-    const itEndpoint = this.endpoints.inverterTelemetry;
-    if (itEndpoint && !itEndpoint.startsWith('https://')) {
-      throw new ConfigurationError(
-        'inverterTelemetry endpoint must use https://',
-        ['endpoints.inverterTelemetry']
-      );
-    }
-
-    // Validate oodaTerminal endpoint scheme if set
-    const otEndpoint = this.endpoints.oodaTerminal;
-    if (otEndpoint && !otEndpoint.startsWith('https://')) {
-      throw new ConfigurationError(
-        'oodaTerminal endpoint must use https://',
-        ['endpoints.oodaTerminal']
-      );
-    }
-
-    // Validate partnerApi endpoint scheme if set
-    const paEndpoint = this.endpoints.partnerApi;
-    if (paEndpoint && !paEndpoint.startsWith('https://')) {
-      throw new ConfigurationError(
-        'partnerApi endpoint must use https://',
-        ['endpoints.partnerApi']
-      );
     }
   }
 

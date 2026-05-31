@@ -1,10 +1,10 @@
 """Weather Cache service client."""
 
 import logging
-from typing import Any, Dict
+from typing import Dict, Any
 
-from ..config import OnaConfig
 from .base import BaseServiceClient
+from ..config import OnaConfig
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +49,7 @@ class WeatherClient(BaseServiceClient):
             key = f"weather-cache/{location}/latest.json"
             data = self.get_s3_object(self.config.input_bucket, key)
             import json
-
-            return json.loads(data.decode("utf-8"))
+            return json.loads(data.decode('utf-8'))
         except Exception as e:
             logger.error(f"Failed to get cached weather: {e}")
             raise

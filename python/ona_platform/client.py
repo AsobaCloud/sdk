@@ -5,21 +5,17 @@ from typing import Optional
 
 from .config import OnaConfig
 from .services import (
-    DataIngestionClient,
-    EdgeDeviceClient,
-    EnergyAnalystClient,
-    EnphaseClient,
     ForecastingClient,
-    FreemiumForecastClient,
-    HuaweiClient,
-    InterpolationClient,
-    InverterTelemetryClient,
-    OodaTerminalClient,
-    PartnerApiClient,
-    StandardizationClient,
     TerminalClient,
-    TrainingClient,
+    EnergyAnalystClient,
+    EdgeDeviceClient,
     WeatherClient,
+    EnphaseClient,
+    HuaweiClient,
+    DataIngestionClient,
+    InterpolationClient,
+    StandardizationClient,
+    TrainingClient
 )
 
 logger = logging.getLogger(__name__)
@@ -55,13 +51,7 @@ class OnaClient:
         edge_api_url: Optional[str] = None,
         energy_analyst_url: Optional[str] = None,
         timeout: Optional[int] = None,
-        max_retries: Optional[int] = None,
-        inverter_telemetry_endpoint: Optional[str] = None,
-        inverter_telemetry_api_key: Optional[str] = None,
-        ooda_terminal_endpoint: Optional[str] = None,
-        ooda_terminal_api_key: Optional[str] = None,
-        partner_api_endpoint: Optional[str] = None,
-        partner_api_key: Optional[str] = None,
+        max_retries: Optional[int] = None
     ):
         """Initialize Ona Platform client.
 
@@ -100,18 +90,6 @@ class OnaClient:
                 config.timeout = timeout
             if max_retries is not None:
                 config.max_retries = max_retries
-            if inverter_telemetry_endpoint is not None:
-                config.inverter_telemetry_endpoint = inverter_telemetry_endpoint
-            if inverter_telemetry_api_key is not None:
-                config.inverter_telemetry_api_key = inverter_telemetry_api_key
-            if ooda_terminal_endpoint is not None:
-                config.ooda_terminal_endpoint = ooda_terminal_endpoint
-            if ooda_terminal_api_key is not None:
-                config.ooda_terminal_api_key = ooda_terminal_api_key
-            if partner_api_endpoint is not None:
-                config.partner_api_endpoint = partner_api_endpoint
-            if partner_api_key is not None:
-                config.partner_api_key = partner_api_key
 
         self.config = config
 
@@ -127,11 +105,6 @@ class OnaClient:
         self._interpolation = None
         self._standardization = None
         self._training = None
-        self._gap_detection = None
-        self._inverter_telemetry = None
-        self._ooda_terminal = None
-        self._freemium_forecast = None
-        self._partner_api = None
 
         logger.info("Ona Platform client initialized")
         logger.debug(f"Configuration: {self.config}")
@@ -212,31 +185,3 @@ class OnaClient:
         if self._training is None:
             self._training = TrainingClient(self.config)
         return self._training
-
-    @property
-    def inverter_telemetry(self) -> InverterTelemetryClient:
-        """Get Inverter Telemetry service client."""
-        if self._inverter_telemetry is None:
-            self._inverter_telemetry = InverterTelemetryClient(self.config)
-        return self._inverter_telemetry
-
-    @property
-    def ooda_terminal(self) -> OodaTerminalClient:
-        """Get OODA Terminal API service client."""
-        if self._ooda_terminal is None:
-            self._ooda_terminal = OodaTerminalClient(self.config)
-        return self._ooda_terminal
-
-    @property
-    def freemium_forecast(self) -> FreemiumForecastClient:
-        """Get Freemium Forecast client (no API key required)."""
-        if self._freemium_forecast is None:
-            self._freemium_forecast = FreemiumForecastClient(self.config)
-        return self._freemium_forecast
-
-    @property
-    def partner_api(self) -> PartnerApiClient:
-        """Get Partner API service client."""
-        if self._partner_api is None:
-            self._partner_api = PartnerApiClient(self.config)
-        return self._partner_api

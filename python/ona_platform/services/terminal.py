@@ -2,12 +2,12 @@
 
 import json
 import logging
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, Any, List, Optional
+from datetime import datetime, date
 
-from ..config import OnaConfig
-from ..exceptions import ResourceNotFoundError
 from .base import BaseServiceClient
+from ..config import OnaConfig
+from ..models.intelligence import SiteSummary
 
 logger = logging.getLogger(__name__)
 
@@ -48,12 +48,15 @@ class TerminalClient(BaseServiceClient):
             warranty_expiry_date, and warranty_throughput_kwh fields.
         """
         payload = {
-            "httpMethod": "POST",
-            "path": "/assets",
-            "body": json.dumps({"action": "list", "customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/assets',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("assets", [])
+        return result.get('assets', [])
 
     def get_asset(self, customer_id: str, asset_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific asset by ID.
@@ -68,17 +71,18 @@ class TerminalClient(BaseServiceClient):
             Returns None if asset not found.
         """
         payload = {
-            "httpMethod": "POST",
-            "path": "/assets",
-            "body": json.dumps(
-                {"action": "get", "customer_id": customer_id, "asset_id": asset_id}
-            ),
+            'httpMethod': 'POST',
+            'path': '/assets',
+            'body': json.dumps({
+                'action': 'get',
+                'customer_id': customer_id,
+                'asset_id': asset_id
+            })
         }
-        try:
-            result = self.invoke_lambda(self.function_name, payload)
-            return result
-        except ResourceNotFoundError:
+        result = self.invoke_lambda(self.function_name, payload)
+        if result.get('statusCode') == 404:
             return None
+        return result
 
     def add_asset(
         self,
@@ -89,10 +93,7 @@ class TerminalClient(BaseServiceClient):
         capacity_kw: float,
         location: str,
         timezone: str = "Africa/Johannesburg",
-        components: Optional[List[Dict]] = None,
-        capacity_kwh: Optional[float] = None,
-        warranty_expiry_date: Optional[str] = None,
-        warranty_throughput_kwh: Optional[float] = None,
+        components: Optional[List[Dict]] = None
     ) -> Dict[str, Any]:
         """Add a new asset.
 
@@ -105,41 +106,34 @@ class TerminalClient(BaseServiceClient):
             location: Asset location
             timezone: Asset timezone (default: Africa/Johannesburg)
             components: Optional list of asset components
-            capacity_kwh: Optional battery capacity in kWh
-            warranty_expiry_date: Optional warranty expiry date (YYYY-MM-DD)
-            warranty_throughput_kwh: Optional warranty throughput limit in kWh
 
         Returns:
             Created asset information
         """
-        body = {
-            "action": "add",
-            "customer_id": customer_id,
-            "asset_id": asset_id,
-            "name": name,
-            "type": asset_type,
-            "capacity_kw": capacity_kw,
-            "location": location,
-            "timezone": timezone,
-            "components": components or [],
-        }
-        if capacity_kwh is not None:
-            body["capacity_kwh"] = capacity_kwh
-        if warranty_expiry_date:
-            body["warranty_expiry_date"] = warranty_expiry_date
-        if warranty_throughput_kwh is not None:
-            body["warranty_throughput_kwh"] = warranty_throughput_kwh
-
+        import json
         payload = {
-            "httpMethod": "POST",
-            "path": "/assets",
-            "body": json.dumps(body),
+            'httpMethod': 'POST',
+            'path': '/assets',
+            'body': json.dumps({
+                'action': 'add',
+                'customer_id': customer_id,
+                'asset_id': asset_id,
+                'name': name,
+                'type': asset_type,
+                'capacity_kw': capacity_kw,
+                'location': location,
+                'timezone': timezone,
+                'components': components or []
+            })
         }
         return self.invoke_lambda(self.function_name, payload)
 
     # Detection (Observe)
     def run_detection(
-        self, customer_id: str, asset_id: str, lookback_hours: int = 6
+        self,
+        customer_id: str,
+        asset_id: str,
+        lookback_hours: int = 6
     ) -> Dict[str, Any]:
         """Run ML-backed fault detection on an asset.
 
@@ -152,18 +146,15 @@ class TerminalClient(BaseServiceClient):
             Detection analysis with severity, fault type, and metrics
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/detect",
-            "body": json.dumps(
-                {
-                    "action": "run",
-                    "customer_id": customer_id,
-                    "asset_id": asset_id,
-                    "lookback_hours": lookback_hours,
-                }
-            ),
+            'httpMethod': 'POST',
+            'path': '/detect',
+            'body': json.dumps({
+                'action': 'run',
+                'customer_id': customer_id,
+                'asset_id': asset_id,
+                'lookback_hours': lookback_hours
+            })
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -177,18 +168,24 @@ class TerminalClient(BaseServiceClient):
             List of detection records
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/detect",
-            "body": json.dumps({"action": "list", "customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/detect',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("detections", [])
+        return result.get('detections', [])
 
     # Diagnostics (Orient)
     def run_diagnostics(
-        self, customer_id: str, asset_id: str, detection_id: str, lookback_hours: int = 6
+        self,
+        customer_id: str,
+        asset_id: str,
+        detection_id: str,
+        lookback_hours: int = 6
     ) -> Dict[str, Any]:
         """Run AI diagnostics on a detected fault.
 
@@ -202,19 +199,16 @@ class TerminalClient(BaseServiceClient):
             Diagnostic analysis with root cause and recommended actions
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/diagnose",
-            "body": json.dumps(
-                {
-                    "action": "run",
-                    "customer_id": customer_id,
-                    "asset_id": asset_id,
-                    "detection_id": detection_id,
-                    "lookback_hours": lookback_hours,
-                }
-            ),
+            'httpMethod': 'POST',
+            'path': '/diagnose',
+            'body': json.dumps({
+                'action': 'run',
+                'customer_id': customer_id,
+                'asset_id': asset_id,
+                'detection_id': detection_id,
+                'lookback_hours': lookback_hours
+            })
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -228,14 +222,16 @@ class TerminalClient(BaseServiceClient):
             List of diagnostic records
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/diagnose",
-            "body": json.dumps({"action": "list", "customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/diagnose',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("diagnostics", [])
+        return result.get('diagnostics', [])
 
     # Scheduling (Decide)
     def create_schedule(
@@ -245,7 +241,7 @@ class TerminalClient(BaseServiceClient):
         description: str,
         priority: str = "Medium",
         estimated_duration_hours: int = 4,
-        **kwargs,
+        **kwargs
     ) -> Dict[str, Any]:
         """Create a maintenance schedule.
 
@@ -261,21 +257,18 @@ class TerminalClient(BaseServiceClient):
             Created schedule information
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/schedule",
-            "body": json.dumps(
-                {
-                    "action": "create",
-                    "customer_id": customer_id,
-                    "asset_id": asset_id,
-                    "description": description,
-                    "priority": priority,
-                    "estimated_duration_hours": estimated_duration_hours,
-                    **kwargs,
-                }
-            ),
+            'httpMethod': 'POST',
+            'path': '/schedule',
+            'body': json.dumps({
+                'action': 'create',
+                'customer_id': customer_id,
+                'asset_id': asset_id,
+                'description': description,
+                'priority': priority,
+                'estimated_duration_hours': estimated_duration_hours,
+                **kwargs
+            })
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -289,14 +282,16 @@ class TerminalClient(BaseServiceClient):
             List of schedule records
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/schedule",
-            "body": json.dumps({"action": "list", "customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/schedule',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("schedules", [])
+        return result.get('schedules', [])
 
     # Issues Management
     def list_issues(self, customer_id: str) -> List[Dict[str, Any]]:
@@ -309,14 +304,16 @@ class TerminalClient(BaseServiceClient):
             List of issue records
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/issues",
-            "body": json.dumps({"action": "list", "customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/issues',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("issues", [])
+        return result.get('issues', [])
 
     def create_issue(
         self,
@@ -326,7 +323,7 @@ class TerminalClient(BaseServiceClient):
         issue_type: str,
         description: str,
         priority: str = "Medium",
-        **kwargs,
+        **kwargs
     ) -> Dict[str, Any]:
         """Create a new issue.
 
@@ -343,22 +340,19 @@ class TerminalClient(BaseServiceClient):
             Created issue information
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/issues",
-            "body": json.dumps(
-                {
-                    "action": "create",
-                    "customer_id": customer_id,
-                    "component": component,
-                    "site": site,
-                    "issue_type": issue_type,
-                    "description": description,
-                    "priority": priority,
-                    **kwargs,
-                }
-            ),
+            'httpMethod': 'POST',
+            'path': '/issues',
+            'body': json.dumps({
+                'action': 'create',
+                'customer_id': customer_id,
+                'component': component,
+                'site': site,
+                'issue_type': issue_type,
+                'description': description,
+                'priority': priority,
+                **kwargs
+            })
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -373,14 +367,16 @@ class TerminalClient(BaseServiceClient):
             List of activity records from last 24 hours
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/activities",
-            "body": json.dumps({"action": "list", "customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/activities',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("activities", [])
+        return result.get('activities', [])
 
     # ML Integration
     def get_forecast_results(self, customer_id: str) -> List[Dict[str, Any]]:
@@ -393,14 +389,15 @@ class TerminalClient(BaseServiceClient):
             List of recent forecast results
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/forecast",
-            "body": json.dumps({"customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/forecast',
+            'body': json.dumps({
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("forecast_results", [])
+        return result.get('forecast_results', [])
 
     def get_interpolation_results(self, customer_id: str) -> List[Dict[str, Any]]:
         """Get interpolation results for a customer.
@@ -412,14 +409,15 @@ class TerminalClient(BaseServiceClient):
             List of recent interpolation results
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/interpolation",
-            "body": json.dumps({"customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/interpolation',
+            'body': json.dumps({
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("interpolation_results", [])
+        return result.get('interpolation_results', [])
 
     def get_ml_models(self) -> List[Dict[str, Any]]:
         """Get ML model registry (shared across customers).
@@ -428,10 +426,13 @@ class TerminalClient(BaseServiceClient):
             List of registered models with training metrics
         """
         import json
-
-        payload = {"httpMethod": "POST", "path": "/ml-models", "body": json.dumps({})}
+        payload = {
+            'httpMethod': 'POST',
+            'path': '/ml-models',
+            'body': json.dumps({})
+        }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("model_metrics", [])
+        return result.get('model_metrics', [])
 
     def get_ml_ooda_summaries(self, customer_id: str) -> List[Dict[str, Any]]:
         """Get ML-enhanced OODA summaries for a customer.
@@ -443,18 +444,44 @@ class TerminalClient(BaseServiceClient):
             List of ML-enhanced OODA activities
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/ooda",
-            "body": json.dumps({"customer_id": customer_id}),
+            'httpMethod': 'POST',
+            'path': '/ooda',
+            'body': json.dumps({
+                'customer_id': customer_id
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("ml_enhanced_activities", [])
+        return result.get('ml_enhanced_activities', [])
+
+    # Site Summary (Phase 2)
+    def get_site_summary(self, site_id: str) -> SiteSummary:
+        """Get high-level site summary with KPIs and asset intelligence data.
+
+        Args:
+            site_id: Site or customer identifier
+
+        Returns:
+            Summary object including fleet PR, availability, and
+            intelligence sections (battery, soiling, prognostics) if available.
+        """
+        payload = {
+            'httpMethod': 'POST',
+            'path': '/telemetry',
+            'body': json.dumps({
+                'action': 'site-summary',
+                'site_id': site_id
+            })
+        }
+        result = self.invoke_lambda(self.function_name, payload)
+        return result.get('summary', {})
 
     # Nowcast UI Data
     def get_nowcast_data(
-        self, customer_id: str, time_range: str = "1h", asset_filter: Optional[List[str]] = None
+        self,
+        customer_id: str,
+        time_range: str = "1h",
+        asset_filter: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Get nowcast data for monitoring dashboard.
 
@@ -467,47 +494,25 @@ class TerminalClient(BaseServiceClient):
             Nowcast data with latest metrics and time series
         """
         import json
-
         payload = {
-            "httpMethod": "POST",
-            "path": "/nowcastUI",
-            "body": json.dumps(
-                {
-                    "action": "list",
-                    "customer_id": customer_id,
-                    "time_range": time_range,
-                    "asset_filter": asset_filter or [],
-                }
-            ),
+            'httpMethod': 'POST',
+            'path': '/nowcastUI',
+            'body': json.dumps({
+                'action': 'list',
+                'customer_id': customer_id,
+                'time_range': time_range,
+                'asset_filter': asset_filter or []
+            })
         }
         result = self.invoke_lambda(self.function_name, payload)
-        return result.get("data", {})
-
-    # Telemetry
-    def get_site_summary(self, site_id: str) -> Dict[str, Any]:
-        """Get site summary including battery KPIs from assetIntelligence snapshots.
-
-        Args:
-            site_id: Site identifier
-
-        Returns:
-            Site summary with fleet metrics and battery KPIs (avg_soc, avg_soh,
-            total_capacity_kwh, warranty_status) if available.
-        """
-        payload = {
-            "httpMethod": "POST",
-            "path": "/telemetry",
-            "body": json.dumps({"action": "site-summary", "site_id": site_id}),
-        }
-        result = self.invoke_lambda(self.function_name, payload)
-        return result
+        return result.get('data', {})
 
     # Battery Health Helper Methods
     @staticmethod
     def calculate_remaining_warranty_life(
         warranty_expiry_date: Optional[str],
         warranty_throughput_kwh: Optional[float],
-        current_throughput_kwh: Optional[float] = None,
+        current_throughput_kwh: Optional[float] = None
     ) -> Dict[str, Any]:
         """Calculate remaining warranty life for a battery asset.
 
@@ -526,76 +531,68 @@ class TerminalClient(BaseServiceClient):
         today = date.today()
         days_remaining = None
         throughput_remaining_pct = None
-        warranty_status = "unknown"
+        warranty_status = 'unknown'
         limiting_factor = None
 
         # Check date-based warranty
         if warranty_expiry_date:
             try:
-                expiry = datetime.strptime(warranty_expiry_date, "%Y-%m-%d").date()
+                expiry = datetime.strptime(warranty_expiry_date, '%Y-%m-%d').date()
                 days_remaining = (expiry - today).days
                 if days_remaining < 0:
-                    date_status = "out_of_warranty"
+                    date_status = 'out_of_warranty'
                 elif days_remaining < 90:
-                    date_status = "expiring_soon"
+                    date_status = 'expiring_soon'
                 else:
-                    date_status = "in_warranty"
+                    date_status = 'in_warranty'
             except (ValueError, TypeError):
-                date_status = "unknown"
+                date_status = 'unknown'
                 days_remaining = None
         else:
-            date_status = "unknown"
+            date_status = 'unknown'
 
         # Check throughput-based warranty
         if warranty_throughput_kwh and current_throughput_kwh is not None:
             if warranty_throughput_kwh > 0:
-                throughput_remaining = max(
-                    0, warranty_throughput_kwh - current_throughput_kwh
-                )
-                throughput_remaining_pct = (
-                    throughput_remaining / warranty_throughput_kwh
-                ) * 100
+                throughput_remaining = max(0, warranty_throughput_kwh - current_throughput_kwh)
+                throughput_remaining_pct = (throughput_remaining / warranty_throughput_kwh) * 100
                 if current_throughput_kwh >= warranty_throughput_kwh:
-                    throughput_status = "out_of_warranty"
+                    throughput_status = 'out_of_warranty'
                 elif current_throughput_kwh >= warranty_throughput_kwh * 0.8:
-                    throughput_status = "expiring_soon"
+                    throughput_status = 'expiring_soon'
                 else:
-                    throughput_status = "in_warranty"
+                    throughput_status = 'in_warranty'
             else:
-                throughput_status = "unknown"
+                throughput_status = 'unknown'
         else:
-            throughput_status = "unknown"
+            throughput_status = 'unknown'
 
         # Determine overall warranty status (worst of the two)
-        if date_status == "out_of_warranty" or throughput_status == "out_of_warranty":
-            warranty_status = "out_of_warranty"
-        elif date_status == "expiring_soon" or throughput_status == "expiring_soon":
-            warranty_status = "expiring_soon"
-        elif date_status == "in_warranty" or throughput_status == "in_warranty":
-            warranty_status = "in_warranty"
+        if date_status == 'out_of_warranty' or throughput_status == 'out_of_warranty':
+            warranty_status = 'out_of_warranty'
+        elif date_status == 'expiring_soon' or throughput_status == 'expiring_soon':
+            warranty_status = 'expiring_soon'
+        elif date_status == 'in_warranty' or throughput_status == 'in_warranty':
+            warranty_status = 'in_warranty'
 
         # Determine limiting factor
         if days_remaining is not None and throughput_remaining_pct is not None:
             # Compare days remaining vs throughput remaining
             # Simple heuristic: if throughput is < 20% remaining, it's the limiting factor
             if throughput_remaining_pct < 20:
-                limiting_factor = "throughput"
+                limiting_factor = 'throughput'
             elif days_remaining < 90:
-                limiting_factor = "date"
+                limiting_factor = 'date'
             else:
-                limiting_factor = "date"  # Default to date as primary
+                limiting_factor = 'date'  # Default to date as primary
         elif days_remaining is not None:
-            limiting_factor = "date"
+            limiting_factor = 'date'
         elif throughput_remaining_pct is not None:
-            limiting_factor = "throughput"
+            limiting_factor = 'throughput'
 
         return {
-            "days_remaining": days_remaining,
-            "throughput_remaining_pct": (
-                round(throughput_remaining_pct, 1)
-                if throughput_remaining_pct is not None
-                else None
-            ),
-            "warranty_status": warranty_status,
-            "limiting_factor": limiting_factor,
+            'days_remaining': days_remaining,
+            'throughput_remaining_pct': round(throughput_remaining_pct, 1) if throughput_remaining_pct is not None else None,
+            'warranty_status': warranty_status,
+            'limiting_factor': limiting_factor
         }

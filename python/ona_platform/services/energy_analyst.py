@@ -1,19 +1,18 @@
 """Energy Analyst RAG service client."""
 
 import logging
-from typing import Any, Dict, List, Optional
-
+from typing import Dict, Any, List, Optional
 import requests
 
+from .base import BaseServiceClient
 from ..config import OnaConfig
 from ..exceptions import (
-    ConfigurationError,
-    ResourceNotFoundError,
     ServiceUnavailableError,
     ValidationError,
+    ResourceNotFoundError,
+    ConfigurationError
 )
 from ..utils import retry_with_backoff
-from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class EnergyAnalystClient(BaseServiceClient):
         question: str,
         n_results: int = 3,
         max_new_tokens: Optional[int] = None,
-        temperature: Optional[float] = None,
+        temperature: Optional[float] = None
     ) -> Dict[str, Any]:
         """Query the RAG system with a question.
 
@@ -69,7 +68,10 @@ class EnergyAnalystClient(BaseServiceClient):
         """
         url = f"{self.base_url}/query"
 
-        payload = {"question": question, "n_results": n_results}
+        payload = {
+            "question": question,
+            "n_results": n_results
+        }
 
         if max_new_tokens is not None:
             payload["max_new_tokens"] = max_new_tokens
@@ -77,16 +79,20 @@ class EnergyAnalystClient(BaseServiceClient):
             payload["temperature"] = temperature
 
         try:
-            response = requests.post(url, json=payload, timeout=self.config.timeout)
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=self.config.timeout
+            )
 
             if response.status_code == 400:
-                error_detail = response.json().get("detail", "Validation error")
+                error_detail = response.json().get('detail', 'Validation error')
                 raise ValidationError(error_detail)
             elif response.status_code == 404:
-                error_detail = response.json().get("detail", "No relevant documents found")
+                error_detail = response.json().get('detail', 'No relevant documents found')
                 raise ResourceNotFoundError(error_detail)
             elif response.status_code >= 500:
-                error_detail = response.json().get("detail", "Service error")
+                error_detail = response.json().get('detail', 'Service error')
                 raise ServiceUnavailableError(f"Service error: {error_detail}")
 
             response.raise_for_status()
@@ -95,12 +101,14 @@ class EnergyAnalystClient(BaseServiceClient):
         except requests.exceptions.Timeout:
             raise ServiceUnavailableError(
                 f"Request timed out after {self.config.timeout}s"
-            ) from None
+            )
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Request failed: {e}") from e
+            raise ServiceUnavailableError(f"Request failed: {e}")
 
     def add_documents(
-        self, texts: List[str], metadatas: Optional[List[Dict]] = None
+        self,
+        texts: List[str],
+        metadatas: Optional[List[Dict]] = None
     ) -> Dict[str, Any]:
         """Add documents to the vector database.
 
@@ -127,11 +135,15 @@ class EnergyAnalystClient(BaseServiceClient):
             payload["metadatas"] = metadatas
 
         try:
-            response = requests.post(url, json=payload, timeout=self.config.timeout)
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=self.config.timeout
+            )
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to add documents: {e}") from e
+            raise ServiceUnavailableError(f"Failed to add documents: {e}")
 
     def upload_pdfs(self, file_paths: List[str]) -> Dict[str, Any]:
         """Upload and process PDF files.
@@ -152,24 +164,28 @@ class EnergyAnalystClient(BaseServiceClient):
 
         files = []
         try:
-            # Read all files into memory first
             for path in file_paths:
-                with open(path, "rb") as fh:
-                    file_content = fh.read()
-                files.append(("files", (path.split("/")[-1], file_content, "application/pdf")))
+                files.append(
+                    ('files', (path.split('/')[-1], open(path, 'rb'), 'application/pdf'))
+                )
 
+            # Calculate timeout explicitly for bandit (B113)
+            request_timeout = self.config.timeout * 2  # PDFs may take longer
             response = requests.post(
                 url,
                 files=files,
-                timeout=self.config.timeout * 2,  # PDFs may take longer
+                timeout=request_timeout
             )
             response.raise_for_status()
             return response.json()
 
         except FileNotFoundError as e:
-            raise ValidationError(f"File not found: {e}") from e
+            raise ValidationError(f"File not found: {e}")
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to upload PDFs: {e}") from e
+            raise ServiceUnavailableError(f"Failed to upload PDFs: {e}")
+        finally:
+            for _, file_tuple in files:
+                file_tuple[1].close()
 
     def health(self) -> Dict[str, Any]:
         """Check service health.
@@ -184,7 +200,7 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Health check failed: {e}") from e
+            raise ServiceUnavailableError(f"Health check failed: {e}")
 
     def get_collection_info(self) -> Dict[str, Any]:
         """Get information about the document collection.
@@ -199,7 +215,7 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to get collection info: {e}") from e
+            raise ServiceUnavailableError(f"Failed to get collection info: {e}")
 
     def clear_collection(self) -> Dict[str, Any]:
         """Clear all documents from the collection.
@@ -217,4 +233,4 @@ class EnergyAnalystClient(BaseServiceClient):
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise ServiceUnavailableError(f"Failed to clear collection: {e}") from e
+            raise ServiceUnavailableError(f"Failed to clear collection: {e}")

@@ -1,10 +1,8 @@
 """Configuration management for Ona Platform SDK."""
 
 import os
-from dataclasses import dataclass
 from typing import Optional
-
-from .exceptions import ConfigurationError
+from dataclasses import dataclass
 
 
 @dataclass
@@ -32,48 +30,6 @@ class OnaConfig:
     timeout: int = 120
     max_retries: int = 3
     retry_backoff: float = 2.0
-    inverter_telemetry_endpoint: Optional[str] = None
-    inverter_telemetry_api_key: Optional[str] = None
-    telemetry_polling_interval: float = 5.0
-    telemetry_5min_table: str = "ona-platform-telemetry-5min"
-    telemetry_daily_table: str = "ona-platform-telemetry-daily"
-    ooda_terminal_endpoint: Optional[str] = None
-    ooda_terminal_api_key: Optional[str] = None
-    ooda_polling_interval: float = 5.0
-    ooda_5min_table: str = "ona-platform-ooda-5min"
-    ooda_daily_table: str = "ona-platform-ooda-daily"
-    partner_api_endpoint: Optional[str] = None
-    partner_api_key: Optional[str] = None
-
-    def __post_init__(self):
-        if (
-            self.inverter_telemetry_endpoint is not None
-            and not self.inverter_telemetry_endpoint.startswith("https://")
-        ):
-            raise ConfigurationError(
-                f"inverter_telemetry_endpoint must use https:// (got: {self.inverter_telemetry_endpoint!r})"
-            )
-        if self.ooda_terminal_endpoint is not None and not self.ooda_terminal_endpoint.startswith(
-            "https://"
-        ):
-            raise ConfigurationError(
-                f"ooda_terminal_endpoint must use https:// (got: {self.ooda_terminal_endpoint!r})"
-            )
-        if (
-            self.partner_api_endpoint is not None
-            and not self.partner_api_endpoint.startswith("https://")
-        ):
-            raise ConfigurationError(
-                f"partner_api_endpoint must use https:// (got: {self.partner_api_endpoint!r})"
-            )
-        if self.telemetry_polling_interval < 1.0:
-            raise ConfigurationError(
-                f"telemetry_polling_interval must be >= 1.0 seconds (got: {self.telemetry_polling_interval})"
-            )
-        if self.ooda_polling_interval < 1.0:
-            raise ConfigurationError(
-                f"ooda_polling_interval must be >= 1.0 seconds (got: {self.ooda_polling_interval})"
-            )
 
     @classmethod
     def from_env(cls) -> "OnaConfig":
@@ -88,8 +44,6 @@ class OnaConfig:
             ENERGY_ANALYST_URL: Energy Analyst RAG service URL
             ONA_TIMEOUT: Request timeout in seconds
             ONA_MAX_RETRIES: Maximum retry attempts
-            PARTNER_API_ENDPOINT: Partner API endpoint
-            PARTNER_API_KEY: Partner API key
 
         Returns:
             OnaConfig instance with values from environment
@@ -103,19 +57,5 @@ class OnaConfig:
             energy_analyst_url=os.getenv("ENERGY_ANALYST_URL"),
             timeout=int(os.getenv("ONA_TIMEOUT", "120")),
             max_retries=int(os.getenv("ONA_MAX_RETRIES", "3")),
-            retry_backoff=float(os.getenv("ONA_RETRY_BACKOFF", "2.0")),
-            inverter_telemetry_endpoint=os.getenv("INVERTER_TELEMETRY_ENDPOINT"),
-            inverter_telemetry_api_key=os.getenv("INVERTER_TELEMETRY_API_KEY"),
-            telemetry_polling_interval=float(os.getenv("TELEMETRY_POLLING_INTERVAL", "5.0")),
-            telemetry_5min_table=os.getenv("TELEMETRY_5MIN_TABLE", "ona-platform-telemetry-5min"),
-            telemetry_daily_table=os.getenv(
-                "TELEMETRY_DAILY_TABLE", "ona-platform-telemetry-daily"
-            ),
-            ooda_terminal_endpoint=os.getenv("OODA_TERMINAL_ENDPOINT"),
-            ooda_terminal_api_key=os.getenv("OODA_TERMINAL_API_KEY"),
-            ooda_polling_interval=float(os.getenv("OODA_POLLING_INTERVAL", "5.0")),
-            ooda_5min_table=os.getenv("OODA_5MIN_TABLE", "ona-platform-ooda-5min"),
-            ooda_daily_table=os.getenv("OODA_DAILY_TABLE", "ona-platform-ooda-daily"),
-            partner_api_endpoint=os.getenv("PARTNER_API_ENDPOINT"),
-            partner_api_key=os.getenv("PARTNER_API_KEY"),
+            retry_backoff=float(os.getenv("ONA_RETRY_BACKOFF", "2.0"))
         )

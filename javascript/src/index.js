@@ -12,16 +12,10 @@ const TerminalClient = require('./services/TerminalClient');
 const EnergyAnalystClient = require('./services/EnergyAnalystClient');
 const EdgeDeviceRegistryClient = require('./services/EdgeDeviceRegistryClient');
 const DataIngestionClient = require('./services/DataIngestionClient');
-const GapDetectionClient = require('./services/GapDetectionClient');
-const GlobalTrainingClient = require('./services/GlobalTrainingClient');
 const InterpolationClient = require('./services/InterpolationClient');
 const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
-const { InverterTelemetryClient, RateLimitError: ITRateLimitError, ServiceUnavailableError: ITServiceUnavailableError } = require('./services/InverterTelemetryClient');
-const { OodaTerminalClient, RateLimitError: OTRateLimitError, ServiceUnavailableError: OTServiceUnavailableError } = require('./services/OodaTerminalClient');
-const { FreemiumForecastClient } = require('./services/FreemiumForecastClient');
-const PartnerApiClient = require('./services/PartnerApiClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -43,14 +37,19 @@ class OnaSDK {
    * @param {number} [options.timeout=30000] - Request timeout in milliseconds
    * @param {number} [options.retries=3] - Number of retries for failed requests
    * @param {number} [options.retryDelay=1000] - Delay between retries in milliseconds
-   * @param {string} [options.partnerApiKey] - Partner API key
    *
    * @example
    * const sdk = new OnaSDK({
    *   region: 'af-south-1',
-   *   partnerApiKey: 'YOUR_PARTNER_API_KEY',
+   *   credentials: {
+   *     accessKeyId: 'YOUR_ACCESS_KEY',
+   *     secretAccessKey: 'YOUR_SECRET_KEY'
+   *   },
    *   endpoints: {
-   *     partnerApi: 'https://partner.api.asoba.org'
+   *     forecasting: 'https://forecasting.api.asoba.co',
+   *     terminal: 'https://terminal.api.asoba.co',
+   *     edgeRegistry: 'http://edge-registry:8082',
+   *     energyAnalyst: 'http://energy-analyst:8000'
    *   }
    * });
    */
@@ -101,18 +100,6 @@ class OnaSDK {
     this.dataIngestion = new DataIngestionClient(this.httpClient, this.config);
 
     /**
-     * Gap Detection client
-     * @type {GapDetectionClient}
-     */
-    this.gapDetection = new GapDetectionClient(this.httpClient, this.config);
-
-    /**
-     * Global Training client
-     * @type {GlobalTrainingClient}
-     */
-    this.globalTraining = new GlobalTrainingClient(this.httpClient, this.config);
-
-    /**
      * Interpolation Service client
      * @type {InterpolationClient}
      */
@@ -135,42 +122,6 @@ class OnaSDK {
      * @type {HuaweiClient}
      */
     this.huawei = new HuaweiClient(this.httpClient, this.config);
-
-    /**
-     * Inverter Telemetry client
-     * @type {InverterTelemetryClient|null}
-     */
-    try {
-      this.inverterTelemetry = new InverterTelemetryClient(this.config);
-    } catch (e) {
-      this.inverterTelemetry = null;
-    }
-
-    /**
-     * OODA Terminal client
-     * @type {OodaTerminalClient|null}
-     */
-    try {
-      this.oodaTerminal = new OodaTerminalClient(this.config);
-    } catch (e) {
-      this.oodaTerminal = null;
-    }
-
-    /**
-     * Freemium Forecast client (no API key required)
-     * @type {FreemiumForecastClient}
-     */
-    this.freemiumForecast = new FreemiumForecastClient(this.config);
-
-    /**
-     * Partner API client
-     * @type {PartnerApiClient|null}
-     */
-    try {
-      this.partnerApi = new PartnerApiClient(this.httpClient, this.config);
-    } catch (e) {
-      this.partnerApi = null;
-    }
   }
 
   /**
@@ -195,21 +146,13 @@ class OnaSDK {
    * @returns {string} SDK version
    */
   static getVersion() {
-    return '1.1.0';
+    return '1.0.0';
   }
 }
 
 // Export SDK class and utilities
 module.exports = {
   OnaSDK,
-  InverterTelemetryClient,
-  RateLimitError: ITRateLimitError,
-  ServiceUnavailableError: ITServiceUnavailableError,
-  OodaTerminalClient,
-  OodaRateLimitError: OTRateLimitError,
-  OodaServiceUnavailableError: OTServiceUnavailableError,
-  FreemiumForecastClient,
-  PartnerApiClient,
   ...errors,
   ...validators
 };

@@ -1,10 +1,10 @@
 """Huawei data collection service clients."""
 
 import logging
-from typing import Any, Dict
+from typing import Dict, Any
 
-from ..config import OnaConfig
 from .base import BaseServiceClient
+from ..config import OnaConfig
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class HuaweiClient(BaseServiceClient):
         self,
         config: OnaConfig,
         realtime_function: str = "huaweiRealTime",
-        historical_function: str = "huaweiHistorical",
+        historical_function: str = "huaweiHistorical"
     ):
         """Initialize Huawei client.
 
@@ -47,7 +47,11 @@ class HuaweiClient(BaseServiceClient):
         return self.invoke_lambda(self.realtime_function, payload)
 
     def collect_historical(
-        self, plant_code: str, start_date: str, end_date: str, **kwargs
+        self,
+        plant_code: str,
+        start_date: str,
+        end_date: str,
+        **kwargs
     ) -> Dict[str, Any]:
         """Collect historical data from Huawei system.
 
@@ -64,7 +68,7 @@ class HuaweiClient(BaseServiceClient):
             "plant_code": plant_code,
             "start_date": start_date,
             "end_date": end_date,
-            **kwargs,
+            **kwargs
         }
         logger.info(
             f"Collecting historical Huawei data for plant: {plant_code} "

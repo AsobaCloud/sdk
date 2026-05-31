@@ -21,12 +21,8 @@ export interface Endpoints {
   huaweiRealTime?: string;
   globalTraining?: string;
   interpolation?: string;
-  gapDetection?: string;
   terminal?: string;
   weather?: string;
-  inverterTelemetry?: string;
-  oodaTerminal?: string;
-  partnerApi?: string;
 }
 
 export interface SDKOptions {
@@ -36,11 +32,6 @@ export interface SDKOptions {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
-  inverterTelemetryApiKey?: string;
-  telemetryPollingInterval?: number;
-  oodaTerminalApiKey?: string;
-  oodaPollingInterval?: number;
-  partnerApiKey?: string;
 }
 
 // Error types
@@ -69,198 +60,6 @@ export class TimeoutError extends OnaSDKError {
   timeout: number;
 }
 
-export class RateLimitError extends OnaSDKError {}
-export class ServiceUnavailableError extends OnaSDKError {}
-
-// Telemetry types
-export interface TelemetryRecord {
-  asset_id: string;
-  site_id: string;
-  timestamp: string;
-  asset_ts: string | null;
-  power: number;
-  kWh: number;
-  kVArh: number | null;
-  kVA: number | null;
-  PF: number | null;
-  temperature: number | null;
-  inverter_state: number;
-  run_state: number;
-  error_code: string | null;
-  error_type: string | null;
-  cursor: string | null;
-}
-
-export interface TimeRange {
-  start: string;
-  end: string;
-}
-
-export interface CursorObject {
-  asset_id: string;
-  timestamp: string;
-}
-
-export interface InverterTelemetryOptions {
-  asset_id?: string;
-  site_id?: string;
-  time_range?: TimeRange;
-  resolution?: '5min' | 'daily';
-  limit?: number;
-  cursor?: string;
-  polling_interval?: number;
-}
-
-export class InverterTelemetryClient {
-  constructor(config: any);
-  getInverterTelemetry(options: InverterTelemetryOptions): Promise<TelemetryRecord[]>;
-  getSiteTelemetry(options: InverterTelemetryOptions): Promise<Record<string, TelemetryRecord[]>>;
-  streamInverter(options: InverterTelemetryOptions): AsyncIterable<TelemetryRecord>;
-  streamSite(options: InverterTelemetryOptions): AsyncIterable<TelemetryRecord>;
-  getDataPeriod(options: { site_id: string; asset_id?: string }): Promise<{ site_id: string; asset_id?: string; first_record: string | null; last_record: string | null }>;
-}
-
-// OODA Terminal types
-export interface OodaAlert {
-  terminal_device_id: string;
-  site_id: string;
-  timestamp: string;
-  alert_type: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
-  metadata?: Record<string, any>;
-  cursor?: string;
-}
-
-export class OodaTerminalClient {
-  constructor(config: any);
-  getTerminalAlerts(options: { terminal_device_id: string; site_id: string; time_range: TimeRange; resolution?: string; limit?: number; cursor?: string }): Promise<OodaAlert[]>;
-  getSiteAlerts(options: { site_id: string; time_range: TimeRange; resolution?: string; limit?: number }): Promise<Record<string, OodaAlert[]>>;
-  getDataPeriod(options: { site_id: string; terminal_device_id?: string }): Promise<any>;
-  streamTerminal(options: { terminal_device_id: string; site_id: string; cursor?: string; polling_interval?: number }): AsyncIterable<OodaAlert>;
-  streamSite(options: { site_id: string; cursor?: string; polling_interval?: number }): AsyncIterable<OodaAlert>;
-}
-
-// Partner API types (Snapshots)
-export interface KpiRollupSnapshot {
-  site_id: string;
-  period: { start: string; end: string };
-  generated_at: string;
-  system: {
-    rated_capacity_kw: number;
-    device_count: number;
-  };
-  energy_balance: {
-    consumption_kwh: number;
-    solar_production_kwh: number;
-    grid_purchases_kwh: number;
-    solar_offset_pct: number;
-  };
-  performance: {
-    system_pr: number;
-    pr_target: number;
-    pr_status: string;
-    true_uptime_pct: number;
-    state_uptime_pct: number;
-    availability_pct: number;
-    availability_target: number;
-  };
-  ear: {
-    energy_lost_kwh: number;
-    energy_lost_pct: number;
-    capacity_utilization_pct: number;
-    recovery_potential_kwh: {
-      "50pct": number;
-      "75pct": number;
-      "95pct": number;
-    };
-    value_lost_zar: number;
-    annual_projection_zar: number;
-  };
-  financial: {
-    tariff_currency: string;
-    shortfall_cost_zar: number;
-    tou_breakdown: Record<string, any>;
-  };
-}
-
-export interface MaintenanceSignal {
-  id: string;
-  timestamp: string;
-  asset_id: string;
-  type: 'Critical State' | 'Warning State' | 'Temperature' | 'Capacity Underperformance' | 'Zero Production';
-  severity: 'Critical' | 'High' | 'Medium' | 'Low';
-  state_code?: string | null;
-  rated_kw?: number | null;
-  expected_kw?: number | null;
-  actual_kw?: number | null;
-  capacity_pct?: number | null;
-  irradiance_wm2?: number | null;
-  description: string;
-}
-
-export interface MaintenanceSignalsSnapshot {
-  site_id: string;
-  generated_at: string;
-  cursor: string;
-  signals: MaintenanceSignal[];
-  summary: {
-    by_type: Record<string, number>;
-    by_severity: Record<string, number>;
-    by_asset: Record<string, number>;
-  };
-}
-
-export interface ForecastSnapshot {
-  site_id: string;
-  model_id: string;
-  generated_at: string;
-  horizon_hours: number;
-  resolution: string;
-  intervals: Array<{
-    ts: string;
-    p50_kw: number;
-    p10_kw: number;
-    p90_kw: number;
-    revenue_zar: number;
-  }>;
-  totals: {
-    total_kwh: number;
-    total_revenue_zar: number;
-  };
-}
-
-export interface MaintenanceTask {
-  asset_id: string;
-  task_type: 'inspection' | 'corrective_maintenance' | 'scheduled_service';
-  reason: string;
-  recommended_date: string;
-  estimated_duration_hours?: number;
-  priority: 'Critical' | 'High' | 'Medium' | 'Low';
-}
-
-export interface MaintenanceScheduleSnapshot {
-  site_id: string;
-  generated_at: string;
-  horizon: { start: string; end: string };
-  tasks: MaintenanceTask[];
-  summary: {
-    total_tasks: number;
-    by_priority: Record<string, number>;
-    by_task_type: Record<string, number>;
-    by_asset: Record<string, number>;
-  };
-}
-
-export class PartnerApiClient {
-  constructor(httpClient: any, config: any);
-  getKpiRollup(params: { site_id: string }): Promise<KpiRollupSnapshot>;
-  getMaintenanceSignals(params: { site_id: string; since?: string; severity?: string }): Promise<MaintenanceSignalsSnapshot>;
-  getForecastSnapshot(params: { site_id: string; horizon?: string }): Promise<ForecastSnapshot>;
-  getMaintenanceSchedule(params: { site_id: string; since?: string }): Promise<MaintenanceScheduleSnapshot>;
-  getSnapshot(params: { site_id: string; kind: string; [key: string]: any }): Promise<any>;
-}
-
 // Forecasting types
 export interface DeviceForecastParams {
   site_id: string;
@@ -277,33 +76,23 @@ export interface SiteForecastParams {
 export interface CustomerForecastParams {
   customer_id: string;
   forecast_hours?: number;
-  capacity_kw?: number;
-  manufacturer?: string;
 }
 
 export interface ForecastResult {
-  customer_id?: string;
-  site_id?: string;
-  device_id?: string;
-  forecast_hours: number;
-  generated_at: string;
   forecasts: Array<{
     timestamp: string;
     hour_ahead: number;
-    kWh_forecast: number;
-    weather?: {
-      temp?: number;
-      cloudcover?: number;
-      solarradiation?: number;
-      conditions?: string;
-    };
+    kWh_forecast?: number;
+    kVArh_forecast?: number;
+    kVA_forecast?: number;
+    PF_forecast?: number;
   }>;
   model_info: {
     model_type: string;
-    optimization_strategy?: string;
-    model_timestamp?: string;
-    customer_validation_loss?: number;
+    training_level?: string;
+    aggregation_method?: string;
   };
+  generated_at: string;
 }
 
 // Terminal API types
@@ -347,6 +136,52 @@ export interface NowcastParams {
   asset_filter?: string[];
 }
 
+export interface CleaningEvent {
+  timestamp: string;
+  jump_pct: number;
+  pr_before: number;
+  pr_after: number;
+}
+
+export interface SoilingAudit {
+  soiling_rate_pct_day: number;
+  detected_cleaning_events: CleaningEvent[];
+  recovery_gain_kwh_last_event: number;
+}
+
+export interface Prognostics {
+  battery_rul_days: number | null;
+  battery_retirement_date: string | null;
+  pv_annual_degradation_pct: number;
+  health_score: number;
+}
+
+export interface BatteryKPIs {
+  avg_soc: number | null;
+  avg_soh: number | null;
+  min_soh: number | null;
+  max_soh: number | null;
+  total_capacity_kwh: number;
+  warranty_status: string;
+  throughput_kwh: number;
+  warranty_remaining_pct: number | null;
+  cycle_count_estimate: number;
+  dod_avg: number | null;
+  asset_count: number;
+}
+
+export interface SiteSummary {
+  total_kWh_today: number;
+  fleet_availability_pct: number;
+  fleet_pr_pct: number;
+  active_inverters: number;
+  total_inverters: number;
+  last_updated: string;
+  battery?: BatteryKPIs;
+  soiling?: SoilingAudit;
+  prognostics?: Prognostics;
+}
+
 // Energy Analyst types
 export interface QueryParams {
   question: string;
@@ -386,96 +221,11 @@ export interface Device {
   ip: string;
   username: string;
   name: string;
-  type: 'unknown' | 'full-platform' | 'docker-ready' | 'legacy-edge' | 'basic-edge';
-  status: 'discovering' | 'online' | 'offline';
-  capabilities: {
-    system?: {
-      available: boolean;
-      service?: string;
-      version?: string;
-      timestamp?: string;
-    };
-    docker?: {
-      installed: boolean;
-      version?: string | null;
-      containers?: any[];
-    };
-    platformEdge?: {
-      deployed: boolean;
-      version?: string | null;
-      services?: any[];
-    };
-    services?: Array<{
-      name: string;
-      status: string;
-      port: number;
-    }>;
-  };
+  type: string;
+  status: string;
+  capabilities: Record<string, any>;
   lastSeen: string;
   createdAt: string;
-}
-
-// Gap Detection types
-export interface GapDetectionParams {
-  customer_id: string;
-  client_id?: string;
-  region?: string;
-  location?: string;
-  manufacturer?: string;
-  lookback_days?: number;
-  min_gap_minutes?: number;
-}
-
-export interface GapDetectionResult {
-  customer_id: string;
-  scan_period: { start: string; end: string };
-  gaps_found: Array<{
-    asset_id: string;
-    gap_start: string;
-    gap_end: string;
-    missing_intervals: number;
-  }>;
-  dates_needing_backfill: string[];
-  backfill_targets?: Record<string, string[]>;
-  total_missing_intervals: number;
-  needs_backfill: boolean;
-}
-
-// Global Training types
-export interface TrainRequest {
-  customer_id: string;
-  force?: boolean;
-  promote?: boolean;
-  test_only?: boolean;
-}
-
-export interface TrainingStatusResponse {
-  customer_id: string;
-  status: 'NOT_STARTED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
-  processing_job_name: string | null;
-  last_updated: string | null;
-  training_job_name?: string | null;
-  processing_progress?: {
-    elapsed_seconds: number;
-    estimated_total_seconds: number;
-    estimated_percent: number;
-  } | null;
-  training_progress?: {
-    secondary_status: 'Starting' | 'Downloading' | 'Training' | 'Uploading' | 'Completed';
-    elapsed_seconds: number;
-  } | null;
-}
-
-export interface TrainResponseBatch {
-  message: string;
-  jobs_started: number;
-  jobs_failed: number;
-  jobs_skipped: number;
-  total_requested: number;
-  jobs: Array<{ customer_id: string; processing_job_name: string }>;
-  failures?: Array<{ customer_id: string; error: string; error_code: string }> | null;
-  skipped?: Array<{ customer_id: string; reason: string; processing_job_name: string }> | null;
-  note: string;
 }
 
 // Service client classes
@@ -505,6 +255,7 @@ export class TerminalClient {
   listIssues(params: { customer_id: string }): Promise<any>;
   createIssue(params: any): Promise<any>;
   getNowcastData(params: NowcastParams): Promise<any>;
+  getSiteSummary(params: { site_id: string }): Promise<SiteSummary>;
   getForecastResults(params: { customer_id: string }): Promise<any>;
   getInterpolationResults(params: { customer_id: string }): Promise<any>;
   getMLModels(): Promise<any>;
@@ -531,24 +282,12 @@ export class EdgeDeviceRegistryClient {
   getHealth(): Promise<any>;
 }
 
-export class GapDetectionClient {
-  detectGaps(params: GapDetectionParams): Promise<GapDetectionResult>;
-}
-
-export class GlobalTrainingClient {
-  triggerTraining(params: TrainRequest): Promise<TrainResponseBatch>;
-  getTrainingStatus(customerId: string): Promise<TrainingStatusResponse>;
-}
-
 export class DataIngestionClient {
   ingest(payload: any): Promise<any>;
 }
 
 export class InterpolationClient {
   interpolate(payload: any): Promise<any>;
-  splineInterpolation(params: { customer_id: string; dataset_key: string; spline_type?: string }): Promise<any>;
-  gaussianProcessInterpolation(params: { customer_id: string; dataset_key: string; kernel?: string }): Promise<any>;
-  physicsBasedInterpolation(params: { customer_id: string; dataset_key: string }): Promise<any>;
 }
 
 export class WeatherClient {
@@ -573,17 +312,11 @@ export class OnaSDK {
   terminal: TerminalClient;
   energyAnalyst: EnergyAnalystClient;
   edgeRegistry: EdgeDeviceRegistryClient;
-  gapDetection: GapDetectionClient;
-  globalTraining: GlobalTrainingClient;
   dataIngestion: DataIngestionClient;
   interpolation: InterpolationClient;
   weather: WeatherClient;
   enphase: EnphaseClient;
   huawei: HuaweiClient;
-  inverterTelemetry: InverterTelemetryClient | null;
-  oodaTerminal: OodaTerminalClient | null;
-  freemiumForecast: any;
-  partnerApi: PartnerApiClient | null;
 
   setEndpoint(serviceName: string, endpoint: string): void;
   getConfig(): any;

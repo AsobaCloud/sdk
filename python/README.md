@@ -5,7 +5,6 @@ Python SDK for the Ona Energy Management Platform. Provides a unified interface 
 ## Features
 
 - **Solar Energy Forecasting**: Device, site, and customer-level predictions
-- **Inverter Telemetry Streaming**: Real-time and historical inverter data via API key-authenticated backend
 - **OODA Workflow**: Asset management, fault detection, diagnostics, and maintenance scheduling
 - **Energy Policy Analysis**: RAG-powered queries on energy regulations
 - **Edge Device Management**: Discovery, registration, and capability detection
@@ -99,7 +98,11 @@ site_forecast = client.forecasting.get_site_forecast(
     include_device_breakdown=True
 )
 
-# Customer-level forecast (legacy)
+# Customer-level forecast (legacy LSTM path)
+# Pass platform customer_id (UUID) or legacy site-style id.
+# forecastingApi maps UUID → site_name via ona-platform-customers, then loads
+# customer_tailored/{site_name}/ or generic. Prefer get_site_forecast / get_device_forecast
+# for site-based platform use. See services/forecastingApi/README.md.
 customer_forecast = client.forecasting.get_customer_forecast(
     customer_id='customer123',
     forecast_hours=24
@@ -111,17 +114,12 @@ customer_forecast = client.forecasting.get_customer_forecast(
 Complete OODA (Observe, Orient, Decide, Act) workflow:
 
 ```python
-# OBSERVE: Fault detection & Battery Health
+# OBSERVE: Fault detection
 detection = client.terminal.run_detection(
     customer_id='customer123',
     asset_id='asset456',
     lookback_hours=6
 )
-
-# Get site-level battery KPIs (SOC, SOH, etc.)
-summary = client.terminal.get_site_summary(site_id='site789')
-if 'battery' in summary:
-    print(f"Avg SOH: {summary['battery']['avg_soh']}%")
 
 # ORIENT: AI diagnostics
 diagnostic = client.terminal.run_diagnostics(
@@ -148,35 +146,19 @@ activities = client.terminal.list_activities(
 #### Asset Management
 
 ```python
-# List assets (includes battery fields if applicable)
+# List assets
 assets = client.terminal.list_assets(customer_id='customer123')
 
-# Get a specific asset
-asset = client.terminal.get_asset(customer_id='customer123', asset_id='asset789')
-if asset:
-    print(f"Capacity: {asset.get('capacity_kwh')} kWh")
-
-# Add new battery asset with warranty tracking
+# Add new asset
 asset = client.terminal.add_asset(
     customer_id='customer123',
     asset_id='asset789',
-    name='Battery Storage 1',
-    asset_type='battery',
-    capacity_kw=5.0,
-    capacity_kwh=13.5,
-    warranty_expiry_date='2030-12-31',
-    warranty_throughput_kwh=10000.0,
+    name='Solar Array 1',
+    asset_type='solar',
+    capacity_kw=150.0,
     location='Durban',
     timezone='Africa/Johannesburg'
 )
-
-# Helper: Calculate remaining warranty life
-life = client.terminal.calculate_remaining_warranty_life(
-    warranty_expiry_date=asset['warranty_expiry_date'],
-    warranty_throughput_kwh=asset['warranty_throughput_kwh'],
-    current_throughput_kwh=4500.0
-)
-print(f"Warranty Status: {life['warranty_status']} (Limited by {life['limiting_factor']})")
 ```
 
 #### ML Integration
@@ -210,6 +192,30 @@ nowcast = client.terminal.get_nowcast_data(
     time_range='1h',  # '1h', '6h', '24h', '7d', 'latest'
     asset_filter=['asset1', 'asset2']
 )
+```
+
+#### Site Summary & Performance Intelligence
+
+Get aggregated site-level KPIs including soiling analysis and asset prognostics:
+
+```python
+# Get high-level site summary
+summary = client.terminal.get_site_summary(site_id='Sibaya')
+
+print(f"Total kWh Today: {summary['total_kWh_today']}")
+print(f"Fleet PR: {summary['fleet_pr_pct']}%")
+
+# Soiling Audit
+if summary.get('soiling'):
+    soiling = summary['soiling']
+    print(f"Soiling Rate: {soiling['soiling_rate_pct_day']}%/day")
+    print(f"Recovery Gain: {soiling['recovery_gain_kwh_last_event']} kWh")
+
+# Asset Prognostics
+if summary.get('prognostics'):
+    prog = summary['prognostics']
+    print(f"Health Score: {prog['health_score']}/100")
+    print(f"Battery Retirement: {prog['battery_retirement_date']}")
 ```
 
 ### Energy Analyst RAG
@@ -358,116 +364,6 @@ status = client.training.get_training_status(job_id='job123')
 models = client.training.list_models()
 ```
 
-### Inverter Telemetry
-
-Query historical or stream live inverter telemetry. Access is gated by API key — no AWS credentials needed in the SDK. Each key is scoped to permitted sites.
-
-**Always call `get_data_period` first** to discover what time range has data before making historical queries. Querying an empty time window returns `[]` with no error — knowing the available range upfront avoids wasted calls.
-
-The backend caches API key lookups for 60 seconds. Only successful lookups are cached — a failed lookup (wrong key, expired key) is never cached, so retries are immediate.
-
-```python
-from ona_platform import OnaClient
-from ona_platform.models.telemetry import TimeRange
-from ona_platform.services.inverter_telemetry import RateLimitError
-from ona_platform.exceptions import AuthenticationError, ValidationError
-
-client = OnaClient(
-    inverter_telemetry_endpoint='https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod',
-    inverter_telemetry_api_key='your_api_key'
-)
-
-# Step 1: discover what time range has data before querying
-period = client.inverter_telemetry.get_data_period(site_id='Sibaya')
-print(f"Data available from {period['first_record']} to {period['last_record']}")
-# e.g. Data available from 2025-11-01T02:40:00 to 2026-04-18T06:56:56
-
-# Step 2: query a specific inverter using the discovered range
-records = client.inverter_telemetry.get_inverter_telemetry(
-    asset_id='INV-1000000054495190',
-    site_id='Sibaya',
-    time_range=TimeRange(
-        start=period['first_record'],
-        end='2025-11-01T06:00:00',
-    ),
-    resolution='5min',  # or 'daily'
-    limit=100,
-)
-for r in records:
-    print(f"{r.timestamp}: {r.power} kW, {r.temperature}°C, state={r.inverter_state}")
-
-# Check data period for a specific inverter
-inv_period = client.inverter_telemetry.get_data_period(
-    site_id='Sibaya',
-    asset_id='INV-1000000054495190',
-)
-print(f"Inverter data: {inv_period['first_record']} → {inv_period['last_record']}")
-
-# Query all inverters at a site
-site_data = client.inverter_telemetry.get_site_telemetry(
-    site_id='Sibaya',
-    time_range=TimeRange(start='2025-11-01T02:00:00', end='2025-11-01T06:00:00'),
-)
-for asset_id, records in site_data.items():
-    print(f"{asset_id}: {len(records)} records")
-
-# Stream live telemetry (polls every 30s, minimum 5s)
-for record in client.inverter_telemetry.stream_inverter(
-    asset_id='INV-1000000054495190',
-    site_id='Sibaya',
-    polling_interval=30,
-):
-    print(f"{record.timestamp}: {record.power} kW  cursor={record.cursor}")
-    # Save record.cursor to resume after a disconnection
-
-# Resume a stream from a saved cursor
-for record in client.inverter_telemetry.stream_inverter(
-    asset_id='INV-1000000054495190',
-    site_id='Sibaya',
-    cursor='<saved cursor>',
-    polling_interval=30,
-):
-    print(record.timestamp)
-
-# Stream all inverters at a site
-for record in client.inverter_telemetry.stream_site(site_id='Sibaya'):
-    print(f"{record.asset_id} @ {record.timestamp}: {record.power} kW")
-```
-
-#### Telemetry Configuration
-
-```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-export INVERTER_TELEMETRY_API_KEY=your_api_key
-export TELEMETRY_POLLING_INTERVAL=30   # optional, default 5s
-```
-
-#### How the cache works
-
-The backend caches each API key lookup for **60 seconds** after a successful authentication. This means:
-- The first request for a given key hits DynamoDB; subsequent requests within 60 seconds are served from cache
-- If a key is revoked, it will continue to work for up to 60 seconds before the cache expires
-- **Failed lookups are never cached** — if you use a wrong or expired key, every retry hits DynamoDB immediately with no delay
-
-#### Telemetry Record Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `asset_id` | str | Inverter identifier (e.g. `INV-1000000054495190`) |
-| `site_id` | str | Site identifier (e.g. `Sibaya`) |
-| `timestamp` | str | ISO 8601 timestamp |
-| `power` | float | Active power (kW) |
-| `kWh` | float | Energy (kWh) |
-| `kVArh` | float \| None | Reactive energy |
-| `kVA` | float \| None | Apparent power |
-| `PF` | float \| None | Power factor |
-| `temperature` | float \| None | Inverter temperature (°C) |
-| `inverter_state` | int | Inverter state code |
-| `run_state` | int | Run state code |
-| `error_code` | str \| None | Error code |
-| `error_type` | str \| None | Error description (e.g. `"offline"`) |
-| `cursor` | str \| None | Stream position token (streaming only) |
-
 ## Error Handling
 
 The SDK provides custom exceptions for different error types:
@@ -516,7 +412,6 @@ See the `examples/` directory for complete usage examples:
 - `terminal_ooda_example.py` - OODA workflow
 - `energy_analyst_example.py` - Energy policy queries
 - `edge_device_example.py` - Edge device management
-- `inverter_telemetry_example.py` - Inverter telemetry queries and live streaming
 - `complete_workflow_example.py` - Multi-service workflow
 
 Run an example:
@@ -592,7 +487,7 @@ MIT License - see LICENSE file for details.
 For issues and questions:
 
 - GitHub Issues: https://github.com/AsobaCloud/platform/issues
-- Email: support@asoba.org
+- Email: info@asoba.co
 
 ## Contributing
 
