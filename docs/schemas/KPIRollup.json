@@ -74,6 +74,16 @@
         "shortfall_cost_zar": { "type": "number" },
         "tou_breakdown": { "type": "object" }
       }
+    },
+    "battery": {
+      "type": "object",
+      "properties": {
+        "avg_soc": { "type": "number" },
+        "avg_soh": { "type": "number" },
+        "total_capacity_kwh": { "type": "number" },
+        "warranty_status": { "type": "string" },
+        "throughput_kwh": { "type": "number" }
+      }
     }
   }
 }

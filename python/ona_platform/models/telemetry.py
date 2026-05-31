@@ -14,7 +14,7 @@ REQUIRED_FIELDS = [
     "inverter_state",
     "run_state",
 ]
-OPTIONAL_FIELDS = ["asset_ts", "kVArh", "kVA", "PF", "temperature", "error_code", "error_type"]
+OPTIONAL_FIELDS = ["asset_ts", "kVArh", "kVA", "PF", "temperature", "soc", "soh", "error_code", "error_type"]
 STRIP_FIELDS = {"expires_at"}
 
 
@@ -32,6 +32,8 @@ class TelemetryRecord:
     kVA: Optional[float] = None
     PF: Optional[float] = None
     temperature: Optional[float] = None
+    soc: Optional[float] = None
+    soh: Optional[float] = None
     error_code: Optional[str] = None
     error_type: Optional[str] = None
     cursor: Optional[str] = None  # populated by the client, not from DynamoDB

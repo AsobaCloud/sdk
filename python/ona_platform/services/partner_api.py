@@ -80,7 +80,13 @@ class PartnerApiClient:
             raise ServiceUnavailableError(f"Request failed: {e}") from e
 
     def get_kpi_rollup(self, site_id: str) -> dict:
-        """Get the latest KPI Rollup snapshot for a site."""
+        """Get the latest KPI Rollup snapshot for a site.
+
+        The KPI rollup includes energy balance, performance, availability,
+        financial metrics, and battery health KPIs (avg_soc, avg_soh,
+        total_capacity_kwh, warranty_status, throughput_kwh, etc.) for sites
+        with battery assets.
+        """
         return self._request("/kpi-rollup", {"site_id": site_id})
 
     def get_maintenance_signals(

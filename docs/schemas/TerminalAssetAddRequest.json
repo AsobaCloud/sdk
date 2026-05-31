@@ -30,6 +30,19 @@
       "type": "string",
       "description": "The location of the asset."
     },
+    "capacity_kwh": {
+      "type": "number",
+      "description": "The battery capacity of the asset in kilowatt-hours (if applicable)."
+    },
+    "warranty_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date when the asset warranty expires (YYYY-MM-DD)."
+    },
+    "warranty_throughput_kwh": {
+      "type": "number",
+      "description": "The maximum throughput in kWh covered by the warranty."
+    },
     "components": {
       "type": "array",
       "description": "A list of components that make up the asset.",

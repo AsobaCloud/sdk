@@ -51,7 +51,17 @@ _SCHEDULE_PAYLOAD = {
     },
 }
 
-_KPI_PAYLOAD = {"site_id": "Sibaya", "system_pr": 0.78}
+_KPI_PAYLOAD = {
+    "site_id": "Sibaya",
+    "system_pr": 0.78,
+    "battery": {
+        "avg_soc": 82.5,
+        "avg_soh": 99.1,
+        "total_capacity_kwh": 13.5,
+        "warranty_status": "in_warranty",
+        "throughput_kwh": 450.2,
+    },
+}
 _SIGNALS_PAYLOAD = {"site_id": "Sibaya", "signals": []}
 _FORECAST_PAYLOAD = {"site_id": "Sibaya", "horizon_hours": 24, "intervals": []}
 

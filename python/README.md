@@ -111,12 +111,17 @@ customer_forecast = client.forecasting.get_customer_forecast(
 Complete OODA (Observe, Orient, Decide, Act) workflow:
 
 ```python
-# OBSERVE: Fault detection
+# OBSERVE: Fault detection & Battery Health
 detection = client.terminal.run_detection(
     customer_id='customer123',
     asset_id='asset456',
     lookback_hours=6
 )
+
+# Get site-level battery KPIs (SOC, SOH, etc.)
+summary = client.terminal.get_site_summary(site_id='site789')
+if 'battery' in summary:
+    print(f"Avg SOH: {summary['battery']['avg_soh']}%")
 
 # ORIENT: AI diagnostics
 diagnostic = client.terminal.run_diagnostics(
@@ -143,19 +148,35 @@ activities = client.terminal.list_activities(
 #### Asset Management
 
 ```python
-# List assets
+# List assets (includes battery fields if applicable)
 assets = client.terminal.list_assets(customer_id='customer123')
 
-# Add new asset
+# Get a specific asset
+asset = client.terminal.get_asset(customer_id='customer123', asset_id='asset789')
+if asset:
+    print(f"Capacity: {asset.get('capacity_kwh')} kWh")
+
+# Add new battery asset with warranty tracking
 asset = client.terminal.add_asset(
     customer_id='customer123',
     asset_id='asset789',
-    name='Solar Array 1',
-    asset_type='solar',
-    capacity_kw=150.0,
+    name='Battery Storage 1',
+    asset_type='battery',
+    capacity_kw=5.0,
+    capacity_kwh=13.5,
+    warranty_expiry_date='2030-12-31',
+    warranty_throughput_kwh=10000.0,
     location='Durban',
     timezone='Africa/Johannesburg'
 )
+
+# Helper: Calculate remaining warranty life
+life = client.terminal.calculate_remaining_warranty_life(
+    warranty_expiry_date=asset['warranty_expiry_date'],
+    warranty_throughput_kwh=asset['warranty_throughput_kwh'],
+    current_throughput_kwh=4500.0
+)
+print(f"Warranty Status: {life['warranty_status']} (Limited by {life['limiting_factor']})")
 ```
 
 #### ML Integration

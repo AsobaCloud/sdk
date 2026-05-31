@@ -14,6 +14,7 @@ class KpiRollupSnapshot:
     performance: Dict[str, Any]
     ear: Dict[str, Any]
     financial: Dict[str, Any]
+    battery: Optional[Dict[str, Any]] = None
 
 @dataclass
 class MaintenanceSignal:

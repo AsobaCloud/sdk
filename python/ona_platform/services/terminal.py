@@ -2,9 +2,11 @@
 
 import json
 import logging
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 from ..config import OnaConfig
+from ..exceptions import ResourceNotFoundError
 from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
@@ -42,7 +44,8 @@ class TerminalClient(BaseServiceClient):
             customer_id: Customer identifier
 
         Returns:
-            List of asset objects
+            List of asset objects. Battery assets include capacity_kwh,
+            warranty_expiry_date, and warranty_throughput_kwh fields.
         """
         payload = {
             "httpMethod": "POST",
@@ -51,6 +54,31 @@ class TerminalClient(BaseServiceClient):
         }
         result = self.invoke_lambda(self.function_name, payload)
         return result.get("assets", [])
+
+    def get_asset(self, customer_id: str, asset_id: str) -> Optional[Dict[str, Any]]:
+        """Get a specific asset by ID.
+
+        Args:
+            customer_id: Customer identifier
+            asset_id: Asset identifier
+
+        Returns:
+            Asset object including battery-specific fields (capacity_kwh,
+            warranty_expiry_date, warranty_throughput_kwh) if present.
+            Returns None if asset not found.
+        """
+        payload = {
+            "httpMethod": "POST",
+            "path": "/assets",
+            "body": json.dumps(
+                {"action": "get", "customer_id": customer_id, "asset_id": asset_id}
+            ),
+        }
+        try:
+            result = self.invoke_lambda(self.function_name, payload)
+            return result
+        except ResourceNotFoundError:
+            return None
 
     def add_asset(
         self,
@@ -62,6 +90,9 @@ class TerminalClient(BaseServiceClient):
         location: str,
         timezone: str = "Africa/Johannesburg",
         components: Optional[List[Dict]] = None,
+        capacity_kwh: Optional[float] = None,
+        warranty_expiry_date: Optional[str] = None,
+        warranty_throughput_kwh: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Add a new asset.
 
@@ -74,28 +105,35 @@ class TerminalClient(BaseServiceClient):
             location: Asset location
             timezone: Asset timezone (default: Africa/Johannesburg)
             components: Optional list of asset components
+            capacity_kwh: Optional battery capacity in kWh
+            warranty_expiry_date: Optional warranty expiry date (YYYY-MM-DD)
+            warranty_throughput_kwh: Optional warranty throughput limit in kWh
 
         Returns:
             Created asset information
         """
-        import json
+        body = {
+            "action": "add",
+            "customer_id": customer_id,
+            "asset_id": asset_id,
+            "name": name,
+            "type": asset_type,
+            "capacity_kw": capacity_kw,
+            "location": location,
+            "timezone": timezone,
+            "components": components or [],
+        }
+        if capacity_kwh is not None:
+            body["capacity_kwh"] = capacity_kwh
+        if warranty_expiry_date:
+            body["warranty_expiry_date"] = warranty_expiry_date
+        if warranty_throughput_kwh is not None:
+            body["warranty_throughput_kwh"] = warranty_throughput_kwh
 
         payload = {
             "httpMethod": "POST",
             "path": "/assets",
-            "body": json.dumps(
-                {
-                    "action": "add",
-                    "customer_id": customer_id,
-                    "asset_id": asset_id,
-                    "name": name,
-                    "type": asset_type,
-                    "capacity_kw": capacity_kw,
-                    "location": location,
-                    "timezone": timezone,
-                    "components": components or [],
-                }
-            ),
+            "body": json.dumps(body),
         }
         return self.invoke_lambda(self.function_name, payload)
 
@@ -444,3 +482,120 @@ class TerminalClient(BaseServiceClient):
         }
         result = self.invoke_lambda(self.function_name, payload)
         return result.get("data", {})
+
+    # Telemetry
+    def get_site_summary(self, site_id: str) -> Dict[str, Any]:
+        """Get site summary including battery KPIs from assetIntelligence snapshots.
+
+        Args:
+            site_id: Site identifier
+
+        Returns:
+            Site summary with fleet metrics and battery KPIs (avg_soc, avg_soh,
+            total_capacity_kwh, warranty_status) if available.
+        """
+        payload = {
+            "httpMethod": "POST",
+            "path": "/telemetry",
+            "body": json.dumps({"action": "site-summary", "site_id": site_id}),
+        }
+        result = self.invoke_lambda(self.function_name, payload)
+        return result
+
+    # Battery Health Helper Methods
+    @staticmethod
+    def calculate_remaining_warranty_life(
+        warranty_expiry_date: Optional[str],
+        warranty_throughput_kwh: Optional[float],
+        current_throughput_kwh: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Calculate remaining warranty life for a battery asset.
+
+        Args:
+            warranty_expiry_date: Warranty expiry date in ISO format (YYYY-MM-DD)
+            warranty_throughput_kwh: Total warranty throughput limit in kWh
+            current_throughput_kwh: Current cumulative throughput in kWh (optional)
+
+        Returns:
+            Dict with keys:
+            - days_remaining: Days until date-based warranty expiry (None if no date)
+            - throughput_remaining_pct: Percentage of throughput warranty remaining (None if no limit)
+            - warranty_status: 'in_warranty', 'expiring_soon', 'out_of_warranty', or 'unknown'
+            - limiting_factor: 'date' or 'throughput' indicating which constraint is tighter
+        """
+        today = date.today()
+        days_remaining = None
+        throughput_remaining_pct = None
+        warranty_status = "unknown"
+        limiting_factor = None
+
+        # Check date-based warranty
+        if warranty_expiry_date:
+            try:
+                expiry = datetime.strptime(warranty_expiry_date, "%Y-%m-%d").date()
+                days_remaining = (expiry - today).days
+                if days_remaining < 0:
+                    date_status = "out_of_warranty"
+                elif days_remaining < 90:
+                    date_status = "expiring_soon"
+                else:
+                    date_status = "in_warranty"
+            except (ValueError, TypeError):
+                date_status = "unknown"
+                days_remaining = None
+        else:
+            date_status = "unknown"
+
+        # Check throughput-based warranty
+        if warranty_throughput_kwh and current_throughput_kwh is not None:
+            if warranty_throughput_kwh > 0:
+                throughput_remaining = max(
+                    0, warranty_throughput_kwh - current_throughput_kwh
+                )
+                throughput_remaining_pct = (
+                    throughput_remaining / warranty_throughput_kwh
+                ) * 100
+                if current_throughput_kwh >= warranty_throughput_kwh:
+                    throughput_status = "out_of_warranty"
+                elif current_throughput_kwh >= warranty_throughput_kwh * 0.8:
+                    throughput_status = "expiring_soon"
+                else:
+                    throughput_status = "in_warranty"
+            else:
+                throughput_status = "unknown"
+        else:
+            throughput_status = "unknown"
+
+        # Determine overall warranty status (worst of the two)
+        if date_status == "out_of_warranty" or throughput_status == "out_of_warranty":
+            warranty_status = "out_of_warranty"
+        elif date_status == "expiring_soon" or throughput_status == "expiring_soon":
+            warranty_status = "expiring_soon"
+        elif date_status == "in_warranty" or throughput_status == "in_warranty":
+            warranty_status = "in_warranty"
+
+        # Determine limiting factor
+        if days_remaining is not None and throughput_remaining_pct is not None:
+            # Compare days remaining vs throughput remaining
+            # Simple heuristic: if throughput is < 20% remaining, it's the limiting factor
+            if throughput_remaining_pct < 20:
+                limiting_factor = "throughput"
+            elif days_remaining < 90:
+                limiting_factor = "date"
+            else:
+                limiting_factor = "date"  # Default to date as primary
+        elif days_remaining is not None:
+            limiting_factor = "date"
+        elif throughput_remaining_pct is not None:
+            limiting_factor = "throughput"
+
+        return {
+            "days_remaining": days_remaining,
+            "throughput_remaining_pct": (
+                round(throughput_remaining_pct, 1)
+                if throughput_remaining_pct is not None
+                else None
+            ),
+            "warranty_status": warranty_status,
+            "limiting_factor": limiting_factor,
+        }

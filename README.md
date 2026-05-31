@@ -11,6 +11,7 @@ This SDK provides three live APIs for solar installation data:
 **✅ Working Features:**
 - **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution)
 - **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
+- **Battery Health & Warranty Tracking** — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
 - **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
@@ -330,11 +331,13 @@ for task in schedule['tasks']:
 | `streamInverter` / `stream_inverter` | Stream live data from a single inverter |
 | `streamSite` / `stream_site` | Stream live data from all inverters at a site |
 
-### OODA Terminal Alert Methods
+### OODA Terminal Alert & Battery Methods
 | Method | Description |
 |--------|-------------|
 | `getTerminalAlerts` / `get_terminal_alerts` | Historical alerts for a single terminal device |
 | `getSiteAlerts` / `get_site_alerts` | Historical alerts for all terminal devices at a site |
+| `getAsset` / `get_asset` | Get asset details (including battery capacity and warranty) |
+| `getSiteSummary` / `get_site_summary` | Get site summary with battery health KPIs (SOH, SOC) |
 | `getDataPeriod` / `get_data_period` | Discover available alert time range |
 | `streamTerminal` / `stream_terminal` | Stream live alerts from a single terminal device |
 | `streamSite` / `stream_site` | Stream live alerts from all terminal devices at a site |

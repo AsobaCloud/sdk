@@ -87,6 +87,17 @@ const assets = await sdk.terminal.listAssets({
   customer_id: 'customer123'
 });
 
+// Get a specific asset (returns null if not found)
+const asset = await sdk.terminal.getAsset({
+  customer_id: 'customer123',
+  asset_id: 'asset789'
+});
+
+// Get site-level battery KPIs
+const summary = await sdk.terminal.getSiteSummary({
+  site_id: 'site789'
+});
+
 // Run fault detection (Observe)
 const detection = await sdk.terminal.runDetection({
   customer_id: 'customer123',
@@ -429,10 +440,12 @@ See the `examples/` directory for complete usage examples:
 
 ### Terminal Client
 
-**Assets:**
-- `listAssets(params)` - List all assets
-- `addAsset(params)` - Add a new asset
+**Assets & Battery:**
+- `listAssets(params)` - List all assets (includes battery fields)
+- `addAsset(params)` - Add a new asset (supports battery/warranty fields)
 - `getAsset(params)` - Get specific asset
+- `getSiteSummary(params)` - Get site summary with battery health KPIs
+- `TerminalClient.calculateRemainingWarrantyLife(params)` - Static helper for warranty tracking
 
 **Detection (Observe):**
 - `runDetection(params)` - Run fault detection

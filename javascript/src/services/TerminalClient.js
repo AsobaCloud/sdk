@@ -28,7 +28,8 @@ class TerminalClient {
    * List all assets for a customer
    * @param {Object} params - Parameters
    * @param {string} params.customer_id - Customer ID
-   * @returns {Promise<Object>} List of assets
+   * @returns {Promise<Object>} List of assets. Battery assets include capacity_kwh,
+   * warranty_expiry_date, and warranty_throughput_kwh fields.
    */
   async listAssets({ customer_id }) {
     validateCustomerId(customer_id);
@@ -54,6 +55,9 @@ class TerminalClient {
    * @param {string} params.location - Asset location
    * @param {string} [params.timezone='Africa/Johannesburg'] - Asset timezone
    * @param {Array} [params.components=[]] - Asset components
+   * @param {number} [params.capacity_kwh] - Optional battery capacity in kWh
+   * @param {string} [params.warranty_expiry_date] - Optional warranty expiry date (YYYY-MM-DD)
+   * @param {number} [params.warranty_throughput_kwh] - Optional warranty throughput limit in kWh
    * @returns {Promise<Object>} Created asset
    */
   async addAsset(params) {
@@ -74,21 +78,141 @@ class TerminalClient {
    * @param {Object} params - Parameters
    * @param {string} params.customer_id - Customer ID
    * @param {string} params.asset_id - Asset ID
-   * @returns {Promise<Object>} Asset details
+   * @returns {Promise<Object|null>} Asset details or null if not found
    */
   async getAsset({ customer_id, asset_id }) {
     validateCustomerId(customer_id);
     validateAssetId(asset_id);
 
+    try {
+      return await this.client.post(
+        `${this.endpoint}/assets`,
+        {
+          action: 'get',
+          customer_id,
+          asset_id
+        },
+        { signRequest: true }
+      );
+    } catch (error) {
+      if (error.statusCode === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Get site summary including battery KPIs from assetIntelligence snapshots.
+   * @param {Object} params - Parameters
+   * @param {string} params.site_id - Site identifier
+   * @returns {Promise<Object>} Site summary
+   */
+  async getSiteSummary({ site_id }) {
+    validateRequired({ site_id }, ['site_id']);
+
     return this.client.post(
-      `${this.endpoint}/assets`,
+      `${this.endpoint}/telemetry`,
       {
-        action: 'get',
-        customer_id,
-        asset_id
+        action: 'site-summary',
+        site_id
       },
       { signRequest: true }
     );
+  }
+
+  /**
+   * Calculate remaining warranty life for a battery asset.
+   *
+   * @param {Object} params - Parameters
+   * @param {string} [params.warranty_expiry_date] - Warranty expiry date in ISO format (YYYY-MM-DD)
+   * @param {number} [params.warranty_throughput_kwh] - Total warranty throughput limit in kWh
+   * @param {number} [params.current_throughput_kwh] - Current cumulative throughput in kWh
+   * @returns {Object} Warranty life information with keys:
+   * - days_remaining: Days until date-based warranty expiry (null if no date)
+   * - throughput_remaining_pct: Percentage of throughput warranty remaining (null if no limit)
+   * - warranty_status: 'in_warranty', 'expiring_soon', 'out_of_warranty', or 'unknown'
+   * - limiting_factor: 'date' or 'throughput' indicating which constraint is tighter
+   */
+  static calculateRemainingWarrantyLife({
+    warranty_expiry_date,
+    warranty_throughput_kwh,
+    current_throughput_kwh,
+  }) {
+    // Use UTC for consistent date math across timezones
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    let days_remaining = null;
+    let throughput_remaining_pct = null;
+    let warranty_status = 'unknown';
+    let limiting_factor = null;
+    let date_status = 'unknown';
+    let throughput_status = 'unknown';
+
+    // Check date-based warranty
+    if (warranty_expiry_date) {
+      // Parse YYYY-MM-DD as UTC
+      const [year, month, day] = warranty_expiry_date.split('-').map(Number);
+      const expiry = new Date(Date.UTC(year, month - 1, day));
+      
+      if (!isNaN(expiry.getTime())) {
+        days_remaining = Math.round((expiry - today) / (1000 * 60 * 60 * 24));
+        if (days_remaining < 0) {
+          date_status = 'out_of_warranty';
+        } else if (days_remaining < 90) {
+          date_status = 'expiring_soon';
+        } else {
+          date_status = 'in_warranty';
+        }
+      }
+    }
+
+    // Check throughput-based warranty
+    if (warranty_throughput_kwh && current_throughput_kwh !== undefined && current_throughput_kwh !== null) {
+      if (warranty_throughput_kwh > 0) {
+        const throughput_remaining = Math.max(0, warranty_throughput_kwh - current_throughput_kwh);
+        throughput_remaining_pct = (throughput_remaining / warranty_throughput_kwh) * 100;
+        if (current_throughput_kwh >= warranty_throughput_kwh) {
+          throughput_status = 'out_of_warranty';
+        } else if (current_throughput_kwh >= warranty_throughput_kwh * 0.8) {
+          throughput_status = 'expiring_soon';
+        } else {
+          throughput_status = 'in_warranty';
+        }
+      }
+    }
+
+    // Determine overall warranty status (worst of the two)
+    if (date_status === 'out_of_warranty' || throughput_status === 'out_of_warranty') {
+      warranty_status = 'out_of_warranty';
+    } else if (date_status === 'expiring_soon' || throughput_status === 'expiring_soon') {
+      warranty_status = 'expiring_soon';
+    } else if (date_status === 'in_warranty' || throughput_status === 'in_warranty') {
+      warranty_status = 'in_warranty';
+    }
+
+    // Determine limiting factor
+    if (days_remaining !== null && throughput_remaining_pct !== null) {
+      if (throughput_remaining_pct < 20) {
+        limiting_factor = 'throughput';
+      } else if (days_remaining < 90) {
+        limiting_factor = 'date';
+      } else {
+        limiting_factor = 'date';
+      }
+    } else if (days_remaining !== null) {
+      limiting_factor = 'date';
+    } else if (throughput_remaining_pct !== null) {
+      limiting_factor = 'throughput';
+    }
+
+    return {
+      days_remaining,
+      throughput_remaining_pct: throughput_remaining_pct !== null ? Math.round(throughput_remaining_pct * 10) / 10 : null,
+      warranty_status,
+      limiting_factor,
+    };
   }
 
   /**
