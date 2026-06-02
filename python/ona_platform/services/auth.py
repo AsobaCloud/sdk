@@ -258,7 +258,6 @@ class AuthClient(BaseServiceClient):
         try:
             # Decode token locally to get user info
             import jwt
-            from datetime import datetime, timezone
             
             # Try to decode without signature verification (just to get claims)
             # The expiry is still verified

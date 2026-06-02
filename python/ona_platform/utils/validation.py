@@ -1,7 +1,6 @@
 """Validation utilities for ODSE records."""
 
 import math
-from datetime import datetime
 from typing import Dict, Any, List, Tuple, Optional
 
 from dateutil.parser import parse as parse_date

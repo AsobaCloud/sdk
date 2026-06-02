@@ -27,11 +27,9 @@ Requirements under test:
   IB-2  forecast endpoint path is exactly /api/v1/freemium-forecast
 """
 
-import io
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from unittest.mock import patch
 
 import pytest
 
@@ -747,8 +745,6 @@ class TestServerErrorMapping:
 class TestNetworkFailure:
     def test_eh7_connection_error_raises_service_unavailable(self, csv_file):
         """A network-level exception must be wrapped as ServiceUnavailableError (EH-7)."""
-        import requests
-
         c = FreemiumForecastClient()
         # Point the client at a port that is definitely not listening
         c._base_url = "http://127.0.0.1:1"

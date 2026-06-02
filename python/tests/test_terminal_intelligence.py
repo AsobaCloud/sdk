@@ -1,6 +1,4 @@
-import pytest
 from unittest.mock import MagicMock, patch
-import json
 from ona_platform.services.terminal import TerminalClient
 
 def test_get_site_summary_parsing():

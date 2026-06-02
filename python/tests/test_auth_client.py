@@ -513,6 +513,7 @@ class TestAuthStateful:
             
         # Step 3: Use token for authenticated request (get_current_user decodes locally)
         user = auth_client.get_current_user()
+        assert user['user_id'] == 'user_123'
         # Token was set from mfa_result
         assert auth_client._current_token == 'full_access_token'
 
@@ -527,7 +528,8 @@ class TestAuthStateful:
             'expires_in': 86400
         })
         result = auth_client.refresh_token()
-            
+        assert result['token'] == 'refreshed_token'
+        assert result['expires_in'] == 86400
         assert auth_client._current_token == 'refreshed_token'
         assert auth_client.is_authenticated() is True
 

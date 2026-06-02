@@ -1,6 +1,5 @@
 """Tests for TerminalClient — battery health and warranty tracking."""
 
-import pytest
 from unittest.mock import MagicMock
 from datetime import date, timedelta
 from ona_platform.services.terminal import TerminalClient

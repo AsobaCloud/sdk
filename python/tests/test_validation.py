@@ -1,4 +1,3 @@
-import pytest
 from ona_platform.utils.validation import validate_odse_record, validate_batch
 
 
