@@ -72,9 +72,85 @@ client = OnaClient(
     aws_region='af-south-1',
     energy_analyst_url='http://localhost:8000',
     edge_api_url='http://localhost:8082',
+    auth_endpoint='https://auth-api.asoba.co/prod',
     timeout=120,
     max_retries=3
 )
+```
+
+## Authentication
+
+The SDK provides the `AuthClient` for user authentication, MFA verification, token management, and API key introspection.
+
+### Login with Username/Password
+
+```python
+# Login
+result = client.auth.login('user@example.com', 'password')
+
+# Handle MFA if required
+if result.get('mfa_required'):
+    if result.get('mfa_enrollment'):
+        # First-time MFA setup - display provisioning_uri as QR code
+        print(f"Setup MFA: {result['provisioning_uri']}")
+    
+    # Verify MFA code
+    result = client.auth.verify_mfa(result['mfa_token'], '123456')
+
+# Token is automatically stored
+print(f"Logged in as: {result['user']['username']}")
+```
+
+### Token Management
+
+```python
+# Set token directly (for external integrations)
+client.auth.set_token('eyJhbGciOiJIUzI1NiIs...')
+
+# Get current user from token
+user = client.auth.get_current_user()
+print(f"User: {user['username']} (Role: {user['role_id']})")
+
+# Refresh token before expiry
+new_token = client.auth.refresh_token()
+
+# Check authentication status
+if client.auth.is_authenticated():
+    print("Authenticated")
+
+# Logout
+client.auth.logout()
+```
+
+### API Key Introspection
+
+```python
+# Get API key information
+info = client.auth.get_api_key_info('opa_prod_xxxxx')
+print(f"Expires: {info['expires_at']}")
+print(f"Sites: {info['permitted_site_ids']}")
+
+# Validate API key for specific site
+validation = client.auth.validate_api_key('opa_prod_xxxxx', 'Sibaya')
+if validation['valid']:
+    print("API key is valid for site")
+```
+
+### Token Exchange (SSO Integration)
+
+```python
+# Exchange external token for Ona token (for SSO)
+result = client.auth.exchange_token(
+    external_token='external_jwt_token',
+    provider='external-sso'
+)
+print(f"Ona token: {result['token']}")
+```
+
+### Environment Variables
+
+```bash
+export ONA_AUTH_ENDPOINT=https://auth-api.asoba.co/prod
 ```
 
 ## Services
@@ -523,6 +599,7 @@ The SDK is organized into the following components:
 - `exceptions.py` - Custom exception classes
 - `services/` - Service-specific clients
   - `base.py` - Base client with common functionality
+  - `auth.py` - Authentication and authorization client
   - `forecasting.py` - Forecasting API client
   - `terminal.py` - Terminal API client (OODA workflow)
   - `energy_analyst.py` - Energy Analyst RAG client
@@ -567,6 +644,15 @@ For issues and questions:
 Contributions are welcome! Please follow the existing code style and include tests for new features.
 
 ## Changelog
+
+### Version 1.2.0 (2026-06-02)
+
+- **AuthClient** - New authentication client with support for:
+  - Username/password login with MFA
+  - Token lifecycle management (set, refresh, logout)
+  - JWT token decoding and user context
+  - API key introspection and validation
+  - External token exchange for SSO integrations
 
 ### Version 1.1.0 (2026-05-31)
 

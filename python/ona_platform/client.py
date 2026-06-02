@@ -5,6 +5,7 @@ from typing import Optional
 
 from .config import OnaConfig
 from .services import (
+    AuthClient,
     ForecastingClient,
     TerminalClient,
     EnergyAnalystClient,
@@ -50,6 +51,7 @@ class OnaClient:
         lambda_endpoint_url: Optional[str] = None,
         edge_api_url: Optional[str] = None,
         energy_analyst_url: Optional[str] = None,
+        auth_endpoint: Optional[str] = None,
         timeout: Optional[int] = None,
         max_retries: Optional[int] = None
     ):
@@ -63,6 +65,7 @@ class OnaClient:
             lambda_endpoint_url: Base URL for Lambda endpoints
             edge_api_url: Edge device service URL
             energy_analyst_url: Energy Analyst RAG service URL
+            auth_endpoint: Authentication service URL
             timeout: Request timeout in seconds
             max_retries: Maximum retry attempts
 
@@ -86,6 +89,8 @@ class OnaClient:
                 config.edge_api_url = edge_api_url
             if energy_analyst_url is not None:
                 config.energy_analyst_url = energy_analyst_url
+            if auth_endpoint is not None:
+                config.auth_endpoint = auth_endpoint
             if timeout is not None:
                 config.timeout = timeout
             if max_retries is not None:
@@ -94,6 +99,7 @@ class OnaClient:
         self.config = config
 
         # Initialize service clients (lazy-loaded)
+        self._auth = None
         self._forecasting = None
         self._terminal = None
         self._energy_analyst = None
@@ -108,6 +114,19 @@ class OnaClient:
 
         logger.info("Ona Platform client initialized")
         logger.debug(f"Configuration: {self.config}")
+
+    @property
+    def auth(self) -> AuthClient:
+        """Get Authentication service client.
+
+        Provides authentication, MFA verification, token management,
+        and API key introspection.
+
+        Requires auth_endpoint to be configured.
+        """
+        if self._auth is None:
+            self._auth = AuthClient(self.config)
+        return self._auth
 
     @property
     def forecasting(self) -> ForecastingClient:

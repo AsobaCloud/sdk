@@ -1,5 +1,6 @@
 """Service clients for Ona Platform SDK."""
 
+from .auth import AuthClient
 from .forecasting import ForecastingClient
 from .terminal import TerminalClient
 from .energy_analyst import EnergyAnalystClient
@@ -13,6 +14,7 @@ from .standardization import StandardizationClient
 from .training import TrainingClient
 
 __all__ = [
+    "AuthClient",
     "ForecastingClient",
     "TerminalClient",
     "EnergyAnalystClient",
