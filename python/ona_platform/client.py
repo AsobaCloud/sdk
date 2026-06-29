@@ -16,7 +16,8 @@ from .services import (
     DataIngestionClient,
     InterpolationClient,
     StandardizationClient,
-    TrainingClient
+    TrainingClient,
+    PartnerApiClient
 )
 
 logger = logging.getLogger(__name__)
@@ -111,6 +112,7 @@ class OnaClient:
         self._interpolation = None
         self._standardization = None
         self._training = None
+        self._partner = None
 
         logger.info("Ona Platform client initialized")
         logger.debug(f"Configuration: {self.config}")
@@ -204,3 +206,10 @@ class OnaClient:
         if self._training is None:
             self._training = TrainingClient(self.config)
         return self._training
+
+    @property
+    def partner(self) -> PartnerApiClient:
+        """Get Partner API client (JSON snapshots)."""
+        if self._partner is None:
+            self._partner = PartnerApiClient(self.config)
+        return self._partner

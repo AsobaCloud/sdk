@@ -5,6 +5,24 @@ from typing import Any, Dict, List, Optional
 
 
 @dataclass
+class EarKpis:
+    energy_lost_kwh: float
+    energy_lost_pct: float
+    capacity_utilization_pct: float
+    recovery_potential_kwh: Dict[str, float]  # keys: "50pct", "75pct", "100pct"
+    value_lost_zar: float
+    realized_savings_zar: float
+    annual_projection_zar: float
+
+@dataclass
+class FinancialKpis:
+    tariff_currency: str
+    shortfall_cost_zar: float
+    realized_savings_zar: float
+    total_potential_value_zar: float
+    tou_breakdown: Dict[str, Any]
+
+@dataclass
 class KpiRollupSnapshot:
     site_id: str
     period: Dict[str, str]
@@ -12,8 +30,8 @@ class KpiRollupSnapshot:
     system: Dict[str, Any]
     energy_balance: Dict[str, Any]
     performance: Dict[str, Any]
-    ear: Dict[str, Any]
-    financial: Dict[str, Any]
+    ear: EarKpis
+    financial: FinancialKpis
     battery: Optional[Dict[str, Any]] = None
 
 @dataclass

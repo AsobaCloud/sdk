@@ -16,6 +16,7 @@ const InterpolationClient = require('./services/InterpolationClient');
 const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
+const PartnerApiClient = require('./services/PartnerApiClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -34,6 +35,7 @@ class OnaSDK {
    * @param {string} [options.credentials.secretAccessKey] - AWS secret access key
    * @param {string} [options.credentials.sessionToken] - AWS session token
    * @param {Object} [options.endpoints] - Service endpoints
+   * @param {string} [options.partnerApiKey] - API key for Partner API
    * @param {number} [options.timeout=30000] - Request timeout in milliseconds
    * @param {number} [options.retries=3] - Number of retries for failed requests
    * @param {number} [options.retryDelay=1000] - Delay between retries in milliseconds
@@ -49,8 +51,10 @@ class OnaSDK {
    *     forecasting: 'https://forecasting.api.asoba.co',
    *     terminal: 'https://terminal.api.asoba.co',
    *     edgeRegistry: 'http://edge-registry:8082',
-   *     energyAnalyst: 'http://energy-analyst:8000'
-   *   }
+   *     energyAnalyst: 'http://energy-analyst:8000',
+   *     partnerApi: 'https://partner.api.asoba.co'
+   *   },
+   *   partnerApiKey: 'YOUR_PARTNER_API_KEY'
    * });
    */
   constructor(options = {}) {
@@ -122,6 +126,12 @@ class OnaSDK {
      * @type {HuaweiClient}
      */
     this.huawei = new HuaweiClient(this.httpClient, this.config);
+
+    /**
+     * Partner API client (JSON snapshots)
+     * @type {PartnerApiClient}
+     */
+    this.partner = new PartnerApiClient(this.httpClient, this.config);
   }
 
   /**

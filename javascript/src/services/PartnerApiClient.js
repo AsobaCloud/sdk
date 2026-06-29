@@ -61,9 +61,8 @@ class PartnerApiClient {
    * Get the latest KPI Rollup snapshot for a site.
    *
    * The KPI rollup includes energy balance, performance, availability,
-   * financial metrics, and battery health KPIs (avg_soc, avg_soh,
-   * total_capacity_kwh, warranty_status, throughput_kwh, etc.) for sites
-   * with battery assets.
+   * financial metrics (shortfall cost, realized savings), and battery 
+   * health KPIs for sites with battery assets.
    *
    * @param {Object} params - Parameters
    * @param {string} params.site_id - Site identifier

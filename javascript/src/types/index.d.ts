@@ -23,6 +23,7 @@ export interface Endpoints {
   interpolation?: string;
   terminal?: string;
   weather?: string;
+  partnerApi?: string;
 }
 
 export interface SDKOptions {
@@ -182,6 +183,54 @@ export interface SiteSummary {
   prognostics?: Prognostics;
 }
 
+// Partner API types (Snapshots)
+export interface EarKpis {
+  energy_lost_kwh: number;
+  energy_lost_pct: number;
+  capacity_utilization_pct: number;
+  recovery_potential_kwh: {
+    '50pct': number;
+    '75pct': number;
+    '100pct': number;
+  };
+  value_lost_zar: number;
+  realized_savings_zar: number;
+  annual_projection_zar: number;
+}
+
+export interface FinancialKpis {
+  tariff_currency: string;
+  shortfall_cost_zar: number;
+  realized_savings_zar: number;
+  total_potential_value_zar: number;
+  tou_breakdown: Record<string, any>;
+}
+
+export interface KpiRollupSnapshot {
+  site_id: string;
+  period: { start: string; end: string };
+  generated_at: string;
+  system: { rated_capacity_kw: number; device_count: number };
+  energy_balance: {
+    consumption_kwh: number;
+    solar_production_kwh: number;
+    grid_purchases_kwh: number;
+    solar_offset_pct: number;
+  };
+  performance: {
+    system_pr: number;
+    pr_target: number;
+    pr_status: string;
+    true_uptime_pct: number;
+    state_uptime_pct: number;
+    availability_pct: number;
+    availability_target: number;
+  };
+  ear: EarKpis;
+  financial: FinancialKpis;
+  battery?: BatteryKPIs;
+}
+
 // Energy Analyst types
 export interface QueryParams {
   question: string;
@@ -262,6 +311,14 @@ export class TerminalClient {
   getMLOODA(params: { customer_id: string }): Promise<any>;
 }
 
+export class PartnerApiClient {
+  getKpiRollup(params: { site_id: string }): Promise<KpiRollupSnapshot>;
+  getMaintenanceSignals(params: { site_id: string; since?: string; severity?: string }): Promise<any>;
+  getForecastSnapshot(params: { site_id: string; horizon?: string }): Promise<any>;
+  getMaintenanceSchedule(params: { site_id: string; since?: string }): Promise<any>;
+  getSnapshot(params: { site_id: string; kind: string; [key: string]: any }): Promise<any>;
+}
+
 export class EnergyAnalystClient {
   query(params: QueryParams): Promise<QueryResponse>;
   addDocuments(params: AddDocumentsParams): Promise<any>;
@@ -317,6 +374,7 @@ export class OnaSDK {
   weather: WeatherClient;
   enphase: EnphaseClient;
   huawei: HuaweiClient;
+  partner: PartnerApiClient;
 
   setEndpoint(serviceName: string, endpoint: string): void;
   getConfig(): any;

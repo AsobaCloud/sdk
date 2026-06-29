@@ -25,7 +25,8 @@ const DEFAULTS = {
     globalTraining: null,
     interpolation: null,
     terminal: null,
-    weather: null
+    weather: null,
+    partnerApi: null
   }
 };
 
@@ -42,6 +43,7 @@ class Config {
    * @param {string} [options.credentials.secretAccessKey] - AWS secret access key
    * @param {string} [options.credentials.sessionToken] - AWS session token
    * @param {Object} [options.endpoints] - Service endpoints
+   * @param {string} [options.partnerApiKey] - API key for Partner API
    * @param {number} [options.timeout] - Request timeout in milliseconds
    * @param {number} [options.retries] - Number of retries for failed requests
    * @param {number} [options.retryDelay] - Delay between retries in milliseconds
@@ -52,6 +54,7 @@ class Config {
     this.timeout = options.timeout || DEFAULTS.timeout;
     this.retries = options.retries !== undefined ? options.retries : DEFAULTS.retries;
     this.retryDelay = options.retryDelay || DEFAULTS.retryDelay;
+    this.partnerApiKey = options.partnerApiKey || null;
 
     // Merge custom endpoints with defaults
     this.endpoints = {

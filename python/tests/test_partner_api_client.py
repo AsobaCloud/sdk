@@ -53,7 +53,44 @@ _SCHEDULE_PAYLOAD = {
 
 _KPI_PAYLOAD = {
     "site_id": "Sibaya",
-    "system_pr": 0.78,
+    "period": {"start": "2026-01-16", "end": "2026-01-17"},
+    "generated_at": "2026-01-18T08:00:00Z",
+    "system": {"rated_capacity_kw": 330.0, "device_count": 1},
+    "energy_balance": {
+        "consumption_kwh": 5000.0,
+        "solar_production_kwh": 1200.0,
+        "grid_purchases_kwh": 3800.0,
+        "solar_offset_pct": 24.0,
+    },
+    "performance": {
+        "system_pr": 0.78,
+        "pr_target": 0.80,
+        "pr_status": "Below Target",
+        "true_uptime_pct": 98.5,
+        "state_uptime_pct": 99.0,
+        "availability_pct": 98.2,
+        "availability_target": 0.98,
+    },
+    "ear": {
+        "energy_lost_kwh": 54.2,
+        "energy_lost_pct": 4.5,
+        "capacity_utilization_pct": 74.1,
+        "recovery_potential_kwh": {
+            "50pct": 27.1,
+            "75pct": 40.6,
+            "100pct": 54.2,
+        },
+        "value_lost_zar": 276.4,
+        "realized_savings_zar": 6120.0,
+        "annual_projection_zar": 1146878.0,
+    },
+    "financial": {
+        "tariff_currency": "ZAR",
+        "shortfall_cost_zar": 276.4,
+        "realized_savings_zar": 6120.0,
+        "total_potential_value_zar": 6396.4,
+        "tou_breakdown": {},
+    },
     "battery": {
         "avg_soc": 82.5,
         "avg_soh": 99.1,

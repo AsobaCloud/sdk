@@ -257,6 +257,8 @@ print(f"Training status: {status['status']}")
 
 Fetch pre-computed JSON snapshots for embedding and partner integrations. This API is optimized for speed using ETag-based conditional GETs and in-memory caching.
 
+> **Config note (Python):** `partner_api_endpoint` must use `https://` — the SDK raises `ConfigurationError` on init if it doesn't. Set via `PARTNER_API_ENDPOINT` env var or the `OnaConfig(partner_api_endpoint=...)` dataclass field. The `partner_api_key` is sent as the `x-api-key` header.
+
 ### JavaScript
 ```javascript
 const { OnaSDK } = require('./src/index');
@@ -269,22 +271,22 @@ const sdk = new OnaSDK({
 });
 
 // 1. KPI rollup (first call: full fetch; second call: returns cached if ETag matches)
-const kpis = await sdk.partnerApi.getKpiRollup({ site_id: 'Sibaya' });
-const cachedKpis = await sdk.partnerApi.getKpiRollup({ site_id: 'Sibaya' });
+const kpis = await sdk.partner.getKpiRollup({ site_id: 'Sibaya' });
+const cachedKpis = await sdk.partner.getKpiRollup({ site_id: 'Sibaya' });
 
 // 2. Maintenance signals (detected anomalies) — optional `since` and `severity` filters
-const signals = await sdk.partnerApi.getMaintenanceSignals({
+const signals = await sdk.partner.getMaintenanceSignals({
   site_id: 'Sibaya',
   since: '2025-11-01T00:00:00',
   severity: 'high',
 });
 
 // 3. Forecast snapshot — pre-computed 24h solar forecast (optional `horizon`)
-const forecast = await sdk.partnerApi.getForecastSnapshot({ site_id: 'Sibaya' });
+const forecast = await sdk.partner.getForecastSnapshot({ site_id: 'Sibaya' });
 console.log(`Forecast horizon: ${forecast.horizon_hours}h, intervals: ${forecast.intervals.length}`);
 
 // 4. Maintenance schedule (90-day preventive tasks) — SEP-062
-const schedule = await sdk.partnerApi.getMaintenanceSchedule({ site_id: 'Sibaya' });
+const schedule = await sdk.partner.getMaintenanceSchedule({ site_id: 'Sibaya' });
 console.log(`Tasks: ${schedule.summary.total_tasks}`);
 for (const task of schedule.tasks) {
   console.log(`  ${task.recommended_date} — ${task.asset_id} — ${task.task_type} (${task.priority})`);
@@ -298,26 +300,68 @@ from ona_platform import OnaClient
 client = OnaClient()
 
 # 1. KPI rollup (first call: full fetch; second call: returns cached if ETag matches)
-kpis = client.partner_api.get_kpi_rollup(site_id='Sibaya')
-cached_kpis = client.partner_api.get_kpi_rollup(site_id='Sibaya')
+kpis = client.partner.get_kpi_rollup(site_id='Sibaya')
+cached_kpis = client.partner.get_kpi_rollup(site_id='Sibaya')
 
 # 2. Maintenance signals (detected anomalies) — optional `since` and `severity` filters
-signals = client.partner_api.get_maintenance_signals(
+signals = client.partner.get_maintenance_signals(
     site_id='Sibaya',
     since='2025-11-01T00:00:00',
     severity='high',
 )
 
 # 3. Forecast snapshot — pre-computed 24h solar forecast (optional `horizon`)
-forecast = client.partner_api.get_forecast_snapshot(site_id='Sibaya')
+forecast = client.partner.get_forecast_snapshot(site_id='Sibaya')
 print(f"Forecast horizon: {forecast['horizon_hours']}h, intervals: {len(forecast['intervals'])}")
 
 # 4. Maintenance schedule (90-day preventive tasks) — SEP-062
-schedule = client.partner_api.get_maintenance_schedule(site_id='Sibaya')
+schedule = client.partner.get_maintenance_schedule(site_id='Sibaya')
 print(f"Tasks: {schedule['summary']['total_tasks']}")
 for task in schedule['tasks']:
     print(f"  {task['recommended_date']} — {task['asset_id']} — {task['task_type']} ({task['priority']})")
 ```
+
+### KPI Rollup Snapshot Structure
+
+The `getKpiRollup` / `get_kpi_rollup` method returns a nested `KpiRollupSnapshot` with typed sub-objects. The Python SDK exposes these as dataclasses (`EarKpis`, `FinancialKpis`); the JavaScript SDK exposes them as TypeScript interfaces.
+
+**Top-level fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `site_id` | string | Site identifier |
+| `period` | `{ start, end }` | Reporting period (ISO dates) |
+| `generated_at` | string (ISO timestamp) | When the snapshot was generated |
+| `system` | `{ rated_capacity_kw, device_count }` | System metadata |
+| `energy_balance` | `{ consumption_kwh, solar_production_kwh, grid_purchases_kwh, solar_offset_pct }` | Energy balance metrics |
+| `performance` | `{ system_pr, pr_target, pr_status, true_uptime_pct, state_uptime_pct, availability_pct, availability_target }` | Performance ratio and uptime |
+| `ear` | `EarKpis` | Energy-at-risk and recovery KPIs (see below) |
+| `financial` | `FinancialKpis` | Financial metrics in site tariff currency (see below) |
+| `battery` | object (optional) | Battery health KPIs (`avg_soc`, `avg_soh`, `total_capacity_kwh`, `warranty_status`, `throughput_kwh`) — present only for sites with battery assets |
+
+**`EarKpis` — Energy-at-Risk & Recovery:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `energy_lost_kwh` | float | Energy lost (kWh) over the period |
+| `energy_lost_pct` | float | Energy lost as % of expected |
+| `capacity_utilization_pct` | float | Capacity utilization (%) |
+| `recovery_potential_kwh` | `{ "50pct", "75pct", "100pct" }` | Recoverable kWh at 50/75/100% recovery |
+| `value_lost_zar` | float | Value of lost energy (ZAR) |
+| `realized_savings_zar` | float | Realized savings (ZAR) |
+| `annual_projection_zar` | float | Annualized projection (ZAR) |
+
+**`FinancialKpis` — Financial Metrics:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tariff_currency` | string | Tariff currency code (e.g. `ZAR`) |
+| `shortfall_cost_zar` | float | Cost of energy shortfall (ZAR) |
+| `realized_savings_zar` | float | Realized savings vs grid (ZAR) |
+| `total_potential_value_zar` | float | Total potential value (shortfall + savings, ZAR) |
+| `tou_breakdown` | object | Time-of-Use tariff breakdown by period |
+
+**TypeScript types** (JavaScript SDK, `src/types/index.d.ts`): `EarKpis`, `FinancialKpis`, `KpiRollupSnapshot`, and `PartnerApiClient` are exported. The SDK client exposes `sdk.partner: PartnerApiClient`.
 
 ---
 
@@ -484,7 +528,7 @@ print(f"Training status: {status['status']}")
 ## Partner API Methods
 | Method | Description |
 |--------|-------------|
-| `getKpiRollup` / `get_kpi_rollup` | Site-level KPI summary snapshot |
+| `getKpiRollup` / `get_kpi_rollup` | Site-level KPI summary snapshot (returns `KpiRollupSnapshot` with `EarKpis` + `FinancialKpis` sub-objects) |
 | `getMaintenanceSignals` / `get_maintenance_signals` | Pending maintenance and health signals |
 | `getForecastSnapshot` / `get_forecast_snapshot` | Pre-computed solar forecast snapshot |
 | `getMaintenanceSchedule` / `get_maintenance_schedule` | Preventive-maintenance task list for the next 90 days (per inverter) |

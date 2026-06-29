@@ -12,6 +12,7 @@ from .data_ingestion import DataIngestionClient
 from .interpolation import InterpolationClient
 from .standardization import StandardizationClient
 from .training import TrainingClient
+from .partner_api import PartnerApiClient
 
 __all__ = [
     "AuthClient",
@@ -26,4 +27,5 @@ __all__ = [
     "InterpolationClient",
     "StandardizationClient",
     "TrainingClient",
+    "PartnerApiClient",
 ]
