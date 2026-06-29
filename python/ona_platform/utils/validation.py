@@ -1,4 +1,12 @@
-"""Validation utilities for ODSE records."""
+"""Validation utilities for ODS-E (Open Data Schema for Energy) records.
+
+Supports the full energy-timeseries v1 schema (65 fields) and 6 conformance
+profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch,
+wind_scada).
+
+Backward-compatible: existing 9-field callers of ``validate_odse_record``
+and ``validate_batch`` are unaffected.
+"""
 
 import math
 from typing import Dict, Any, List, Tuple, Optional
@@ -9,6 +17,9 @@ from ..models.odse import (
     ODSE_REQUIRED_FIELDS,
     ODSE_ALLOWED_FIELDS,
     ODSE_ERROR_TYPES,
+    ODSE_ENUM_FIELDS,
+    ODSE_NUMERIC_RANGES,
+    ODSE_PROFILES,
 )
 
 
@@ -21,7 +32,7 @@ def _is_nan(value: Any) -> bool:
 
 def clean_record(record: Dict[str, Any]) -> Dict[str, Any]:
     """Clean a single record by stripping whitespace and handling nulls.
-    
+
     Equivalent to service-side cleaning but without pandas dependency.
     """
     cleaned = {}
@@ -48,8 +59,11 @@ def _to_float(value: Any) -> Optional[float]:
 
 
 def validate_odse_record(record: Dict[str, Any]) -> Tuple[bool, List[str], Dict[str, Any]]:
-    """Validate a single record against ODSE production-timeseries constraints.
-    
+    """Validate a single record against ODS-E energy-timeseries constraints.
+
+    Checks required fields, allowed fields, timestamp format, numeric ranges,
+    and enum values for the full 65-field schema.
+
     Returns:
         (is_valid, list_of_errors, normalized_record)
     """
@@ -72,11 +86,8 @@ def validate_odse_record(record: Dict[str, Any]) -> Tuple[bool, List[str], Dict[
     timestamp_raw = cleaned.get("timestamp")
     if timestamp_raw is not None:
         try:
-            # dateutil.parser is more flexible and matches pandas behavior better than fromisoformat
             ts = parse_date(str(timestamp_raw))
-            # Ensure UTC/Z suffix consistency
             if ts.tzinfo is None:
-                # If no timezone, assume UTC to match service behavior for naive strings if any
                 from datetime import timezone
                 ts = ts.replace(tzinfo=timezone.utc)
             normalized["timestamp"] = ts.isoformat().replace("+00:00", "Z")
@@ -92,40 +103,93 @@ def validate_odse_record(record: Dict[str, Any]) -> Tuple[bool, List[str], Dict[
             errors.append("kwh_out_of_bounds")
         normalized["kWh"] = kwh_value
 
-    # Validate error_type
-    error_type = cleaned.get("error_type")
-    if error_type is not None and error_type not in ODSE_ERROR_TYPES:
-        errors.append("error_type_enum_mismatch")
+    # Validate enum fields (error_type + all other enum-constrained strings)
+    for field_name, allowed_values in ODSE_ENUM_FIELDS.items():
+        value = cleaned.get(field_name)
+        if value is not None and value not in allowed_values:
+            errors.append(f"{field_name.lower()}_enum_mismatch")
 
-    # Validate optional numeric fields
+    # Validate numeric fields with range constraints
+    for field_name, (min_val, max_val) in ODSE_NUMERIC_RANGES.items():
+        raw = cleaned.get(field_name)
+        if raw is None:
+            continue
+        num = _to_float(raw)
+        if num is None:
+            errors.append(f"{field_name.lower()}_not_numeric")
+            continue
+        if min_val is not None and num < min_val:
+            errors.append(f"{field_name.lower()}_out_of_bounds")
+            continue
+        if max_val is not None and num > max_val:
+            errors.append(f"{field_name.lower()}_out_of_bounds")
+            continue
+        normalized[field_name] = num
+
+    # Validate kVArh (numeric, no range constraint but keep original behavior)
     kvarh = _to_float(cleaned.get("kVArh"))
     if cleaned.get("kVArh") is not None and kvarh is None:
         errors.append("kvarh_not_numeric")
     elif kvarh is not None:
         normalized["kVArh"] = kvarh
 
-    kva = _to_float(cleaned.get("kVA"))
-    if cleaned.get("kVA") is not None and kva is None:
-        errors.append("kva_not_numeric")
-    elif kva is not None:
-        if kva < 0:
-            errors.append("kva_out_of_bounds")
-        normalized["kVA"] = kva
+    return len(errors) == 0, errors, normalized
 
-    pf = _to_float(cleaned.get("PF"))
-    if cleaned.get("PF") is not None and pf is None:
-        errors.append("pf_not_numeric")
-    elif pf is not None:
-        if pf < 0 or pf > 1:
-            errors.append("pf_out_of_bounds")
-        normalized["PF"] = pf
+
+def validate_with_profile(
+    record: Dict[str, Any], profile: str
+) -> Tuple[bool, List[str], Dict[str, Any]]:
+    """Validate a record against an ODS-E conformance profile.
+
+    Profile validation runs **after** schema validation passes. If schema
+    validation produces errors, those are returned and profile checks are
+    skipped (prevents duplicate/confusing errors).
+
+    Profiles (SEP-002 + SEP-025 + SEP-026):
+        - ``bilateral`` — PPA / bilateral trade settlement
+        - ``wheeling`` — wheeled energy across networks
+        - ``sawem_brp`` — wholesale market (SAWEM) settlement for BRPs
+        - ``municipal_recon`` — municipal billing / reconciliation
+        - ``bess_dispatch`` — BESS dispatch validation (SEP-026)
+        - ``wind_scada`` — wind turbine SCADA validation (SEP-025)
+
+    Returns:
+        (is_valid, list_of_errors, normalized_record)
+
+    Error codes:
+        - ``unknown_profile`` — profile name not recognised
+        - ``profile_field_missing:<field>`` — required field absent
+        - ``profile_value_mismatch:<field>`` — value not in allowed set
+    """
+    # Step 1: schema validation
+    is_valid, errors, normalized = validate_odse_record(record)
+    if not is_valid:
+        return is_valid, errors, normalized
+
+    # Step 2: profile validation
+    if profile not in ODSE_PROFILES:
+        errors.append(f"unknown_profile:{profile}")
+        return False, errors, normalized
+
+    spec = ODSE_PROFILES[profile]
+
+    # Check required fields are present
+    for field_name in spec["required"]:
+        if normalized.get(field_name) is None:
+            errors.append(f"profile_field_missing:{field_name}")
+
+    # Check value constraints
+    for field_name, allowed_values in spec.get("value_constraints", {}).items():
+        value = normalized.get(field_name)
+        if value is not None and value not in allowed_values:
+            errors.append(f"profile_value_mismatch:{field_name}")
 
     return len(errors) == 0, errors, normalized
 
 
 def validate_batch(records: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Validate a batch of records and return valid/invalid split.
-    
+
     Returns:
         {
             "valid_records": List[dict],

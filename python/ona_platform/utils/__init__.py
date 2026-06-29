@@ -5,6 +5,7 @@ from .logger import get_logger
 from .validation import (
     clean_record,
     validate_odse_record,
+    validate_with_profile,
     validate_batch,
 )
 
@@ -13,5 +14,6 @@ __all__ = [
     "get_logger",
     "clean_record",
     "validate_odse_record",
+    "validate_with_profile",
     "validate_batch",
 ]

@@ -6,19 +6,20 @@
 
 ## What Works Right Now
 
-This SDK provides three live APIs for solar installation data:
+This SDK provides live APIs for energy asset data across solar PV, wind, battery storage (BESS), and grid meters — with ODS-E (Open Data Schema for Energy) standardization covering market settlement, wheeling, tariffs, renewable certificates, and conformance profiles for SA trading workflows.
 
 **✅ Working Features:**
 - **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution)
 - **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
 - **Battery Health & Warranty Tracking** — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
 - **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
-- **Data Ingestion Validation (Python)** — client-side ODSE record validation with 100% service parity for pre-upload checks
+- **ODS-E Data Validation (Python)** — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
 
 **🚧 Planned Features:**
 - Solar Energy Forecasting (Working)
+- Wind & BESS telemetry streaming
 - Energy Policy Analysis
 - Edge Device Management (Working)
 - Data Collection integrations
@@ -365,24 +366,218 @@ The `getKpiRollup` / `get_kpi_rollup` method returns a nested `KpiRollupSnapshot
 
 ---
 
+## ODS-E Data Standard
+
+The Ona SDK uses [ODS-E (Open Data Schema for Energy)](https://github.com/AsobaCloud/ona-protocol) — an open specification for interoperable energy asset data across generation, consumption, net metering, market settlement, wheeling, and certificate tracking. The full schema lives in [`ona-protocol/schemas/energy-timeseries.json`](https://github.com/AsobaCloud/ona-protocol/blob/main/schemas/energy-timeseries.json).
+
+### Energy Timeseries Fields (65)
+
+The `energy-timeseries` schema defines 65 optional fields (3 required: `timestamp`, `kWh`, `error_type`). Fields are grouped by domain:
+
+#### Core Telemetry
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string (date-time) | ISO 8601 timestamp with timezone **(required)** |
+| `kWh` | number | Active energy in kWh **(required)** |
+| `error_type` | enum | `normal`, `warning`, `critical`, `fault`, `offline`, `standby`, `unknown` **(required)** |
+| `error_code` | string | Original OEM error code |
+| `kVArh` | number | Reactive energy |
+| `kVA` | number | Apparent power (min 0) |
+| `PF` | number | Power factor (0–1) |
+| `direction` | enum | `generation`, `consumption`, `net` |
+
+#### End-Use & Fuel
+| Field | Type | Description |
+|-------|------|-------------|
+| `end_use` | enum | ComStock/ResStock end-use category (cooling, heating, pv_generation, battery_storage, etc.) |
+| `fuel_type` | enum | `electricity`, `natural_gas`, `propane`, `fuel_oil`, `other` |
+
+#### Market Settlement
+| Field | Type | Description |
+|-------|------|-------------|
+| `seller_party_id` | string | Canonical seller ID (`authority:type:id`) |
+| `buyer_party_id` | string | Canonical buyer ID |
+| `network_operator_id` | string | Network operator ID |
+| `wheeling_agent_id` | string | Wheeling intermediary ID |
+| `settlement_period_start` | date-time | Settlement window start |
+| `settlement_period_end` | date-time | Settlement window end |
+| `loss_factor` | number | Applied loss factor (e.g. 0.03 for 3%) |
+| `contract_reference` | string | PPA / bilateral / wheeling schedule ref |
+
+#### Tariff
+| Field | Type | Description |
+|-------|------|-------------|
+| `tariff_schedule_id` | string | Canonical tariff ID (`authority:municipality:code:vN`) |
+| `tariff_period` | enum | `peak`, `standard`, `off_peak`, `critical_peak` |
+| `tariff_currency` | string | ISO 4217 currency code (e.g. `ZAR`) |
+| `tariff_version_effective_at` | date-time | Tariff version effective timestamp |
+| `energy_charge_component` | number | Energy charge for this interval |
+| `network_charge_component` | number | Network charge for this interval |
+
+#### Wheeling
+| Field | Type | Description |
+|-------|------|-------------|
+| `wheeling_type` | enum | `traditional`, `virtual`, `portfolio` |
+| `injection_point_id` | string | Grid injection point |
+| `offtake_point_id` | string | Grid offtake point |
+| `wheeling_status` | enum | `provisional`, `confirmed`, `reconciled`, `disputed` |
+| `wheeling_path_id` | string | Registered wheeling path reference |
+
+#### Unbundled Charges
+| Field | Type | Description |
+|-------|------|-------------|
+| `generation_charge_component` | number | Generation charge |
+| `transmission_charge_component` | number | Transmission use-of-system charge |
+| `distribution_charge_component` | number | Distribution network charge |
+| `ancillary_service_charge_component` | number | Ancillary services levy |
+| `non_bypassable_charge_component` | number | Cross-subsidies, FBE contributions |
+| `environmental_levy_component` | number | Environmental / carbon levy |
+
+#### Curtailment
+| Field | Type | Description |
+|-------|------|-------------|
+| `curtailment_flag` | boolean | Whether generation was curtailed |
+| `curtailment_type` | enum | `congestion`, `frequency`, `voltage`, `instruction`, `other` |
+| `curtailed_kWh` | number | Estimated generation lost (min 0) |
+| `curtailment_instruction_id` | string | System operator dispatch instruction ref |
+
+#### Balance Responsibility
+| Field | Type | Description |
+|-------|------|-------------|
+| `balance_responsible_party_id` | string | BRP ID for this connection point |
+| `forecast_kWh` | number | Nominated/scheduled volume |
+| `imbalance_kWh` | number | Forecast vs actual (positive = over-delivery) |
+| `settlement_type` | enum | `bilateral`, `sawem_day_ahead`, `sawem_intra_day`, `balancing`, `ancillary` |
+
+#### Billing
+| Field | Type | Description |
+|-------|------|-------------|
+| `billing_period` | string | Billing cycle reference (e.g. `2026-02`, `2026-W07`) |
+| `billed_kWh` | number | Billed quantity (may differ from metered) |
+| `billing_status` | enum | `metered`, `estimated`, `adjusted`, `disputed` |
+| `daa_reference` | string | Distribution Agency Agreement reference |
+
+#### Renewable Certificates
+| Field | Type | Description |
+|-------|------|-------------|
+| `renewable_attribute_id` | string | Certificate/credit ID (e.g. I-REC tracking number) |
+| `certificate_standard` | enum | `i_rec`, `rego`, `go`, `rec`, `tigr`, `other` |
+| `verification_status` | enum | `pending`, `issued`, `retired`, `cancelled` |
+| `carbon_intensity_gCO2_per_kWh` | number | Carbon intensity (g CO2e / kWh) |
+
+#### BESS — Battery Energy Storage (SEP-026)
+| Field | Type | Description |
+|-------|------|-------------|
+| `soc` | number | State of charge (0–100) |
+| `soh` | number | State of health (0–100) |
+| `charge_kWh` | number | Energy charged this interval (min 0) |
+| `discharge_kWh` | number | Energy discharged this interval (min 0) |
+| `cycle_count` | number | Cumulative charge/discharge cycles |
+| `cell_temp_min_c` | number | Min cell temperature (°C) |
+| `cell_temp_max_c` | number | Max cell temperature (°C) |
+| `cell_voltage_min_v` | number | Min cell voltage (V) |
+| `cell_voltage_max_v` | number | Max cell voltage (V) |
+| `dispatch_mode` | enum | `charging`, `discharging`, `standby`, `balancing` |
+
+#### Wind Turbine SCADA (SEP-025)
+| Field | Type | Description |
+|-------|------|-------------|
+| `wind_speed_ms` | number | Wind speed (m/s, min 0) |
+| `rotor_rpm` | number | Rotor revolutions per minute |
+| `blade_pitch_deg` | number | Blade pitch angle (degrees) |
+| `nacelle_direction_deg` | number | Nacelle orientation (0–360 compass bearing) |
+
+### Asset Metadata Schema
+
+The [`asset-metadata.json`](https://github.com/AsobaCloud/ona-protocol/blob/main/schemas/asset-metadata.json) schema defines asset configuration and location:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `asset_id` | string | Unique asset identifier (required) |
+| `location` | object | `{ latitude, longitude, timezone, region, country_code, municipality_id, distribution_zone, feeder_id, voltage_level, meter_id, connection_point_id, ... }` (required: lat/lon/tz) |
+| `capacity_kw` | number | Nameplate power capacity (required) |
+| `capacity_kwh` | number | Nameplate energy storage capacity |
+| `oem` | string | Original equipment manufacturer (required) |
+| `model` | string | Equipment model identifier |
+| `serial_number` | string | Manufacturer serial number |
+| `commissioning_date` | date | ISO 8601 commissioning date |
+| `ppa_id` | string | Associated power purchase agreement |
+| `asset_type` | enum | `solar_pv`, `wind_turbine`, `battery_storage`, `grid_meter`, `ev_charger`, `hvac_system`, `generator`, `chp`, `fuel_cell`, `other` |
+| `building` | object | ComStock/ResStock building metadata (building_type, climate_zone, vintage, floor_area_sqm) |
+
+### Additional Schemas (8)
+
+| Schema | Purpose | Key Fields |
+|--------|---------|------------|
+| `equipment-register.json` | Equipment hierarchy registry | equipment_id, site_id, equipment_type, manufacturer, model, install_date, warranty_expiry |
+| `equipment-id-map.json` | Source-to-canonical ID mapping | source_equipment_id, equipment_id |
+| `maintenance-history.json` | Work order and maintenance records | work_order_id, equipment_id, failure_code, cause_code, downtime_hours, parts_consumed |
+| `spare-parts.json` | Spare parts inventory | part_id, qty_on_hand, qty_reserved, reorder_point, supplier_lead_time_days |
+| `failure-taxonomy.json` | Standardized failure classification | failure_code, cause_code, recurrence_rate, typical_mttr_hours |
+| `procurement-context.json` | Procurement and supplier context | part_id, preferred_supplier, avg_lead_time_days, open_po_eta |
+| `regulatory-event.json` | Regulatory event normalization | event_type, jurisdiction, regulator, effective_date, deadline_date |
+| `alarm-frequency-profile.json` | Alarm frequency and escalation | alarm_code, count_7d, count_30d, count_90d, escalation_rate, mean_time_between_alarms_hours |
+
+### Conformance Profiles (6)
+
+Profiles are a validator-level concept layered on top of the schema. They specify which fields must be present for a given operating context. Use `validate_with_profile()` to apply them.
+
+| Profile | Use Case | Required Fields |
+|---------|----------|-----------------|
+| `bilateral` | PPA / bilateral trade settlement | seller_party_id, buyer_party_id, settlement_period_start/end, contract_reference, settlement_type=`bilateral` |
+| `wheeling` | Wheeled energy across networks | All bilateral fields + network_operator_id, wheeling_type, injection/offtake_point_id, wheeling_status, loss_factor |
+| `sawem_brp` | Wholesale market (SAWEM) settlement for BRPs | seller_party_id, balance_responsible_party_id, settlement_type (sawem_*), forecast_kWh, settlement_period_start/end |
+| `municipal_recon` | Municipal billing / reconciliation | buyer_party_id, billing_period, billed_kWh, billing_status |
+| `bess_dispatch` | BESS dispatch validation (SEP-026) | dispatch_mode, soc |
+| `wind_scada` | Wind turbine SCADA validation (SEP-025) | wind_speed_ms |
+
+### Vendor Transforms (20)
+
+ODS-E includes transforms that convert vendor-specific data into the canonical schema:
+
+| Asset Type | Vendor | Source Key | Transform Spec |
+|------------|--------|------------|----------------|
+| Solar PV | Huawei FusionSolar | `huawei-fusionsolar` | `transforms/huawei-fusionsolar.yaml` |
+| Solar PV | Enphase Envoy | `enphase-envoy` | `transforms/enphase-envoy.yaml` |
+| Solar PV | Fronius Solar API | `fronius-solar-api` | `transforms/fronius-solar-api.yaml` |
+| Solar PV | SMA Monitoring | `sma-monitoring-api` | `transforms/sma-monitoring-api.yaml` |
+| Solar PV | SolarEdge Monitoring | `solaredge-monitoring` | `transforms/solaredge-monitoring.yaml` |
+| Solar PV | Solarman Logger | `solarman-logger` | `transforms/solarman-logger.yaml` |
+| Solar PV | Solax Cloud API v2 | `solaxcloud-api-v2` | `transforms/solaxcloud-api-v2.yaml` |
+| Solar PV | Solis Cloud API | `soliscloud-api` | `transforms/soliscloud-api.yaml` |
+| Solar PV | Sungrow iSolarCloud | `sungrow-isolarcloud-api` | `transforms/sungrow-isolarcloud-api.yaml` |
+| BESS | Sungrow PowerTitan | `sungrow_bess` | `transforms/sungrow-powertitan.yaml` |
+| BESS | BYD BatteryBox | `byd_bess` | `transforms/byd-bess.yaml` |
+| Wind | Vestas Online | `vestas` | `transforms/vestas-online.yaml` |
+| Wind | Siemens Gamesa | `siemens_gamesa` | `transforms/siemens-gamesa-diagnostic.yaml` |
+| Wind | Nordex Control | `nordex` | `transforms/nordex-control.yaml` |
+| Meter | Switch Meter | `switch-meter` | `transforms/switch-meter.yaml` |
+| Industrial | Higeco API | `higeco-api` | `transforms/higeco-api.yaml` |
+| Industrial | Terraco Historian | `terraco-historian` | `transforms/terraco-historian.yaml` |
+| Utility | Eskom AMR | `eskom-amr` | `transforms/eskom-amr.yaml` |
+| Regulatory | Regulatory Events | `regulatory-events` | `transforms/regulatory-events-unified.yaml` |
+
+---
+
 ## Data Ingestion Validation (Python SDK)
 
-Validate records locally against the ODSE schema before uploading to catch issues early.
+Validate records locally against the full ODS-E energy-timeseries schema (65 fields) before uploading to catch issues early. The SDK supports both basic schema validation and conformance profile validation.
 
 ```python
 from ona_platform import OnaClient
-from ona_platform.models.odse import ODSE_REQUIRED_FIELDS, ODSE_ERROR_TYPES
+from ona_platform.utils.validation import validate_odse_record, validate_with_profile, validate_batch
+from ona_platform.models.odse import ODSE_REQUIRED_FIELDS, ODSE_ALLOWED_FIELDS, ODSE_PROFILES
 
 client = OnaClient()
 
-# Records to validate
+# Records to validate — full 65-field schema is supported
 records = [
     {"timestamp": "2025-01-01T00:00:00Z", "kWh": 100.5, "error_type": "normal", "asset_id": "INV001"},
     {"timestamp": "invalid-date", "kWh": "not-a-number", "error_type": "unknown"},
 ]
 
 # Validate locally (no service call)
-result = client.data_ingestion.validate_local_records(records)
+result = validate_batch(records)
 
 print(f"Valid: {result['summary']['valid']}/{result['summary']['total']}")
 
@@ -395,7 +590,48 @@ for item in result['invalid_records']:
     print(f"Errors: {item['errors']}")
 ```
 
-Validation checks include: required fields, allowed field whitelist, numeric bounds, timestamp format, and error type enum matching. This provides 100% parity with service-side validation.
+#### Conformance Profile Validation
+
+For trading workflows (wheeling, bilateral, SAWEM, municipal reconciliation, BESS dispatch, wind SCADA), use `validate_with_profile()`:
+
+```python
+from ona_platform.utils.validation import validate_with_profile
+
+# Bilateral trade settlement
+bilateral_record = {
+    "timestamp": "2026-06-27T14:00:00+02:00",
+    "kWh": 87.3,
+    "error_type": "normal",
+    "seller_party_id": "nersa:gen:SOLARPK-001",
+    "buyer_party_id": "nersa:offtaker:MUN042",
+    "settlement_period_start": "2026-06-27T14:00:00+02:00",
+    "settlement_period_end": "2026-06-27T14:30:00+02:00",
+    "contract_reference": "PPA-SOLARPK-MUN042-2025-003",
+    "settlement_type": "bilateral",
+}
+is_valid, errors, normalized = validate_with_profile(bilateral_record, "bilateral")
+
+# BESS dispatch validation
+bess_record = {
+    "timestamp": "2026-06-27T10:00:00Z",
+    "kWh": 50.0,
+    "error_type": "normal",
+    "dispatch_mode": "charging",
+    "soc": 75.0,
+}
+is_valid, errors, normalized = validate_with_profile(bess_record, "bess_dispatch")
+
+# Wind SCADA validation
+wind_record = {
+    "timestamp": "2026-06-27T10:00:00Z",
+    "kWh": 320.0,
+    "error_type": "normal",
+    "wind_speed_ms": 8.5,
+}
+is_valid, errors, normalized = validate_with_profile(wind_record, "wind_scada")
+```
+
+Validation checks include: required fields, allowed field whitelist (65 fields), numeric bounds (BESS soc/soh 0–100, PF 0–1, nacelle 0–360, etc.), timestamp format, enum matching (13 enum-constrained fields), and conformance profile enforcement. The full schema is at [`ona-protocol/schemas/energy-timeseries.json`](https://github.com/AsobaCloud/ona-protocol/blob/main/schemas/energy-timeseries.json).
 
 ---
 
