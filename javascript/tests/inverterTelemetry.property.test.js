@@ -9,9 +9,8 @@
 const http = require('http');
 const fc = require('fast-check');
 const CursorSerializer = require('../src/utils/cursorSerializer');
-const { parseTelemetryRecord } = require('../src/utils/telemetryRecord');
 const { InverterTelemetryClient } = require('../src/services/InverterTelemetryClient');
-const { ValidationError, ConfigurationError, AuthenticationError } = require('../src/utils/errors');
+const { ValidationError, ConfigurationError, _AuthenticationError } = require('../src/utils/errors');
 
 // Helper: start a local HTTP server with a given handler, returns { server, port, close }
 function startServer(handler) {
@@ -85,7 +84,7 @@ test('Property 2: malformed cursor always throws ValidationError', () => {
     // Plain random strings
     fc.string({ minLength: 1, maxLength: 30 }).filter(s => {
       try {
-        const d = CursorSerializer.deserialize(s);
+        const _d = CursorSerializer.deserialize(s);
         return false; // valid cursor, skip
       } catch {
         return true;

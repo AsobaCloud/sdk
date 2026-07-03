@@ -681,7 +681,7 @@ describe('TOU-EC1 — omitting touAccepted throws ValidationError before any net
         capacityKw: 5.0,
         // touAccepted intentionally omitted
       });
-    } catch (_) {
+    } catch {
       // expected
     }
     expect(contactedServer).toBe(false);
@@ -740,7 +740,7 @@ describe('TOU-EC2 — touAccepted:false throws ValidationError before any networ
         capacityKw: 5.0,
         touAccepted: false,
       });
-    } catch (_) {
+    } catch {
       // expected
     }
     expect(contactedServer).toBe(false);

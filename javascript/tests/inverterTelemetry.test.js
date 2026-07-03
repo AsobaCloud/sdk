@@ -7,7 +7,7 @@
 
 const http = require('http');
 const { InverterTelemetryClient } = require('../src/services/InverterTelemetryClient');
-const { ValidationError, ConfigurationError, AuthenticationError } = require('../src/utils/errors');
+const { ValidationError, AuthenticationError } = require('../src/utils/errors');
 
 // Helper: start a local HTTP server
 function startServer(handler) {
@@ -154,9 +154,9 @@ test('missing API key → AuthenticationError at construction', () => {
 
 // ─── Concurrent stream for same asset_id → ValidationError ───────────────────
 test('concurrent stream for same asset_id → ValidationError', async () => {
-  let requestCount = 0;
+  let _requestCount = 0;
   const srv = await startServer((req, res) => {
-    requestCount++;
+    _requestCount++;
     // Hang the first request to keep the stream active
     setTimeout(() => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
