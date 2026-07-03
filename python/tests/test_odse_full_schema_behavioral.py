@@ -7,13 +7,11 @@ Exercises the full validation path from entry point to outcome:
 - BESS, wind, market settlement, wheeling records validate correctly
 """
 
-import pytest
 from ona_platform.utils.validation import validate_odse_record, validate_with_profile, validate_batch
 from ona_platform.models.odse import (
     ODSE_ALLOWED_FIELDS,
     ODSE_PROFILES,
     ODSE_ENUM_FIELDS,
-    ODSE_NUMERIC_RANGES,
 )
 
 

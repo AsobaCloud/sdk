@@ -16,7 +16,6 @@ from dateutil.parser import parse as parse_date
 from ..models.odse import (
     ODSE_REQUIRED_FIELDS,
     ODSE_ALLOWED_FIELDS,
-    ODSE_ERROR_TYPES,
     ODSE_ENUM_FIELDS,
     ODSE_NUMERIC_RANGES,
     ODSE_PROFILES,
