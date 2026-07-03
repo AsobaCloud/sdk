@@ -9,19 +9,17 @@
 This SDK provides live APIs for energy asset data across solar PV, wind, battery storage (BESS), and grid meters — with ODS-E (Open Data Schema for Energy) standardization covering market settlement, wheeling, tariffs, renewable certificates, and conformance profiles for SA trading workflows.
 
 **✅ Working Features:**
-- **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution)
+- **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution) for solar, wind and BESS; solar production forecasting
 - **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
 - **Battery Health & Warranty Tracking** — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
 - **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
 - **ODS-E Data Validation (Python)** — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
+- ** Edge Device Management
 
 **🚧 Planned Features:**
-- Solar Energy Forecasting (Working)
-- Wind & BESS telemetry streaming
 - Energy Policy Analysis
-- Edge Device Management (Working)
 - Data Collection integrations
 
 ---
