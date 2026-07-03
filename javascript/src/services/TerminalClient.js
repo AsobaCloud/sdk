@@ -516,7 +516,7 @@ class TerminalClient {
    * @returns {Promise<Object>} Site summary data
    */
   async getSiteSummary({ site_id }) {
-    if (!site_id) throw new Error('site_id is required');
+    if (!site_id) {throw new Error('site_id is required');}
 
     return this.client.post(
       `${this.endpoint}/telemetry`,

@@ -118,7 +118,7 @@ class FreemiumForecastClient {
     if (!verificationCode) {
       throw new ValidationError('verificationCode is required', 'verificationCode', verificationCode);
     }
-    if (capacityKw == null) {
+    if (capacityKw === null) {
       throw new ValidationError('capacityKw is required', 'capacityKw', capacityKw);
     }
     if (touAccepted !== true) {
