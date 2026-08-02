@@ -16,7 +16,7 @@ This SDK provides live APIs for energy asset data across solar PV, wind, battery
 - **ODS-E Data Validation (Python)** — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
-- ** Edge Device Management
+- **Edge Device Management**
 
 **🚧 Planned Features:**
 - Energy Policy Analysis
