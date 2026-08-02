@@ -240,6 +240,27 @@ class TerminalClient {
   }
 
   /**
+   * Run pv-insight O&M synthesis on a JEPA detection (Observe phase).
+   * Delegates to pvInsightService for RAG + Nehanda synthesis.
+   * @param {Object} params - Parameters
+   * @param {Object} params.detection - Detection object (e.g. from runDetection) with
+   *   asset_id, severity_label, severity_score, fault_type, summary, metrics,
+   *   and energy_at_risk_kw fields.
+   * @param {string} [params.user_query='Analyze JEPA Anomaly & Recommend BOM'] -
+   *   Natural-language prompt for the synthesis model.
+   * @returns {Promise<Object>} Result with detection (echo) and llm_analysis
+   *   ({ status, recommendation, cited_sources })
+   */
+  async runPvInsightSynthesis({ detection, user_query = 'Analyze JEPA Anomaly & Recommend BOM' }) {
+    validateRequired({ detection }, ['detection']);
+    return this.client.post(
+      `${this.endpoint}/detect`,
+      { action: 'pv-insight', detection, user_query },
+      { signRequest: true }
+    );
+  }
+
+  /**
    * Run diagnostics on a detected fault (Orient phase)
    * @param {Object} params - Diagnostic parameters
    * @param {string} params.customer_id - Customer ID

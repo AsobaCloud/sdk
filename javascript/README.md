@@ -343,6 +343,7 @@ See the `examples/` directory for complete working examples:
 **Detection (Observe):**
 - `runDetection(params)` - Run fault detection
 - `listDetections(params)` - List detections
+- `runPvInsightSynthesis(params)` - Run pv-insight O&M synthesis
 
 **Diagnostics (Orient):**
 - `runDiagnostics(params)` - Run diagnostics

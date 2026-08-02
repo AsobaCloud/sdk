@@ -197,6 +197,12 @@ detection = client.terminal.run_detection(
     lookback_hours=6
 )
 
+# OBSERVE: pv-insight O&M synthesis (RAG + Nehanda on a JEPA detection)
+synthesis = client.terminal.run_pv_insight_synthesis(
+    detection=detection,
+    user_query='Analyze JEPA Anomaly & Recommend BOM',
+)
+
 # ORIENT: AI diagnostics
 diagnostic = client.terminal.run_diagnostics(
     customer_id='customer123',

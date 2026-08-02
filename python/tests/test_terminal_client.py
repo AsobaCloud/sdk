@@ -1,5 +1,6 @@
 """Tests for TerminalClient — battery health and warranty tracking."""
 
+import pytest
 from unittest.mock import MagicMock
 from datetime import date, timedelta
 from ona_platform.services.terminal import TerminalClient
@@ -112,3 +113,90 @@ def test_get_site_summary():
     assert "battery" in summary
     assert summary["battery"]["avg_soc"] == 85.0
     assert summary["battery"]["avg_soh"] == 98.2
+
+
+# ---------------------------------------------------------------------------
+# pv-insight synthesis — JEPA fixture (copied from platform/ui/tests/test_pv_insight_e2e_behavioral.js)
+# ---------------------------------------------------------------------------
+
+JEPA_DETECTION = {
+    "asset_id": "INV-BN2441041190",
+    "severity_label": "high",
+    "severity_score": 0.82,
+    "fault_type": "behavioral_anomaly",
+    "summary": "Inverter 1 - World model anomaly score 0.0891 (Streak: 6)",
+    "metrics": {
+        "latest_power_kw": 45.2,
+        "baseline_power_kw": 280.5,
+        "latest_temperature_c": 68.3,
+        "latest_inverter_state": 513,
+        "world_model_streak_length": 6,
+    },
+    "energy_at_risk_kw": 235.3,
+}
+
+
+# ---------------------------------------------------------------------------
+# BC-1 — live end-to-end test
+# Run with: pytest -m live python/tests/test_terminal_client.py::test_pv_insight_synthesis_live
+# Requires: env AWS credentials + terminalApi Lambda accessible
+# ---------------------------------------------------------------------------
+
+@pytest.mark.live
+def test_pv_insight_synthesis_live():
+    """BC-1: Live call to terminalApi pv-insight action via OnaClient.
+
+    Pass criteria (copied from platform/ui/tests/test_pv_insight_e2e_behavioral.js Step 3):
+    - llm_analysis is present in the response
+    - llm_analysis['status'] == 'ok'
+    - llm_analysis['recommendation'] is a string with length > 20
+    - llm_analysis['cited_sources'] is a list with length > 0
+    """
+    from ona_platform import OnaClient  # matches terminal_ooda_example.py import
+
+    client = OnaClient()  # reads AWS creds from env; default timeout 120s
+    result = client.terminal.run_pv_insight_synthesis(JEPA_DETECTION)
+
+    assert "llm_analysis" in result, "response must contain llm_analysis"
+    llm = result["llm_analysis"]
+    assert llm.get("status") == "ok", f"llm_analysis.status expected 'ok', got {llm.get('status')!r}"
+    assert isinstance(llm.get("recommendation"), str) and len(llm["recommendation"]) > 20, (
+        "llm_analysis.recommendation must be a string with length > 20"
+    )
+    assert isinstance(llm.get("cited_sources"), list) and len(llm["cited_sources"]) > 0, (
+        "llm_analysis.cited_sources must be a non-empty list"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Secondary — error-path tests (not equal weight to done)
+# ---------------------------------------------------------------------------
+
+def test_pv_insight_synthesis_missing_detection_raises():
+    """Missing detection should raise via SDK error handling (mock 400 from Lambda)."""
+    config = OnaConfig(aws_region="af-south-1")
+    client = TerminalClient(config)
+
+    from ona_platform.exceptions import ValidationError
+    client.invoke_lambda = MagicMock(
+        side_effect=ValidationError("detection is required")
+    )
+
+    with pytest.raises(ValidationError):
+        client.run_pv_insight_synthesis(detection=None)
+
+
+def test_pv_insight_synthesis_invalid_severity_label_raises():
+    """detection with invalid severity_label should raise via SDK error handling (mock 400)."""
+    config = OnaConfig(aws_region="af-south-1")
+    client = TerminalClient(config)
+
+    bad_detection = dict(JEPA_DETECTION, severity_label="nope")
+
+    from ona_platform.exceptions import ValidationError
+    client.invoke_lambda = MagicMock(
+        side_effect=ValidationError("invalid severity_label")
+    )
+
+    with pytest.raises(ValidationError):
+        client.run_pv_insight_synthesis(detection=bad_detection)

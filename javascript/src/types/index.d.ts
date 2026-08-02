@@ -124,6 +124,11 @@ export interface DetectionParams {
   lookback_hours?: number;
 }
 
+export interface PvInsightSynthesisParams {
+  detection: any;
+  user_query?: string;
+}
+
 export interface DiagnosticParams {
   customer_id: string;
   asset_id: string;
@@ -290,6 +295,7 @@ export class TerminalClient {
   getAsset(params: { customer_id: string; asset_id: string }): Promise<Asset>;
   runDetection(params: DetectionParams): Promise<any>;
   listDetections(params: { customer_id: string }): Promise<any>;
+  runPvInsightSynthesis(params: PvInsightSynthesisParams): Promise<any>;
   runDiagnostics(params: DiagnosticParams): Promise<any>;
   listDiagnostics(params: { customer_id: string }): Promise<any>;
   createSchedule(params: any): Promise<any>;

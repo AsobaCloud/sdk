@@ -193,6 +193,38 @@ class TerminalClient(BaseServiceClient):
         result = self.invoke_lambda(self.function_name, payload)
         return result.get('detections', [])
 
+    def run_pv_insight_synthesis(
+        self,
+        detection: dict,
+        user_query: str = "Analyze JEPA Anomaly & Recommend BOM",
+    ) -> dict:
+        """Delegate to pvInsightService for RAG + Nehanda synthesis on a JEPA detection.
+
+        Args:
+            detection: Detection object (e.g. from run_detection) with asset_id,
+                severity_label, severity_score, fault_type, summary, metrics,
+                and energy_at_risk_kw fields.
+            user_query: Natural-language prompt for the synthesis model.
+                Defaults to "Analyze JEPA Anomaly & Recommend BOM".
+
+        Returns:
+            Dict with keys:
+            - detection: Echo of the submitted detection object
+            - llm_analysis: Object with status, recommendation (str), and
+              cited_sources (list)
+        """
+        import json
+        payload = {
+            'httpMethod': 'POST',
+            'path': '/detect',
+            'body': json.dumps({
+                'action': 'pv-insight',
+                'detection': detection,
+                'user_query': user_query,
+            })
+        }
+        return self.invoke_lambda(self.function_name, payload)
+
     # Diagnostics (Orient)
     def run_diagnostics(
         self,
