@@ -34,4 +34,7 @@ jobs:
 
       - name: Run ESLint
         working-directory: javascript
+        env:
+          # Prefer javascript/.eslintrc.json; ignore repo-root eslint.config.mjs
+          ESLINT_USE_FLAT_CONFIG: "false"
         run: npx eslint src/**/*.js examples/**/*.js --max-warnings 0

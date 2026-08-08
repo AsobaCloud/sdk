@@ -1,6 +1,6 @@
 {
   "name": "@asobacloud/sdk",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Official JavaScript SDK for the Asoba Energy Management Platform",
   "main": "src/index.js",
   "types": "src/types/index.d.ts",

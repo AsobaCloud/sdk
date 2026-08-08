@@ -2,8 +2,6 @@
  * SDK Configuration Management
  */
 
-const { ConfigurationError } = require('./utils/errors');
-
 /**
  * Canonical endpoint defaults — not intended to be overridden in normal use.
  */
@@ -59,6 +57,15 @@ class Config {
    */
   getEndpoint(serviceName) {
     return this.endpoints[serviceName] || null;
+  }
+
+  /**
+   * Override endpoint for a service.
+   * @param {string} serviceName
+   * @param {string} endpoint
+   */
+  setEndpoint(serviceName, endpoint) {
+    this.endpoints[serviceName] = endpoint;
   }
 
   /**
