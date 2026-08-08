@@ -6,12 +6,10 @@ This example demonstrates how to use the OODA Terminal API to query and stream
 OODA (Observe, Orient, Decide, Act) alerts from terminal devices.
 
 Requirements:
-- Set OODA_TERMINAL_ENDPOINT environment variable
-- Set OODA_TERMINAL_API_KEY environment variable
+- Set ASOBA_API_KEY environment variable
 
 Example usage:
-    export OODA_TERMINAL_ENDPOINT="https://your-ooda-api.execute-api.af-south-1.amazonaws.com/prod"
-    export OODA_TERMINAL_API_KEY="your-api-key-here"
+    export ASOBA_API_KEY="your-api-key-here"
     python ooda_terminal_example.py
 """
 
@@ -24,22 +22,16 @@ from asoba.models.ooda import TimeRange
 def main():
     """Main example function demonstrating OODA Terminal API usage."""
 
-    # Initialize the client
+    # Initialize the client — picks up ASOBA_API_KEY from environment
     client = OnaClient()
 
-    # Check if OODA Terminal API is configured
-    if not client.config.ooda_terminal_endpoint:
-        print("❌ OODA_TERMINAL_ENDPOINT environment variable not set")
-        print("   Set it to your OODA Terminal API endpoint URL")
-        return
-
-    if not client.config.ooda_terminal_api_key:
-        print("❌ OODA_TERMINAL_API_KEY environment variable not set")
-        print("   Set it to your OODA Terminal API key")
+    if not client.config.api_key:
+        print("❌ ASOBA_API_KEY environment variable not set")
+        print("   Set it to your Asoba API key")
         return
 
     print("🔗 OODA Terminal API Example")
-    print(f"   Endpoint: {client.config.ooda_terminal_endpoint}")
+    print(f"   Endpoint: {client.config.ooda_endpoint}")
     print()
 
     # Example site and terminal device
@@ -59,7 +51,6 @@ def main():
         print("🔍 Querying terminal alerts (last 24 hours)...")
         end_time = datetime.now()
         start_time = end_time - timedelta(hours=24)
-
         time_range = TimeRange(start=start_time.isoformat(), end=end_time.isoformat())
 
         alerts = client.ooda_terminal.get_terminal_alerts(
@@ -69,82 +60,35 @@ def main():
             resolution="5min",
             limit=10,
         )
-
         print(f"   Found {len(alerts)} alerts")
-        for alert in alerts[:3]:  # Show first 3 alerts
-            print(f"   • {alert.timestamp}: {alert.alert_severity.upper()} - {alert.message}")
+        for alert in alerts[:3]:
+            print(f"   {alert.timestamp}: {alert.alert_severity.upper()} - {alert.message}")
         print()
 
         # 3. Query site alerts (all terminal devices)
-        print("🏢 Querying site alerts (all terminal devices)...")
+        print("🔍 Querying site alerts...")
         site_alerts = client.ooda_terminal.get_site_alerts(
-            site_id=site_id, time_range=time_range, resolution="5min", limit=5
+            site_id=site_id,
+            time_range=time_range,
+            resolution="5min",
+            limit=5,
         )
-
-        total_alerts = sum(len(alerts) for alerts in site_alerts.values())
-        print(f"   Found {total_alerts} alerts across {len(site_alerts)} terminal devices")
-        for terminal_id, alerts in list(site_alerts.items())[:2]:  # Show first 2 devices
-            print(f"   • {terminal_id}: {len(alerts)} alerts")
+        total = sum(len(a) for a in site_alerts.values())
+        print(f"   Found {total} alerts across {len(site_alerts)} terminal devices")
         print()
 
-        # 4. Stream terminal alerts (demo for 30 seconds)
-        print("📡 Streaming terminal alerts (30 seconds demo)...")
-        print("   Press Ctrl+C to stop early")
-
-        stream_count = 0
-        start_stream = datetime.now()
-
-        try:
-            for alert in client.ooda_terminal.stream_terminal(
-                terminal_device_id=terminal_device_id,
-                site_id=site_id,
-                polling_interval=5,  # Poll every 5 seconds
-            ):
-                stream_count += 1
-                print(f"   📨 {alert.timestamp}: {alert.alert_severity.upper()} - {alert.message}")
-
-                # Stop after 30 seconds for demo
-                if (datetime.now() - start_stream).seconds >= 30:
-                    break
-
-        except KeyboardInterrupt:
-            print("   Stream stopped by user")
-
-        print(f"   Streamed {stream_count} alerts")
-        print()
-
-        # 5. Demonstrate cursor-based pagination
-        print("📄 Demonstrating cursor-based pagination...")
-        page_size = 3
-        cursor = None
-        page_num = 1
-
-        while page_num <= 2:  # Show first 2 pages
-            alerts = client.ooda_terminal.get_terminal_alerts(
-                terminal_device_id=terminal_device_id,
-                site_id=site_id,
-                time_range=time_range,
-                limit=page_size,
-                cursor=cursor,
-            )
-
-            if not alerts:
-                break
-
-            print(f"   Page {page_num}: {len(alerts)} alerts")
-            for alert in alerts:
-                print(f"     • {alert.timestamp}: {alert.message[:50]}...")
-
-            # Use the last alert's cursor for next page
-            cursor = alerts[-1].cursor if alerts else None
-            page_num += 1
-
-        print()
-        print("✅ OODA Terminal API example completed successfully!")
+        # 4. Stream live terminal alerts (one cycle)
+        print("📡 Streaming live terminal alerts (one poll)...")
+        for alert in client.ooda_terminal.stream_terminal(
+            terminal_device_id=terminal_device_id,
+            site_id=site_id,
+            polling_interval=5,
+        ):
+            print(f"   {alert.timestamp}: {alert.alert_severity.upper()} - {alert.message}")
+            break
 
     except Exception as e:
         print(f"❌ Error: {e}")
-        print(f"   Type: {type(e).__name__}")
 
 
 if __name__ == "__main__":

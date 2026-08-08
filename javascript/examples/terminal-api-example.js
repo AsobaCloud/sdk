@@ -7,13 +7,12 @@ const { OnaSDK } = require('../src/index');
 
 async function main() {
   const sdk = new OnaSDK({
-    region: 'af-south-1',
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     },
     endpoints: {
-      terminal: process.env.ONA_TERMINAL_ENDPOINT || 'https://terminal.api.asoba.co'
+      terminal: process.env.ASOBA_TERMINAL_ENDPOINT || 'https://api.asoba.co'
     }
   });
 

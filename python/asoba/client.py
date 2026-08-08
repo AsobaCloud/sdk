@@ -112,6 +112,7 @@ class OnaClient:
         self._partner = None
         self._inverter_telemetry = None
         self._ooda_terminal = None
+        self._freemium_forecast = None
 
         logger.debug("OnaClient initialized")
 
@@ -148,6 +149,14 @@ class OnaClient:
         if self._partner is None:
             self._partner = PartnerApiClient(self.config)
         return self._partner
+
+    @property
+    def freemium_forecast(self):
+        """Freemium forecasting client — CSV-based solar forecast (no API key)."""
+        if self._freemium_forecast is None:
+            from .services.freemium_forecast import FreemiumForecastClient
+            self._freemium_forecast = FreemiumForecastClient(self.config)
+        return self._freemium_forecast
 
     @property
     def terminal(self) -> TerminalClient:

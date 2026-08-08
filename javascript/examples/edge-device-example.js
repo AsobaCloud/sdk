@@ -7,9 +7,8 @@ const { OnaSDK } = require('../src/index');
 
 async function main() {
   const sdk = new OnaSDK({
-    region: 'af-south-1',
     endpoints: {
-      edgeRegistry: process.env.ONA_EDGE_REGISTRY_ENDPOINT || 'http://edge-registry:8082'
+      edgeRegistry: process.env.EDGE_API_URL || 'http://localhost:8082'
     }
   });
 

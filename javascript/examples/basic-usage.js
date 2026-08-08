@@ -8,16 +8,15 @@ const { OnaSDK } = require('../src/index');
 async function main() {
   // Initialize the SDK
   const sdk = new OnaSDK({
-    region: 'af-south-1',
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     },
     endpoints: {
-      forecasting: process.env.ONA_FORECASTING_ENDPOINT || 'https://forecasting.api.asoba.co',
-      terminal: process.env.ONA_TERMINAL_ENDPOINT || 'https://terminal.api.asoba.co',
-      edgeRegistry: process.env.ONA_EDGE_REGISTRY_ENDPOINT || 'http://edge-registry:8082',
-      energyAnalyst: process.env.ONA_ENERGY_ANALYST_ENDPOINT || 'http://energy-analyst:8000'
+      forecasting: process.env.ONA_FORECASTING_ENDPOINT || null,
+      terminal: process.env.ASOBA_TERMINAL_ENDPOINT || 'https://api.asoba.co',
+      edgeRegistry: process.env.EDGE_API_URL || 'http://localhost:8082',
+      energyAnalyst: process.env.ENERGY_ANALYST_URL || 'http://localhost:8000'
     }
   });
 

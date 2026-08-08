@@ -9,8 +9,7 @@ The correct workflow is:
   3. Stream live data using stream_inverter() or stream_site()
 
 Prerequisites:
-    export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
-    export INVERTER_TELEMETRY_API_KEY=your_api_key
+    export ASOBA_API_KEY=your_api_key
 """
 
 from asoba import OnaClient
@@ -20,7 +19,7 @@ from asoba.services.inverter_telemetry import RateLimitError
 
 
 def main():
-    # Initialize client — picks up endpoint and API key from environment variables
+    # Initialize client — picks up ASOBA_API_KEY from environment
     client = OnaClient()
     it = client.inverter_telemetry
 
@@ -78,125 +77,58 @@ def main():
         print(f"Auth error: {e}")
 
     # -------------------------------------------------------------------------
-    # Step 3: Query daily resolution data
+    # Step 3: Query daily resolution
     # -------------------------------------------------------------------------
     print("\n=== Step 3: Historical Inverter Telemetry (daily) ===")
     try:
-        records = it.get_inverter_telemetry(
+        daily = it.get_inverter_telemetry(
             asset_id=asset_id,
             site_id=site_id,
-            time_range=TimeRange(
-                start="2025-11-01T00:00:00",
-                end="2025-11-30T23:59:59",
-            ),
+            time_range=TimeRange(start="2025-11-01T00:00:00", end="2025-11-30T23:59:59"),
             resolution="daily",
             limit=30,
         )
-        print(f"Retrieved {len(records)} daily records")
-        for r in records[:5]:
+        print(f"Retrieved {len(daily)} daily records")
+        for r in daily[:5]:
             print(f"  {r.timestamp}  kWh={r.kWh}  PF={r.PF}")
-    except AuthenticationError as e:
-        print(f"Auth error: {e}")
+    except ValidationError as e:
+        print(f"Validation error: {e}")
 
     # -------------------------------------------------------------------------
     # Step 4: Query all inverters at a site
     # -------------------------------------------------------------------------
-    print("\n=== Step 4: Site Telemetry (all inverters) ===")
+    print("\n=== Step 4: Site Telemetry ===")
     try:
         site_data = it.get_site_telemetry(
             site_id=site_id,
-            time_range=TimeRange(
-                start=data_start,
-                end="2025-11-01T06:00:00",
-            ),
+            time_range=TimeRange(start=data_start, end="2025-11-01T06:00:00"),
             resolution="5min",
             limit=20,
         )
-        print(f"Found {len(site_data)} inverters at site")
         for inv_id, recs in site_data.items():
-            print(
-                f"  {inv_id}: {len(recs)} records, "
-                f"first={recs[0].timestamp}, last={recs[-1].timestamp}"
-            )
-    except AuthenticationError as e:
-        print(f"Auth error: {e}")
+            print(f"  {inv_id}: {len(recs)} records")
+    except ValidationError as e:
+        print(f"Validation error: {e}")
 
     # -------------------------------------------------------------------------
-    # Step 5: Stream live telemetry (stops after 3 records for demo)
-    # polling_interval minimum is 5 seconds; use 30s for production
+    # Step 5: Stream live data (one poll cycle)
     # -------------------------------------------------------------------------
-    print("\n=== Step 5: Live Stream — Single Inverter (stops after 3 records) ===")
+    print("\n=== Step 5: Stream live inverter data ===")
     try:
-        for count, record in enumerate(
-            it.stream_inverter(
-                asset_id=asset_id,
-                site_id=site_id,
-                polling_interval=30,
-            )
-        ):
-            print(
-                f"  [{count + 1}] {record.timestamp}  power={record.power} kW  "
-                f"cursor={record.cursor[:24]}..."
-            )
-            if count >= 2:
-                break  # save record.cursor here to resume later
-    except AuthenticationError as e:
-        print(f"Auth error: {e}")
-    except RateLimitError as e:
-        print(f"Rate limit exceeded: {e}")
-
-    # -------------------------------------------------------------------------
-    # Step 6: Resume a stream from a saved cursor
-    # -------------------------------------------------------------------------
-    print("\n=== Step 6: Resume Stream from Cursor ===")
-    try:
-        # Get a cursor from the first record
-        saved_cursor = None
         for record in it.stream_inverter(
             asset_id=asset_id,
             site_id=site_id,
             polling_interval=30,
         ):
-            saved_cursor = record.cursor
-            print(f"  Saved cursor: {saved_cursor[:30]}...")
-            break
-
-        if saved_cursor:
-            print("  Resuming from cursor — only records after the saved position:")
-            for count, record in enumerate(
-                it.stream_inverter(
-                    asset_id=asset_id,
-                    site_id=site_id,
-                    cursor=saved_cursor,
-                    polling_interval=30,
-                )
-            ):
-                print(f"  {record.timestamp}  power={record.power} kW")
-                if count >= 1:
-                    break
-    except AuthenticationError as e:
-        print(f"Auth error: {e}")
-
-    # -------------------------------------------------------------------------
-    # Step 7: Stream all inverters at a site
-    # -------------------------------------------------------------------------
-    print("\n=== Step 7: Live Stream — All Inverters at Site (stops after 5 records) ===")
-    try:
-        for count, record in enumerate(
-            it.stream_site(
-                site_id=site_id,
-                polling_interval=30,
-            )
-        ):
             print(
-                f"  [{count + 1}] {record.asset_id} @ {record.timestamp}  power={record.power} kW"
+                f"  {record.timestamp}  power={record.power} kW  "
+                f"cursor={record.cursor[:24]}..."
             )
-            if count >= 4:
-                break
+            break  # remove break for continuous streaming
+    except RateLimitError as e:
+        print(f"Rate limit: {e}")
     except AuthenticationError as e:
         print(f"Auth error: {e}")
-    except RateLimitError as e:
-        print(f"Rate limit exceeded: {e}")
 
 
 if __name__ == "__main__":

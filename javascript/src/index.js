@@ -17,8 +17,9 @@ const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
 const PartnerApiClient = require('./services/PartnerApiClient');
-const InverterTelemetryClient = require('./services/InverterTelemetryClient');
-const OodaTerminalClient = require('./services/OodaTerminalClient');
+const { InverterTelemetryClient } = require('./services/InverterTelemetryClient');
+const { OodaTerminalClient } = require('./services/OodaTerminalClient');
+const { FreemiumForecastClient } = require('./services/FreemiumForecastClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -129,6 +130,12 @@ class OnaSDK {
      * @type {OodaTerminalClient}
      */
     this.oodaTerminal = new OodaTerminalClient(this.config);
+
+    /**
+     * Freemium Forecasting client (no API key required)
+     * @type {FreemiumForecastClient}
+     */
+    this.freemiumForecast = new FreemiumForecastClient(this.config);
   }
 
   /**
