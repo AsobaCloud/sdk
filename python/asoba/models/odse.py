@@ -7,17 +7,17 @@ All fields except timestamp, kWh, and error_type are optional and additive.
 Existing 9-field callers remain valid without modification.
 """
 
-from typing import Dict, Set
+from __future__ import annotations
 
 # ---------------------------------------------------------------------------
 # Required fields (per energy-timeseries.json "required")
 # ---------------------------------------------------------------------------
-ODSE_REQUIRED_FIELDS: Set[str] = {"timestamp", "kWh", "error_type"}
+ODSE_REQUIRED_FIELDS: set[str] = {"timestamp", "kWh", "error_type"}
 
 # ---------------------------------------------------------------------------
 # Full allowed field set (65 properties from energy-timeseries.json)
 # ---------------------------------------------------------------------------
-ODSE_ALLOWED_FIELDS: Set[str] = {
+ODSE_ALLOWED_FIELDS: set[str] = {
     # Core telemetry
     "timestamp",
     "kWh",
@@ -105,7 +105,7 @@ ODSE_ALLOWED_FIELDS: Set[str] = {
 # ---------------------------------------------------------------------------
 # Enum sets for string fields with constrained values
 # ---------------------------------------------------------------------------
-ODSE_ERROR_TYPES: Set[str] = {
+ODSE_ERROR_TYPES: set[str] = {
     "normal",
     "warning",
     "critical",
@@ -115,60 +115,60 @@ ODSE_ERROR_TYPES: Set[str] = {
     "unknown",
 }
 
-ODSE_DIRECTIONS: Set[str] = {
+ODSE_DIRECTIONS: set[str] = {
     "generation",
     "consumption",
     "net",
 }
 
-ODSE_END_USES: Set[str] = {
+ODSE_END_USES: set[str] = {
     "cooling", "heating", "fans", "pumps", "water_systems",
     "interior_lighting", "exterior_lighting", "interior_equipment",
     "refrigeration", "cooking", "laundry", "ev_charging",
     "pv_generation", "battery_storage", "whole_building", "other",
 }
 
-ODSE_FUEL_TYPES: Set[str] = {
+ODSE_FUEL_TYPES: set[str] = {
     "electricity", "natural_gas", "propane", "fuel_oil", "other",
 }
 
-ODSE_TARIFF_PERIODS: Set[str] = {
+ODSE_TARIFF_PERIODS: set[str] = {
     "peak", "standard", "off_peak", "critical_peak",
 }
 
-ODSE_DISPATCH_MODES: Set[str] = {
+ODSE_DISPATCH_MODES: set[str] = {
     "charging", "discharging", "standby", "balancing",
 }
 
-ODSE_WHEELING_TYPES: Set[str] = {
+ODSE_WHEELING_TYPES: set[str] = {
     "traditional", "virtual", "portfolio",
 }
 
-ODSE_WHEELING_STATUSES: Set[str] = {
+ODSE_WHEELING_STATUSES: set[str] = {
     "provisional", "confirmed", "reconciled", "disputed",
 }
 
-ODSE_SETTLEMENT_TYPES: Set[str] = {
+ODSE_SETTLEMENT_TYPES: set[str] = {
     "bilateral", "sawem_day_ahead", "sawem_intra_day", "balancing", "ancillary",
 }
 
-ODSE_BILLING_STATUSES: Set[str] = {
+ODSE_BILLING_STATUSES: set[str] = {
     "metered", "estimated", "adjusted", "disputed",
 }
 
-ODSE_CERTIFICATE_STANDARDS: Set[str] = {
+ODSE_CERTIFICATE_STANDARDS: set[str] = {
     "i_rec", "rego", "go", "rec", "tigr", "other",
 }
 
-ODSE_VERIFICATION_STATUSES: Set[str] = {
+ODSE_VERIFICATION_STATUSES: set[str] = {
     "pending", "issued", "retired", "cancelled",
 }
 
-ODSE_CURTAILMENT_TYPES: Set[str] = {
+ODSE_CURTAILMENT_TYPES: set[str] = {
     "congestion", "frequency", "voltage", "instruction", "other",
 }
 
-ODSE_ASSET_TYPES: Set[str] = {
+ODSE_ASSET_TYPES: set[str] = {
     "solar_pv", "wind_turbine", "battery_storage", "grid_meter",
     "ev_charger", "hvac_system", "generator", "chp", "fuel_cell", "other",
 }
@@ -180,7 +180,7 @@ ODSE_ASSET_TYPES: Set[str] = {
 #   "required": list of field names that must be present
 #   "value_constraints": dict of field -> set of allowed values
 
-ODSE_PROFILES: Dict[str, Dict] = {
+ODSE_PROFILES: dict[str, dict] = {
     # --- SEP-002: SA Trading Conformance Profiles ---
     "bilateral": {
         "required": [
@@ -263,7 +263,7 @@ ODSE_PROFILES: Dict[str, Dict] = {
 # ---------------------------------------------------------------------------
 # Numeric field range constraints: field -> (min, max) or (min, None)
 # ---------------------------------------------------------------------------
-ODSE_NUMERIC_RANGES: Dict[str, tuple] = {
+ODSE_NUMERIC_RANGES: dict[str, tuple] = {
     "kVA": (0, None),
     "PF": (0, 1),
     "soc": (0, 100),
@@ -293,7 +293,7 @@ ODSE_NUMERIC_RANGES: Dict[str, tuple] = {
 # ---------------------------------------------------------------------------
 # Enum field mapping: field -> allowed values set
 # ---------------------------------------------------------------------------
-ODSE_ENUM_FIELDS: Dict[str, Set[str]] = {
+ODSE_ENUM_FIELDS: dict[str, set[str]] = {
     "error_type": ODSE_ERROR_TYPES,
     "direction": ODSE_DIRECTIONS,
     "end_use": ODSE_END_USES,

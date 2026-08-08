@@ -1,7 +1,8 @@
 """Telemetry data models for Ona Platform SDK."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 from ..exceptions import ValidationError
 
@@ -27,19 +28,19 @@ class TelemetryRecord:
     kWh: float
     inverter_state: int
     run_state: int
-    asset_ts: Optional[str] = None
-    kVArh: Optional[float] = None
-    kVA: Optional[float] = None
-    PF: Optional[float] = None
-    temperature: Optional[float] = None
-    soc: Optional[float] = None
-    soh: Optional[float] = None
-    error_code: Optional[str] = None
-    error_type: Optional[str] = None
-    cursor: Optional[str] = None  # populated by the client, not from DynamoDB
+    asset_ts: str | None = None
+    kVArh: float | None = None
+    kVA: float | None = None
+    PF: float | None = None
+    temperature: float | None = None
+    soc: float | None = None
+    soh: float | None = None
+    error_code: str | None = None
+    error_type: str | None = None
+    cursor: str | None = None  # populated by the client, not from DynamoDB
 
     @classmethod
-    def from_dict(cls, data: dict) -> "TelemetryRecord":
+    def from_dict(cls, data: dict) -> TelemetryRecord:
         # Strip expires_at
         data = {k: v for k, v in data.items() if k not in STRIP_FIELDS}
         # Validate required fields

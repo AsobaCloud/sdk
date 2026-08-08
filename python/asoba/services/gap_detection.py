@@ -1,7 +1,9 @@
 """Gap Detection service client."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from ..config import OnaConfig
 from .base import BaseServiceClient
@@ -35,7 +37,7 @@ class GapDetectionClient(BaseServiceClient):
         lookback_days: int = 7,
         min_gap_minutes: int = 15,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run gap detection scan.
 
         Args:

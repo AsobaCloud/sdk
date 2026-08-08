@@ -1,10 +1,12 @@
 """Global Training service client."""
 
-import logging
-from typing import Dict, Any, Optional
+from __future__ import annotations
 
-from .base import BaseServiceClient
+import logging
+from typing import Any
+
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +35,9 @@ class TrainingClient(BaseServiceClient):
         self,
         model_type: str,
         training_data_key: str,
-        model_params: Optional[Dict[str, Any]] = None,
+        model_params: dict[str, Any] | None = None,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Start model training job.
 
         Args:
@@ -56,7 +58,7 @@ class TrainingClient(BaseServiceClient):
         logger.info(f"Starting training job for model type: {model_type}")
         return self.invoke_lambda(self.function_name, payload)
 
-    def get_training_status(self, job_id: str) -> Dict[str, Any]:
+    def get_training_status(self, job_id: str) -> dict[str, Any]:
         """Get status of training job.
 
         Args:
@@ -69,7 +71,7 @@ class TrainingClient(BaseServiceClient):
         logger.info(f"Getting training status for job: {job_id}")
         return self.invoke_lambda(self.function_name, payload)
 
-    def list_models(self) -> Dict[str, Any]:
+    def list_models(self) -> dict[str, Any]:
         """List trained models.
 
         Returns:

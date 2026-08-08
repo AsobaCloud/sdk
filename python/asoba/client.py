@@ -1,23 +1,24 @@
 """Main client for Ona Platform SDK."""
 
+from __future__ import annotations
+
 import logging
-from typing import Optional
 
 from .config import OnaConfig
 from .services import (
     AuthClient,
-    ForecastingClient,
-    TerminalClient,
-    EnergyAnalystClient,
-    EdgeDeviceClient,
-    WeatherClient,
-    EnphaseClient,
-    HuaweiClient,
     DataIngestionClient,
+    EdgeDeviceClient,
+    EnergyAnalystClient,
+    EnphaseClient,
+    ForecastingClient,
+    HuaweiClient,
     InterpolationClient,
+    PartnerApiClient,
     StandardizationClient,
+    TerminalClient,
     TrainingClient,
-    PartnerApiClient
+    WeatherClient,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,16 +46,16 @@ class OnaClient:
 
     def __init__(
         self,
-        config: Optional[OnaConfig] = None,
-        aws_region: Optional[str] = None,
-        input_bucket: Optional[str] = None,
-        output_bucket: Optional[str] = None,
-        lambda_endpoint_url: Optional[str] = None,
-        edge_api_url: Optional[str] = None,
-        energy_analyst_url: Optional[str] = None,
-        auth_endpoint: Optional[str] = None,
-        timeout: Optional[int] = None,
-        max_retries: Optional[int] = None
+        config: OnaConfig | None = None,
+        aws_region: str | None = None,
+        input_bucket: str | None = None,
+        output_bucket: str | None = None,
+        lambda_endpoint_url: str | None = None,
+        edge_api_url: str | None = None,
+        energy_analyst_url: str | None = None,
+        auth_endpoint: str | None = None,
+        timeout: int | None = None,
+        max_retries: int | None = None
     ):
         """Initialize Ona Platform client.
 

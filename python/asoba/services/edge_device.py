@@ -1,12 +1,15 @@
 """Edge Device Registry service client."""
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Any, List
+from typing import Any
+
 import requests
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
-from ..exceptions import ServiceUnavailableError, ConfigurationError, ResourceNotFoundError
+from ..exceptions import ConfigurationError, ResourceNotFoundError, ServiceUnavailableError
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +20,7 @@ class EdgeDeviceClient(BaseServiceClient):
     Provides methods for device discovery, registration, and management.
     """
 
-    def __init__(self, config: OnaConfig, base_url: str = None):
+    def __init__(self, config: OnaConfig, base_url: str | None = None):
         """Initialize edge device client.
 
         Args:
@@ -33,7 +36,7 @@ class EdgeDeviceClient(BaseServiceClient):
                 "environment variable or pass base_url parameter."
             )
 
-    def health(self) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """Check service health."""
         try:
             response = requests.get(f"{self.base_url}/health", timeout=10)
@@ -42,7 +45,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Health check failed: {e}")
 
-    def list_devices(self) -> List[Dict[str, Any]]:
+    def list_devices(self) -> list[dict[str, Any]]:
         """Get all registered devices."""
         try:
             response = requests.get(
@@ -54,7 +57,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to list devices: {e}")
 
-    def get_device(self, device_id: str) -> Dict[str, Any]:
+    def get_device(self, device_id: str) -> dict[str, Any]:
         """Get specific device by ID."""
         try:
             response = requests.get(
@@ -68,7 +71,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to get device: {e}")
 
-    def discover_device(self, ip: str, username: str) -> Dict[str, Any]:
+    def discover_device(self, ip: str, username: str) -> dict[str, Any]:
         """Discover and register a new device."""
         try:
             response = requests.post(
@@ -81,7 +84,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Device discovery failed: {e}")
 
-    def update_device(self, device_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    def update_device(self, device_id: str, updates: dict[str, Any]) -> dict[str, Any]:
         """Update device information."""
         try:
             response = requests.put(
@@ -96,7 +99,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to update device: {e}")
 
-    def delete_device(self, device_id: str) -> Dict[str, Any]:
+    def delete_device(self, device_id: str) -> dict[str, Any]:
         """Delete device from registry."""
         try:
             response = requests.delete(
@@ -110,7 +113,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to delete device: {e}")
 
-    def get_device_capabilities(self, device_id: str) -> Dict[str, Any]:
+    def get_device_capabilities(self, device_id: str) -> dict[str, Any]:
         """Get device capabilities."""
         try:
             response = requests.get(
@@ -124,7 +127,7 @@ class EdgeDeviceClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to get capabilities: {e}")
 
-    def get_device_services(self, device_id: str) -> List[Dict[str, Any]]:
+    def get_device_services(self, device_id: str) -> list[dict[str, Any]]:
         """Get services running on device."""
         try:
             response = requests.get(

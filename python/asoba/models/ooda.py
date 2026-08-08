@@ -1,7 +1,8 @@
 """OODA alert data models for Ona Platform SDK."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 from ..exceptions import ValidationError
 
@@ -29,12 +30,12 @@ class OodaAlert:
     message: str
     source_system: str
     resolved: bool
-    terminal_ts: Optional[str] = None
-    metadata: Optional[dict] = None
-    cursor: Optional[str] = None  # populated by the client, not from DynamoDB
+    terminal_ts: str | None = None
+    metadata: dict | None = None
+    cursor: str | None = None  # populated by the client, not from DynamoDB
 
     @classmethod
-    def from_dict(cls, data: dict) -> "OodaAlert":
+    def from_dict(cls, data: dict) -> OodaAlert:
         # Strip expires_at
         data = {k: v for k, v in data.items() if k not in STRIP_FIELDS}
         # Validate required fields
@@ -63,6 +64,6 @@ class OodaCursorObject:
 @dataclass
 class DataPeriod:
     site_id: str
-    terminal_device_id: Optional[str]
-    first_record: Optional[str]
-    last_record: Optional[str]
+    terminal_device_id: str | None
+    first_record: str | None
+    last_record: str | None

@@ -1,34 +1,36 @@
 """ML and training data models for Ona Platform SDK."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
 class GapDetectionResult:
     customer_id: str
-    scan_period: Dict[str, str]
-    gaps_found: List[Dict[str, Any]]
-    dates_needing_backfill: List[str]
+    scan_period: dict[str, str]
+    gaps_found: list[dict[str, Any]]
+    dates_needing_backfill: list[str]
     total_missing_intervals: int
     needs_backfill: bool
-    client_id: Optional[str] = None
-    region: Optional[str] = None
-    location: Optional[str] = None
-    manufacturer: Optional[str] = None
-    device_count: Optional[int] = None
-    devices_scanned: Optional[List[str]] = None
-    backfill_targets: Optional[Dict[str, List[str]]] = None
+    client_id: str | None = None
+    region: str | None = None
+    location: str | None = None
+    manufacturer: str | None = None
+    device_count: int | None = None
+    devices_scanned: list[str] | None = None
+    backfill_targets: dict[str, list[str]] | None = None
 
 @dataclass
 class TrainingStatusResponse:
     customer_id: str
     status: str
-    processing_job_name: Optional[str]
-    last_updated: Optional[str]
-    training_job_name: Optional[str] = None
-    processing_progress: Optional[Dict[str, Any]] = None
-    training_progress: Optional[Dict[str, Any]] = None
+    processing_job_name: str | None
+    last_updated: str | None
+    training_job_name: str | None = None
+    processing_progress: dict[str, Any] | None = None
+    training_progress: dict[str, Any] | None = None
 
 @dataclass
 class TrainResponseBatch:
@@ -37,7 +39,7 @@ class TrainResponseBatch:
     jobs_failed: int
     jobs_skipped: int
     total_requested: int
-    jobs: List[Dict[str, str]]
+    jobs: list[dict[str, str]]
     note: str
-    failures: Optional[List[Dict[str, str]]] = None
-    skipped: Optional[List[Dict[str, str]]] = None
+    failures: list[dict[str, str]] | None = None
+    skipped: list[dict[str, str]] | None = None

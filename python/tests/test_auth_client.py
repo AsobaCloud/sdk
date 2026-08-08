@@ -4,19 +4,19 @@ Tests cover authentication flows, token management, MFA verification,
 and user context operations.
 """
 
-import pytest
+import json
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
-import json
+
+import pytest
 
 from asoba import OnaClient, OnaConfig
 from asoba.exceptions import (
     AuthenticationError,
     ConfigurationError,
     ServiceUnavailableError,
-    ValidationError
+    ValidationError,
 )
-
 
 # Fixtures
 
@@ -217,16 +217,17 @@ class TestAuthTokenManagement:
         """Test setting token propagates to all service clients."""
         token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test'
         auth_client.set_token(token)
-        
+
         # Verify token is available for HTTP-based services
         assert auth_client.get_auth_header() == {'Authorization': f'Bearer {token}'}
 
     def test_get_current_user_valid_token_returns_user(self, auth_client):
         """Test getting current user with valid token."""
         # Create a valid JWT token for testing
-        import jwt
         from datetime import datetime, timedelta, timezone
-        
+
+        import jwt
+
         payload = {
             'user_id': 'user_abc123',
             'username': 'test@example.com',
@@ -250,9 +251,10 @@ class TestAuthTokenManagement:
 
     def test_get_current_user_expired_token_raises_error(self, auth_client):
         """Test getting current user with expired token."""
-        import jwt
         from datetime import datetime, timedelta, timezone
-        
+
+        import jwt
+
         # Create an expired token
         payload = {
             'user_id': 'user_abc123',
@@ -261,7 +263,7 @@ class TestAuthTokenManagement:
         }
         expired_token = jwt.encode(payload, 'test-secret', algorithm='HS256')
         auth_client.set_token(expired_token)
-        
+
         with pytest.raises(AuthenticationError) as exc_info:
             auth_client.get_current_user()
         assert 'expired' in str(exc_info.value).lower()
@@ -371,7 +373,7 @@ class TestAuthIntegration:
         """Test AuthClient is lazy-loaded by OnaClient."""
         client = OnaClient(config=auth_config)
         assert client._auth is None
-        
+
         # Access auth property
         _ = client.auth
         assert client._auth is not None
@@ -384,10 +386,10 @@ class TestAuthIntegration:
     def test_auth_token_propagates_to_services(self, auth_config):
         """Test auth token propagates to other service clients."""
         client = OnaClient(config=auth_config)
-        
+
         # Set token via auth client
         client.auth.set_token('shared_token_123')
-        
+
         # Verify other services can access the token
         # This depends on implementation - services may need to reference auth client
         assert client.auth.get_auth_header() == {'Authorization': 'Bearer shared_token_123'}
@@ -400,7 +402,7 @@ class TestAuthConfiguration:
         """Test AuthClient requires auth endpoint in config."""
         config = OnaConfig(aws_region='af-south-1')  # No auth_endpoint
         from asoba.services.auth import AuthClient
-        
+
         with pytest.raises(ConfigurationError) as exc_info:
             AuthClient(config)
         assert 'endpoint' in str(exc_info.value).lower() or 'auth' in str(exc_info.value).lower()
@@ -419,7 +421,7 @@ class TestAuthConfiguration:
             auth_endpoint='http://insecure-api.asoba.co/prod'  # HTTP - insecure
         )
         from asoba.services.auth import AuthClient
-        
+
         with pytest.raises(ConfigurationError) as exc_info:
             AuthClient(config)
         assert 'https' in str(exc_info.value).lower()
@@ -451,9 +453,10 @@ class TestAuthErrorHandling:
 
     def test_token_with_missing_claims_handled_gracefully(self, auth_client):
         """Test token with missing claims is handled gracefully."""
-        import jwt
         from datetime import datetime, timedelta, timezone
-        
+
+        import jwt
+
         # Create token with partial claims
         payload = {
             'user_id': 'user_123',
@@ -502,7 +505,7 @@ class TestAuthStateful:
         })
         login_result = auth_client.login('mfauser@example.com', 'password123')
         assert login_result['mfa_required'] is True
-            
+
         # Step 2: Verify MFA and get full token
         auth_client.invoke_lambda = MagicMock(return_value={
             'token': 'full_access_token',
@@ -510,7 +513,7 @@ class TestAuthStateful:
         })
         mfa_result = auth_client.verify_mfa('challenge_123', '123456')
         assert 'token' in mfa_result
-            
+
         # Step 3: Use token for authenticated request (get_current_user decodes locally)
         user = auth_client.get_current_user()
         assert user['user_id'] == 'user_123'
@@ -521,7 +524,7 @@ class TestAuthStateful:
         """Test token refresh flow."""
         # Start with valid token
         auth_client.set_token('original_token')
-        
+
         # Refresh
         auth_client.invoke_lambda = MagicMock(return_value={
             'token': 'refreshed_token',
@@ -542,10 +545,10 @@ class TestAuthStateful:
         })
         auth_client.login('test@example.com', 'password123')
         assert auth_client.is_authenticated() is True
-            
+
         # Logout (local only, no server call needed)
         auth_client.logout()
-            
+
         assert auth_client.is_authenticated() is False
         assert auth_client._current_token is None
 

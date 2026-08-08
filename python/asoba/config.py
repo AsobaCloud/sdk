@@ -1,7 +1,8 @@
 """Configuration management for Ona Platform SDK."""
 
+from __future__ import annotations
+
 import os
-from typing import Optional
 from dataclasses import dataclass
 
 from .exceptions import ConfigurationError
@@ -29,12 +30,12 @@ class OnaConfig:
     aws_region: str = "af-south-1"
     input_bucket: str = "sa-api-client-input"
     output_bucket: str = "sa-api-client-output"
-    lambda_endpoint_url: Optional[str] = None
-    edge_api_url: Optional[str] = None
-    energy_analyst_url: Optional[str] = None
-    auth_endpoint: Optional[str] = None
-    partner_api_endpoint: Optional[str] = None
-    partner_api_key: Optional[str] = None
+    lambda_endpoint_url: str | None = None
+    edge_api_url: str | None = None
+    energy_analyst_url: str | None = None
+    auth_endpoint: str | None = None
+    partner_api_endpoint: str | None = None
+    partner_api_key: str | None = None
     timeout: int = 120
     max_retries: int = 3
     retry_backoff: float = 2.0
@@ -45,7 +46,7 @@ class OnaConfig:
             raise ConfigurationError("partner_api_endpoint must use https://")
 
     @classmethod
-    def from_env(cls) -> "OnaConfig":
+    def from_env(cls) -> OnaConfig:
         """Create configuration from environment variables.
 
         Environment variables:

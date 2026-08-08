@@ -1,4 +1,4 @@
-from asoba.utils.validation import validate_odse_record, validate_batch
+from asoba.utils.validation import validate_batch, validate_odse_record
 
 
 def test_validate_odse_record_accepts_valid_minimal_record():
@@ -25,7 +25,7 @@ def test_validate_odse_record_accepts_valid_minimal_record_naive_string():
         "error_type": "normal",
     }
 
-    is_valid, errors, normalized = validate_odse_record(record)
+    is_valid, _errors, normalized = validate_odse_record(record)
 
     assert is_valid is True
     assert normalized["timestamp"] == "2026-02-11T12:00:00Z"
@@ -107,7 +107,7 @@ def test_clean_record_strips_whitespace():
         "error_type": " normal ",
     }
 
-    is_valid, errors, normalized = validate_odse_record(record)
+    is_valid, _errors, normalized = validate_odse_record(record)
 
     assert is_valid is True
     assert normalized["timestamp"] == "2026-02-11T12:00:00Z"
@@ -138,7 +138,7 @@ def test_validate_odse_record_optional_numeric_fields():
         "PF": 0.95
     }
 
-    is_valid, errors, normalized = validate_odse_record(record)
+    is_valid, _errors, normalized = validate_odse_record(record)
 
     assert is_valid is True
     assert normalized["kVArh"] == 2.5

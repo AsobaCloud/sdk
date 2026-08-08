@@ -8,17 +8,19 @@ Backward-compatible: existing 9-field callers of ``validate_odse_record``
 and ``validate_batch`` are unaffected.
 """
 
+from __future__ import annotations
+
 import math
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Any
 
 from dateutil.parser import parse as parse_date
 
 from ..models.odse import (
-    ODSE_REQUIRED_FIELDS,
     ODSE_ALLOWED_FIELDS,
     ODSE_ENUM_FIELDS,
     ODSE_NUMERIC_RANGES,
     ODSE_PROFILES,
+    ODSE_REQUIRED_FIELDS,
 )
 
 
@@ -29,7 +31,7 @@ def _is_nan(value: Any) -> bool:
     return False
 
 
-def clean_record(record: Dict[str, Any]) -> Dict[str, Any]:
+def clean_record(record: dict[str, Any]) -> dict[str, Any]:
     """Clean a single record by stripping whitespace and handling nulls.
 
     Equivalent to service-side cleaning but without pandas dependency.
@@ -47,7 +49,7 @@ def clean_record(record: Dict[str, Any]) -> Dict[str, Any]:
     return cleaned
 
 
-def _to_float(value: Any) -> Optional[float]:
+def _to_float(value: Any) -> float | None:
     """Convert value to float, handling None and NaN."""
     if value is None or _is_nan(value):
         return None
@@ -57,7 +59,7 @@ def _to_float(value: Any) -> Optional[float]:
         return None
 
 
-def validate_odse_record(record: Dict[str, Any]) -> Tuple[bool, List[str], Dict[str, Any]]:
+def validate_odse_record(record: dict[str, Any]) -> tuple[bool, list[str], dict[str, Any]]:
     """Validate a single record against ODS-E energy-timeseries constraints.
 
     Checks required fields, allowed fields, timestamp format, numeric ranges,
@@ -136,8 +138,8 @@ def validate_odse_record(record: Dict[str, Any]) -> Tuple[bool, List[str], Dict[
 
 
 def validate_with_profile(
-    record: Dict[str, Any], profile: str
-) -> Tuple[bool, List[str], Dict[str, Any]]:
+    record: dict[str, Any], profile: str
+) -> tuple[bool, list[str], dict[str, Any]]:
     """Validate a record against an ODS-E conformance profile.
 
     Profile validation runs **after** schema validation passes. If schema
@@ -186,7 +188,7 @@ def validate_with_profile(
     return len(errors) == 0, errors, normalized
 
 
-def validate_batch(records: List[Dict[str, Any]]) -> Dict[str, Any]:
+def validate_batch(records: list[dict[str, Any]]) -> dict[str, Any]:
     """Validate a batch of records and return valid/invalid split.
 
     Returns:

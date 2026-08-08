@@ -1,5 +1,7 @@
 """Cursor serialization for OODA terminal alert streaming."""
 
+from __future__ import annotations
+
 import base64
 import json
 

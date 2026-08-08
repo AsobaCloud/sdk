@@ -1,7 +1,9 @@
 """Snapshot data models for Ona Platform Partner API."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -9,7 +11,7 @@ class EarKpis:
     energy_lost_kwh: float
     energy_lost_pct: float
     capacity_utilization_pct: float
-    recovery_potential_kwh: Dict[str, float]  # keys: "50pct", "75pct", "100pct"
+    recovery_potential_kwh: dict[str, float]  # keys: "50pct", "75pct", "100pct"
     value_lost_zar: float
     realized_savings_zar: float
     annual_projection_zar: float
@@ -20,19 +22,19 @@ class FinancialKpis:
     shortfall_cost_zar: float
     realized_savings_zar: float
     total_potential_value_zar: float
-    tou_breakdown: Dict[str, Any]
+    tou_breakdown: dict[str, Any]
 
 @dataclass
 class KpiRollupSnapshot:
     site_id: str
-    period: Dict[str, str]
+    period: dict[str, str]
     generated_at: str
-    system: Dict[str, Any]
-    energy_balance: Dict[str, Any]
-    performance: Dict[str, Any]
+    system: dict[str, Any]
+    energy_balance: dict[str, Any]
+    performance: dict[str, Any]
     ear: EarKpis
     financial: FinancialKpis
-    battery: Optional[Dict[str, Any]] = None
+    battery: dict[str, Any] | None = None
 
 @dataclass
 class MaintenanceSignal:
@@ -42,20 +44,20 @@ class MaintenanceSignal:
     type: str
     severity: str
     description: str
-    state_code: Optional[str] = None
-    rated_kw: Optional[float] = None
-    expected_kw: Optional[float] = None
-    actual_kw: Optional[float] = None
-    capacity_pct: Optional[float] = None
-    irradiance_wm2: Optional[float] = None
+    state_code: str | None = None
+    rated_kw: float | None = None
+    expected_kw: float | None = None
+    actual_kw: float | None = None
+    capacity_pct: float | None = None
+    irradiance_wm2: float | None = None
 
 @dataclass
 class MaintenanceSignalsSnapshot:
     site_id: str
     generated_at: str
     cursor: str
-    signals: List[MaintenanceSignal]
-    summary: Dict[str, Dict[str, int]]
+    signals: list[MaintenanceSignal]
+    summary: dict[str, dict[str, int]]
 
 @dataclass
 class ForecastInterval:
@@ -72,8 +74,8 @@ class ForecastSnapshot:
     generated_at: str
     horizon_hours: int
     resolution: str
-    intervals: List[ForecastInterval]
-    totals: Dict[str, float]
+    intervals: list[ForecastInterval]
+    totals: dict[str, float]
 
 @dataclass
 class MaintenanceTask:
@@ -82,12 +84,12 @@ class MaintenanceTask:
     reason: str
     recommended_date: str
     priority: str
-    estimated_duration_hours: Optional[float] = None
+    estimated_duration_hours: float | None = None
 
 @dataclass
 class MaintenanceScheduleSnapshot:
     site_id: str
     generated_at: str
-    horizon: Dict[str, str]
-    tasks: List[MaintenanceTask]
-    summary: Dict[str, Any]
+    horizon: dict[str, str]
+    tasks: list[MaintenanceTask]
+    summary: dict[str, Any]

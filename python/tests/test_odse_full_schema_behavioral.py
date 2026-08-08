@@ -7,12 +7,12 @@ Exercises the full validation path from entry point to outcome:
 - BESS, wind, market settlement, wheeling records validate correctly
 """
 
-from asoba.utils.validation import validate_odse_record, validate_with_profile, validate_batch
 from asoba.models.odse import (
     ODSE_ALLOWED_FIELDS,
-    ODSE_PROFILES,
     ODSE_ENUM_FIELDS,
+    ODSE_PROFILES,
 )
+from asoba.utils.validation import validate_batch, validate_odse_record, validate_with_profile
 
 
 class TestFullSchemaAcceptance:

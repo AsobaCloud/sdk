@@ -1,17 +1,16 @@
 """Base service client with common functionality."""
 
+from __future__ import annotations
+
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
+
 import boto3
 from botocore.exceptions import ClientError
 
 from ..config import OnaConfig
-from ..exceptions import (
-    ServiceUnavailableError,
-    ResourceNotFoundError,
-    ValidationError
-)
+from ..exceptions import ResourceNotFoundError, ServiceUnavailableError, ValidationError
 from ..utils import retry_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -69,9 +68,9 @@ class BaseServiceClient:
     def invoke_lambda(
         self,
         function_name: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         invocation_type: str = 'RequestResponse'
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Invoke a Lambda function.
 
         Args:
@@ -129,10 +128,10 @@ class BaseServiceClient:
             return result
 
         except ClientError as e:
-            logger.error(f"Lambda invocation failed: {e}")
+            logger.exception(f"Lambda invocation failed: {e}")
             raise ServiceUnavailableError(f"Lambda invocation failed: {e}")
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse Lambda response: {e}")
+            logger.exception(f"Failed to parse Lambda response: {e}")
             raise ServiceUnavailableError(f"Invalid response from service: {e}")
 
     def get_s3_object(self, bucket: str, key: str) -> bytes:
@@ -162,7 +161,7 @@ class BaseServiceClient:
         bucket: str,
         key: str,
         body: bytes,
-        content_type: Optional[str] = None
+        content_type: str | None = None
     ) -> None:
         """Put an object to S3.
 

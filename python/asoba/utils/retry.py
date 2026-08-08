@@ -1,9 +1,11 @@
 """Retry utilities with exponential backoff."""
 
-import time
+from __future__ import annotations
+
 import logging
+import time
 from functools import wraps
-from typing import Callable, Type, Tuple
+from typing import Callable
 
 from ..exceptions import ServiceUnavailableError, TimeoutError
 
@@ -13,7 +15,7 @@ logger = logging.getLogger(__name__)
 def retry_with_backoff(
     max_retries: int = 3,
     backoff_factor: float = 2.0,
-    exceptions: Tuple[Type[Exception], ...] = (ServiceUnavailableError, TimeoutError)
+    exceptions: tuple[type[Exception], ...] = (ServiceUnavailableError, TimeoutError)
 ):
     """Decorator to retry a function with exponential backoff.
 
@@ -44,7 +46,7 @@ def retry_with_backoff(
                         )
                         time.sleep(wait_time)
                     else:
-                        logger.error(
+                        logger.exception(
                             f"All {max_retries + 1} attempts failed. Last error: {e}"
                         )
 

@@ -124,7 +124,7 @@ class _PartnerApiHandler(BaseHTTPRequestHandler):
     def log_message(self, *_args, **_kwargs):  # silence test output noise
         return
 
-    def do_GET(self):  # noqa: N802
+    def do_GET(self):
         type(self).call_count += 1
         parsed = urlparse(self.path)
         type(self).last_path = parsed.path

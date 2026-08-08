@@ -1,10 +1,12 @@
 """Forecasting API client."""
 
-import logging
-from typing import Dict, Any
+from __future__ import annotations
 
-from .base import BaseServiceClient
+import logging
+from typing import Any
+
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ class ForecastingClient(BaseServiceClient):
         site_id: str,
         device_id: str,
         forecast_hours: int = 24
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get forecast for a specific device.
 
         Args:
@@ -68,7 +70,7 @@ class ForecastingClient(BaseServiceClient):
         site_id: str,
         forecast_hours: int = 24,
         include_device_breakdown: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get aggregated forecast for an entire site.
 
         Args:
@@ -105,7 +107,7 @@ class ForecastingClient(BaseServiceClient):
         self,
         customer_id: str,
         forecast_hours: int = 24
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get forecast for a customer (legacy method).
 
         Args:

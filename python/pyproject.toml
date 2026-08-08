@@ -48,6 +48,44 @@ where = ["."]
 include = ["asoba*", "ona_platform*"]
 exclude = ["tests*", "examples*"]
 
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "B",     # flake8-bugbear
+    "UP",    # pyupgrade
+    "RUF",   # ruff-specific
+    "PIE",   # flake8-pie
+    "SIM",   # flake8-simplify
+    "TRY",   # tryceratops
+    "FA",    # flake8-future-annotations
+    "BLE",   # flake8-blind-except
+    "DTZ",   # flake8-datetimez
+    "EXE",   # flake8-executable
+]
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "TRY003",  # long messages in raise
+    "TRY300",  # return in else block — deferred
+    "TRY203",  # useless re-raise — intentional guard pattern in streaming clients
+    "TRY401",  # redundant {e} in logger.exception — deferred
+    "B904",    # raise from err — deferred, pre-existing in service clients
+    "BLE001",  # blind except — intentional in service clients
+    "DTZ",     # datetime timezone — deferred to future cleanup
+    "SIM115",  # context manager for open — deferred
+    "EXE001",  # shebang not executable — example scripts
+    "RUF043",  # pytest match= metacharacters — pre-existing test patterns
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["DTZ001", "DTZ003", "DTZ005", "DTZ007", "DTZ011"]
+
 [tool.black]
 line-length = 100
 target-version = ['py38', 'py39', 'py310', 'py311', 'py312']

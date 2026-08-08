@@ -4,16 +4,17 @@ Provides unified authentication management including JWT-based login,
 MFA verification, token lifecycle management, and API key introspection.
 """
 
+from __future__ import annotations
+
 import json
 import logging
-from typing import Dict, Optional
 
 from ..config import OnaConfig
 from ..exceptions import (
     AuthenticationError,
     ConfigurationError,
     ServiceUnavailableError,
-    ValidationError
+    ValidationError,
 )
 from .base import BaseServiceClient
 
@@ -55,18 +56,18 @@ class AuthClient(BaseServiceClient):
                               or does not use HTTPS
         """
         super().__init__(config)
-        
+
         if not hasattr(config, 'auth_endpoint') or not config.auth_endpoint:
             raise ConfigurationError("auth_endpoint is required for AuthClient")
-        
+
         if not config.auth_endpoint.startswith('https://'):
             raise ConfigurationError("auth_endpoint must use HTTPS")
-        
+
         self._endpoint = config.auth_endpoint.rstrip('/')
-        self._current_token: Optional[str] = None
+        self._current_token: str | None = None
         self._session = None
-        
-    def refresh_token(self) -> Dict:
+
+    def refresh_token(self) -> dict:
         """Refresh current authentication token.
 
         Returns:
@@ -86,21 +87,21 @@ class AuthClient(BaseServiceClient):
                     'Authorization': f'Bearer {self._current_token}'
                 }
             }
-            
+
             result = self.invoke_lambda(self._get_auth_function_name(), payload)
-            
+
             if 'token' in result:
                 self._current_token = result['token']
-            
+
             return result
-            
+
         except AuthenticationError:
             raise
         except Exception as e:
-            logger.error(f"Token refresh failed: {e}")
+            logger.exception(f"Token refresh failed: {e}")
             raise AuthenticationError(f"Failed to refresh token: {e}")
 
-    def login(self, username: str, password: str) -> Dict:
+    def login(self, username: str, password: str) -> dict:
         """Authenticate user with username and password.
 
         Args:
@@ -130,37 +131,37 @@ class AuthClient(BaseServiceClient):
                 'path': '/api/auth/login',
                 'body': json.dumps({'username': username, 'password': password})
             }
-            
+
             result = self.invoke_lambda(self._get_auth_function_name(), payload)
-            
+
             # Handle MFA challenge
             if result.get('mfa_required'):
                 mfa_response = {
                     'mfa_required': True,
                     'mfa_token': result.get('mfa_token')
                 }
-                
+
                 if result.get('mfa_enrollment'):
                     mfa_response['mfa_enrollment'] = True
                     mfa_response['provisioning_uri'] = result.get('provisioning_uri')
-                
+
                 return mfa_response
-            
+
             # Store token on successful login
             if 'token' in result:
                 self._current_token = result['token']
-            
+
             return result
-            
+
         except AuthenticationError:
             raise
         except ServiceUnavailableError:
             raise
         except Exception as e:
-            logger.error(f"Login failed: {e}")
+            logger.exception(f"Login failed: {e}")
             raise ServiceUnavailableError(f"Authentication failed: {e}")
 
-    def verify_mfa(self, mfa_token: str, totp_code: str) -> Dict:
+    def verify_mfa(self, mfa_token: str, totp_code: str) -> dict:
         """Verify MFA TOTP code and complete authentication.
 
         Args:
@@ -189,21 +190,21 @@ class AuthClient(BaseServiceClient):
                     'totp_code': totp_code
                 })
             }
-            
+
             result = self.invoke_lambda(self._get_auth_function_name(), payload)
-            
+
             # Store token on successful MFA verification
             if 'token' in result:
                 self._current_token = result['token']
-            
+
             return result
-            
+
         except AuthenticationError:
             raise
         except ServiceUnavailableError:
             raise
         except Exception as e:
-            logger.error(f"MFA verification failed: {e}")
+            logger.exception(f"MFA verification failed: {e}")
             raise ServiceUnavailableError(f"MFA verification failed: {e}")
 
     def set_token(self, token: str) -> None:
@@ -218,7 +219,7 @@ class AuthClient(BaseServiceClient):
         self._current_token = token
         logger.debug("Authentication token set")
 
-    def get_token(self) -> Optional[str]:
+    def get_token(self) -> str | None:
         """Get current authentication token.
 
         Returns:
@@ -243,7 +244,7 @@ class AuthClient(BaseServiceClient):
         self._current_token = None
         logger.debug("Authentication token cleared")
 
-    def get_current_user(self) -> Dict:
+    def get_current_user(self) -> dict:
         """Get current user information from token.
 
         Returns:
@@ -258,14 +259,14 @@ class AuthClient(BaseServiceClient):
         try:
             # Decode token locally to get user info
             import jwt
-            
+
             # Try to decode without signature verification (just to get claims)
             # The expiry is still verified
             payload = jwt.decode(
                 self._current_token,
                 options={"verify_signature": False, "verify_exp": True}
             )
-            
+
             return {
                 'user_id': payload.get('user_id'),
                 'username': payload.get('username'),
@@ -274,18 +275,18 @@ class AuthClient(BaseServiceClient):
                 'group_id': payload.get('group_id'),
                 'skin_id': payload.get('skin_id')
             }
-            
+
         except jwt.ExpiredSignatureError:
             raise AuthenticationError("Token has expired. Please login again.")
         except jwt.InvalidTokenError as e:
             raise AuthenticationError(f"Invalid token: {e}")
         except Exception as e:
-            logger.error(f"Failed to get current user: {e}")
+            logger.exception(f"Failed to get current user: {e}")
             raise AuthenticationError(f"Failed to validate token: {e}")
 
     def _get_auth_function_name(self) -> str:
         """Get the Lambda function name for auth requests.
-        
+
         Returns:
             Lambda function name with stage prefix
         """
@@ -296,7 +297,7 @@ class AuthClient(BaseServiceClient):
             return 'ona-user-auth-dev'
         return 'ona-user-auth-prod'
 
-    def get_api_key_info(self, api_key: str) -> Dict:
+    def get_api_key_info(self, api_key: str) -> dict:
         """Get information about an API key.
 
         Args:
@@ -315,9 +316,9 @@ class AuthClient(BaseServiceClient):
                 'path': '/api/auth/api-key-info',
                 'body': json.dumps({'api_key': api_key})
             }
-            
+
             result = self.invoke_lambda(self._get_auth_function_name(), payload)
-            
+
             # Add computed is_expired field
             if 'expires_at' in result:
                 from datetime import datetime, timezone
@@ -328,16 +329,16 @@ class AuthClient(BaseServiceClient):
                     result['is_expired'] = datetime.now(timezone.utc) >= expiry
                 except ValueError:
                     result['is_expired'] = True
-            
+
             return result
-            
+
         except AuthenticationError:
             raise
         except Exception as e:
-            logger.error(f"API key info lookup failed: {e}")
+            logger.exception(f"API key info lookup failed: {e}")
             raise ServiceUnavailableError(f"Failed to get API key info: {e}")
 
-    def validate_api_key(self, api_key: str, site_id: str) -> Dict:
+    def validate_api_key(self, api_key: str, site_id: str) -> dict:
         """Validate API key and check site authorization.
 
         Args:
@@ -359,16 +360,16 @@ class AuthClient(BaseServiceClient):
                     'site_id': site_id
                 })
             }
-            
+
             return self.invoke_lambda(self._get_auth_function_name(), payload)
-            
+
         except AuthenticationError:
             raise
         except Exception as e:
-            logger.error(f"API key validation failed: {e}")
+            logger.exception(f"API key validation failed: {e}")
             raise ServiceUnavailableError(f"Failed to validate API key: {e}")
 
-    def get_auth_header(self) -> Dict[str, str]:
+    def get_auth_header(self) -> dict[str, str]:
         """Get Authorization header for HTTP requests.
 
         Returns:
@@ -379,7 +380,7 @@ class AuthClient(BaseServiceClient):
             return {'Authorization': f'Bearer {self._current_token}'}
         return {}
 
-    def exchange_token(self, external_token: str, provider: str = 'external') -> Dict:
+    def exchange_token(self, external_token: str, provider: str = 'external') -> dict:
         """Exchange external system token for Ona Platform token.
 
         Use this for SSO integrations where an external system
@@ -405,16 +406,16 @@ class AuthClient(BaseServiceClient):
                     'provider': provider
                 })
             }
-            
+
             result = self.invoke_lambda(self._get_auth_function_name(), payload)
-            
+
             if 'token' in result:
                 self._current_token = result['token']
-            
+
             return result
-            
+
         except AuthenticationError:
             raise
         except Exception as e:
-            logger.error(f"Token exchange failed: {e}")
+            logger.exception(f"Token exchange failed: {e}")
             raise ServiceUnavailableError(f"Token exchange failed: {e}")

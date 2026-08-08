@@ -1,10 +1,12 @@
 """Interpolation service client."""
 
-import logging
-from typing import Dict, Any
+from __future__ import annotations
 
-from .base import BaseServiceClient
+import logging
+from typing import Any
+
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ class InterpolationClient(BaseServiceClient):
         customer_id: str,
         dataset_key: str,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Interpolate missing data points.
 
         Args:

@@ -1,4 +1,8 @@
-from typing import TypedDict, List, Optional
+
+from __future__ import annotations
+
+from typing import TypedDict
+
 
 class CleaningEvent(TypedDict):
     timestamp: str
@@ -8,26 +12,26 @@ class CleaningEvent(TypedDict):
 
 class SoilingAudit(TypedDict):
     soiling_rate_pct_day: float
-    detected_cleaning_events: List[CleaningEvent]
+    detected_cleaning_events: list[CleaningEvent]
     recovery_gain_kwh_last_event: float
 
 class Prognostics(TypedDict):
-    battery_rul_days: Optional[int]
-    battery_retirement_date: Optional[str]
+    battery_rul_days: int | None
+    battery_retirement_date: str | None
     pv_annual_degradation_pct: float
     health_score: float
 
 class BatteryKPIs(TypedDict):
-    avg_soc: Optional[float]
-    avg_soh: Optional[float]
-    min_soh: Optional[float]
-    max_soh: Optional[float]
+    avg_soc: float | None
+    avg_soh: float | None
+    min_soh: float | None
+    max_soh: float | None
     total_capacity_kwh: float
     warranty_status: str
     throughput_kwh: float
-    warranty_remaining_pct: Optional[float]
+    warranty_remaining_pct: float | None
     cycle_count_estimate: float
-    dod_avg: Optional[float]
+    dod_avg: float | None
     asset_count: int
 
 class SiteSummary(TypedDict):
@@ -37,6 +41,6 @@ class SiteSummary(TypedDict):
     active_inverters: int
     total_inverters: int
     last_updated: str
-    battery: Optional[BatteryKPIs]
-    soiling: Optional[SoilingAudit]
-    prognostics: Optional[Prognostics]
+    battery: BatteryKPIs | None
+    soiling: SoilingAudit | None
+    prognostics: Prognostics | None

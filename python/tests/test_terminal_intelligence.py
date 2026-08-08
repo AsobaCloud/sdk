@@ -1,12 +1,14 @@
 from unittest.mock import MagicMock, patch
+
 from asoba.services.terminal import TerminalClient
+
 
 def test_get_site_summary_parsing():
     """Test that get_site_summary correctly parses the expanded response from terminalApi."""
     # Create a client instance with a mock config to avoid real AWS calls
     mock_config = MagicMock()
     mock_config.aws_region = 'af-south-1'
-    
+
     # We mock BaseServiceClient's invoke_lambda method
     with patch('asoba.services.terminal.BaseServiceClient.invoke_lambda') as mock_invoke:
         mock_response = {
@@ -48,31 +50,31 @@ def test_get_site_summary_parsing():
             }
         }
         mock_invoke.return_value = mock_response
-        
+
         terminal = TerminalClient(mock_config)
         summary = terminal.get_site_summary("test-site")
-        
+
         # Assertions for core fields
         assert summary['total_kWh_today'] == 1250.5
         assert summary['fleet_pr_pct'] == 82.1
-        
+
         # Assertions for new intelligence fields
         assert 'soiling' in summary
         assert summary['soiling']['soiling_rate_pct_day'] == 0.15
         assert len(summary['soiling']['detected_cleaning_events']) == 1
         assert summary['soiling']['recovery_gain_kwh_last_event'] == 125.5
-        
+
         assert 'prognostics' in summary
         assert summary['prognostics']['battery_rul_days'] == 1200
         assert summary['prognostics']['health_score'] == 92.4
-        
+
         assert summary['battery']['avg_soh'] == 94.5
 
 def test_get_site_summary_backward_compatibility():
     """Test that get_site_summary handles responses missing the new fields (old backend version)."""
     mock_config = MagicMock()
     mock_config.aws_region = 'af-south-1'
-    
+
     with patch('asoba.services.terminal.BaseServiceClient.invoke_lambda') as mock_invoke:
         mock_response = {
             'success': True,
@@ -88,10 +90,10 @@ def test_get_site_summary_backward_compatibility():
             }
         }
         mock_invoke.return_value = mock_response
-        
+
         terminal = TerminalClient(mock_config)
         summary = terminal.get_site_summary("test-site")
-        
+
         assert summary['total_kWh_today'] == 1250.5
         assert 'soiling' not in summary
         assert 'prognostics' not in summary

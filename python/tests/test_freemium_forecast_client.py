@@ -72,7 +72,7 @@ class _FreemiumHandler(BaseHTTPRequestHandler):
     def log_message(self, *_args, **_kwargs):
         return  # silence noise
 
-    def do_POST(self):  # noqa: N802
+    def do_POST(self):
         from urllib.parse import urlparse
 
         parsed = urlparse(self.path)

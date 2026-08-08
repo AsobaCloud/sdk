@@ -59,7 +59,7 @@ class _FakeHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
-        _params = parse_qs(parsed.query)  # noqa: F841
+        _params = parse_qs(parsed.query)
         server_data = self.server.response_data  # type: ignore[attr-defined]
 
         if parsed.path == "/telemetry/inverter":
@@ -207,7 +207,7 @@ def test_api_key_header_sent():
 
     config = OnaConfig(
         inverter_telemetry_endpoint="https://placeholder",
-        inverter_telemetry_api_key="test-token-abc",  # noqa: S106
+        inverter_telemetry_api_key="test-token-abc",
     )
     client = InverterTelemetryClient(config)
     client._endpoint = f"http://127.0.0.1:{port}"

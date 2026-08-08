@@ -1,11 +1,13 @@
 """Data Ingestion service client."""
 
-import logging
-from typing import Dict, Any, List
+from __future__ import annotations
 
-from .base import BaseServiceClient
+import logging
+from typing import Any
+
 from ..config import OnaConfig
 from ..utils.validation import validate_batch
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ class DataIngestionClient(BaseServiceClient):
         super().__init__(config)
         self.function_name = function_name
 
-    def ingest(self, **kwargs) -> Dict[str, Any]:
+    def ingest(self, **kwargs) -> dict[str, Any]:
         """Trigger data ingestion process.
 
         Args:
@@ -39,7 +41,7 @@ class DataIngestionClient(BaseServiceClient):
         logger.info("Triggering data ingestion")
         return self.invoke_lambda(self.function_name, payload)
 
-    def validate_local_records(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def validate_local_records(self, records: list[dict[str, Any]]) -> dict[str, Any]:
         """Validate records locally against ODSE schema without calling the service.
 
         Args:

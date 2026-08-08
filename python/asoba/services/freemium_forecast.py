@@ -5,9 +5,10 @@ No API key required — accepts a CSV file of historical solar production data
 and returns a 24-hour energy forecast.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Union
 
 import requests
 
@@ -82,7 +83,7 @@ class FreemiumForecastClient:
 
     def get_forecast(
         self,
-        csv_path: Union[str, Path],
+        csv_path: str | Path,
         email: str,
         verification_code: str,
         site_name: str,

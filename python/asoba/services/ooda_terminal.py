@@ -1,8 +1,10 @@
 """OODA Terminal client for Ona Platform SDK."""
 
+from __future__ import annotations
+
 import logging
 import time
-from typing import Dict, Generator, List, Optional
+from typing import Generator
 
 import requests
 
@@ -101,8 +103,8 @@ class OodaTerminalClient:
         time_range: TimeRange,
         resolution: str = "5min",
         limit: int = 100,
-        cursor: Optional[str] = None,
-    ) -> List[OodaAlert]:
+        cursor: str | None = None,
+    ) -> list[OodaAlert]:
         self._logger.debug(
             "get_terminal_alerts terminal_device_id=%s site_id=%s range=%s-%s cursor=%s",
             terminal_device_id,
@@ -133,7 +135,7 @@ class OodaTerminalClient:
         time_range: TimeRange,
         resolution: str = "5min",
         limit: int = 100,
-    ) -> Dict[str, List[OodaAlert]]:
+    ) -> dict[str, list[OodaAlert]]:
         self._logger.debug(
             "get_site_alerts site_id=%s range=%s-%s", site_id, time_range.start, time_range.end
         )
@@ -148,7 +150,7 @@ class OodaTerminalClient:
         data = self._get_with_retry(
             f"{self._endpoint}/ooda/site", params, "get_site_alerts", site_id
         )
-        result: Dict[str, List[OodaAlert]] = {}
+        result: dict[str, list[OodaAlert]] = {}
         for tid, alerts in data.get("alerts", {}).items():
             result[tid] = [OodaAlert.from_dict(a) for a in alerts]
         return result
@@ -156,7 +158,7 @@ class OodaTerminalClient:
     def get_data_period(
         self,
         site_id: str,
-        terminal_device_id: Optional[str] = None,
+        terminal_device_id: str | None = None,
     ) -> DataPeriod:
         """
         Return the earliest and latest available timestamps for a site or terminal device.
@@ -184,8 +186,8 @@ class OodaTerminalClient:
         self,
         terminal_device_id: str,
         site_id: str,
-        cursor: Optional[str] = None,
-        polling_interval: Optional[float] = None,
+        cursor: str | None = None,
+        polling_interval: float | None = None,
     ) -> Generator[OodaAlert, None, None]:
         interval = polling_interval if polling_interval is not None else self._polling_interval
         if interval < MIN_POLLING_INTERVAL:
@@ -226,8 +228,8 @@ class OodaTerminalClient:
     def stream_site(
         self,
         site_id: str,
-        cursor: Optional[str] = None,
-        polling_interval: Optional[float] = None,
+        cursor: str | None = None,
+        polling_interval: float | None = None,
     ) -> Generator[OodaAlert, None, None]:
         interval = polling_interval if polling_interval is not None else self._polling_interval
         if interval < MIN_POLLING_INTERVAL:
@@ -238,7 +240,7 @@ class OodaTerminalClient:
         if stream_key in self._active_streams:
             raise ValidationError(f"Stream already active for site_id={site_id}")
         self._active_streams.add(stream_key)
-        last_ts_per_terminal: Dict[str, str] = {}
+        last_ts_per_terminal: dict[str, str] = {}
         if cursor:
             cursor_obj = OodaCursorSerializer.deserialize(cursor)
             last_ts_per_terminal[cursor_obj.terminal_device_id] = cursor_obj.timestamp

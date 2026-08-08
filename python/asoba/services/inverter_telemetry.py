@@ -1,8 +1,10 @@
 """Inverter Telemetry client for Ona Platform SDK."""
 
+from __future__ import annotations
+
 import logging
 import time
-from typing import Dict, Generator, List, Optional
+from typing import Generator
 
 import requests
 
@@ -101,8 +103,8 @@ class InverterTelemetryClient:
         time_range: TimeRange,
         resolution: str = "5min",
         limit: int = 100,
-        cursor: Optional[str] = None,
-    ) -> List[TelemetryRecord]:
+        cursor: str | None = None,
+    ) -> list[TelemetryRecord]:
         self._logger.debug(
             "get_inverter_telemetry asset_id=%s site_id=%s range=%s-%s cursor=%s",
             asset_id,
@@ -133,7 +135,7 @@ class InverterTelemetryClient:
         time_range: TimeRange,
         resolution: str = "5min",
         limit: int = 100,
-    ) -> Dict[str, List[TelemetryRecord]]:
+    ) -> dict[str, list[TelemetryRecord]]:
         self._logger.debug(
             "get_site_telemetry site_id=%s range=%s-%s", site_id, time_range.start, time_range.end
         )
@@ -148,7 +150,7 @@ class InverterTelemetryClient:
         data = self._get_with_retry(
             f"{self._endpoint}/telemetry/site", params, "get_site_telemetry", site_id
         )
-        result: Dict[str, List[TelemetryRecord]] = {}
+        result: dict[str, list[TelemetryRecord]] = {}
         for aid, records in data.get("records", {}).items():
             result[aid] = [TelemetryRecord.from_dict(r) for r in records]
         return result
@@ -157,8 +159,8 @@ class InverterTelemetryClient:
         self,
         asset_id: str,
         site_id: str,
-        cursor: Optional[str] = None,
-        polling_interval: Optional[float] = None,
+        cursor: str | None = None,
+        polling_interval: float | None = None,
     ) -> Generator[TelemetryRecord, None, None]:
         interval = polling_interval if polling_interval is not None else self._polling_interval
         if interval < MIN_POLLING_INTERVAL:
@@ -197,8 +199,8 @@ class InverterTelemetryClient:
     def stream_site(
         self,
         site_id: str,
-        cursor: Optional[str] = None,
-        polling_interval: Optional[float] = None,
+        cursor: str | None = None,
+        polling_interval: float | None = None,
     ) -> Generator[TelemetryRecord, None, None]:
         interval = polling_interval if polling_interval is not None else self._polling_interval
         if interval < MIN_POLLING_INTERVAL:
@@ -209,7 +211,7 @@ class InverterTelemetryClient:
         if stream_key in self._active_streams:
             raise ValidationError(f"Stream already active for site_id={site_id}")
         self._active_streams.add(stream_key)
-        last_ts_per_asset: Dict[str, str] = {}
+        last_ts_per_asset: dict[str, str] = {}
         if cursor:
             cursor_obj = CursorSerializer.deserialize(cursor)
             last_ts_per_asset[cursor_obj.asset_id] = cursor_obj.timestamp
@@ -241,7 +243,7 @@ class InverterTelemetryClient:
     def get_data_period(
         self,
         site_id: str,
-        asset_id: Optional[str] = None,
+        asset_id: str | None = None,
     ) -> dict:
         """
         Return the earliest and latest available timestamps for a site or inverter.

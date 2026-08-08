@@ -1,10 +1,12 @@
 """Weather Cache service client."""
 
-import logging
-from typing import Dict, Any
+from __future__ import annotations
 
-from .base import BaseServiceClient
+import logging
+from typing import Any
+
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ class WeatherClient(BaseServiceClient):
         super().__init__(config)
         self.function_name = function_name
 
-    def trigger_update(self) -> Dict[str, Any]:
+    def trigger_update(self) -> dict[str, Any]:
         """Trigger weather cache update for all locations.
 
         Returns:
@@ -35,7 +37,7 @@ class WeatherClient(BaseServiceClient):
         logger.info("Triggering weather cache update")
         return self.invoke_lambda(self.function_name, payload)
 
-    def get_cached_weather(self, location: str) -> Dict[str, Any]:
+    def get_cached_weather(self, location: str) -> dict[str, Any]:
         """Get cached weather data for a location.
 
         Args:
@@ -51,5 +53,5 @@ class WeatherClient(BaseServiceClient):
             import json
             return json.loads(data.decode('utf-8'))
         except Exception as e:
-            logger.error(f"Failed to get cached weather: {e}")
+            logger.exception(f"Failed to get cached weather: {e}")
             raise

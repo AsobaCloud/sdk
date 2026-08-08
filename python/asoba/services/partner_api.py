@@ -1,7 +1,8 @@
 """Partner API client for Ona Platform SDK."""
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Optional
 
 import requests
 
@@ -38,7 +39,7 @@ class PartnerApiClient:
                 "User-Agent": "ona-platform-sdk-python/1.1.0",
             }
         )
-        self._etag_cache: Dict[str, Dict] = {}  # url -> {etag, data}
+        self._etag_cache: dict[str, dict] = {}  # url -> {etag, data}
         self._logger = logging.getLogger(__name__)
 
     def _request(self, path: str, params: dict):
@@ -92,8 +93,8 @@ class PartnerApiClient:
     def get_maintenance_signals(
         self,
         site_id: str,
-        since: Optional[str] = None,
-        severity: Optional[str] = None,
+        since: str | None = None,
+        severity: str | None = None,
     ) -> dict:
         """Get maintenance signals for a site."""
         params = {"site_id": site_id}
@@ -103,7 +104,7 @@ class PartnerApiClient:
             params["severity"] = severity
         return self._request("/maintenance-signals", params)
 
-    def get_forecast_snapshot(self, site_id: str, horizon: Optional[str] = None) -> dict:
+    def get_forecast_snapshot(self, site_id: str, horizon: str | None = None) -> dict:
         """Get the latest forecast snapshot for a site."""
         params = {"site_id": site_id}
         if horizon:
@@ -113,7 +114,7 @@ class PartnerApiClient:
     def get_maintenance_schedule(
         self,
         site_id: str,
-        since: Optional[str] = None,
+        since: str | None = None,
     ) -> dict:
         """Get the preventive-maintenance schedule snapshot for a site.
 

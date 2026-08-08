@@ -1,10 +1,12 @@
 """Huawei data collection service clients."""
 
-import logging
-from typing import Dict, Any
+from __future__ import annotations
 
-from .base import BaseServiceClient
+import logging
+from typing import Any
+
 from ..config import OnaConfig
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +34,7 @@ class HuaweiClient(BaseServiceClient):
         self.realtime_function = realtime_function
         self.historical_function = historical_function
 
-    def collect_realtime(self, plant_code: str, **kwargs) -> Dict[str, Any]:
+    def collect_realtime(self, plant_code: str, **kwargs) -> dict[str, Any]:
         """Collect real-time data from Huawei system.
 
         Args:
@@ -52,7 +54,7 @@ class HuaweiClient(BaseServiceClient):
         start_date: str,
         end_date: str,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Collect historical data from Huawei system.
 
         Args:

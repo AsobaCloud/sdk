@@ -1,14 +1,15 @@
 """Logging utilities for Ona Platform SDK."""
 
+from __future__ import annotations
+
 import logging
 import sys
-from typing import Optional
 
 
 def get_logger(
     name: str,
-    level: Optional[int] = None,
-    format_string: Optional[str] = None
+    level: int | None = None,
+    format_string: str | None = None
 ) -> logging.Logger:
     """Get or create a logger with standard configuration.
 

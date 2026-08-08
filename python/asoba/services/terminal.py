@@ -1,13 +1,15 @@
 """Terminal API client for OODA workflow operations."""
 
+from __future__ import annotations
+
 import json
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import Any
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
 from ..models.intelligence import SiteSummary
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class TerminalClient(BaseServiceClient):
         self.function_name = function_name
 
     # Asset Management
-    def list_assets(self, customer_id: str) -> List[Dict[str, Any]]:
+    def list_assets(self, customer_id: str) -> list[dict[str, Any]]:
         """List all assets for a customer.
 
         Args:
@@ -58,7 +60,7 @@ class TerminalClient(BaseServiceClient):
         result = self.invoke_lambda(self.function_name, payload)
         return result.get('assets', [])
 
-    def get_asset(self, customer_id: str, asset_id: str) -> Optional[Dict[str, Any]]:
+    def get_asset(self, customer_id: str, asset_id: str) -> dict[str, Any] | None:
         """Get a specific asset by ID.
 
         Args:
@@ -93,11 +95,11 @@ class TerminalClient(BaseServiceClient):
         capacity_kw: float,
         location: str,
         timezone: str = "Africa/Johannesburg",
-        components: Optional[List[Dict]] = None,
-        capacity_kwh: Optional[float] = None,
-        warranty_expiry_date: Optional[str] = None,
-        warranty_throughput_kwh: Optional[float] = None
-    ) -> Dict[str, Any]:
+        components: list[dict] | None = None,
+        capacity_kwh: float | None = None,
+        warranty_expiry_date: str | None = None,
+        warranty_throughput_kwh: float | None = None
+    ) -> dict[str, Any]:
         """Add a new asset.
 
         Args:
@@ -148,7 +150,7 @@ class TerminalClient(BaseServiceClient):
         customer_id: str,
         asset_id: str,
         lookback_hours: int = 6
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run ML-backed fault detection on an asset.
 
         Args:
@@ -172,7 +174,7 @@ class TerminalClient(BaseServiceClient):
         }
         return self.invoke_lambda(self.function_name, payload)
 
-    def list_detections(self, customer_id: str) -> List[Dict[str, Any]]:
+    def list_detections(self, customer_id: str) -> list[dict[str, Any]]:
         """List recent detections for a customer.
 
         Args:
@@ -232,7 +234,7 @@ class TerminalClient(BaseServiceClient):
         asset_id: str,
         detection_id: str,
         lookback_hours: int = 6
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run AI diagnostics on a detected fault.
 
         Args:
@@ -258,7 +260,7 @@ class TerminalClient(BaseServiceClient):
         }
         return self.invoke_lambda(self.function_name, payload)
 
-    def list_diagnostics(self, customer_id: str) -> List[Dict[str, Any]]:
+    def list_diagnostics(self, customer_id: str) -> list[dict[str, Any]]:
         """List recent diagnostics for a customer.
 
         Args:
@@ -288,7 +290,7 @@ class TerminalClient(BaseServiceClient):
         priority: str = "Medium",
         estimated_duration_hours: int = 4,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a maintenance schedule.
 
         Args:
@@ -318,7 +320,7 @@ class TerminalClient(BaseServiceClient):
         }
         return self.invoke_lambda(self.function_name, payload)
 
-    def list_schedules(self, customer_id: str) -> List[Dict[str, Any]]:
+    def list_schedules(self, customer_id: str) -> list[dict[str, Any]]:
         """List maintenance schedules for a customer.
 
         Args:
@@ -340,7 +342,7 @@ class TerminalClient(BaseServiceClient):
         return result.get('schedules', [])
 
     # Issues Management
-    def list_issues(self, customer_id: str) -> List[Dict[str, Any]]:
+    def list_issues(self, customer_id: str) -> list[dict[str, Any]]:
         """List issues for a customer.
 
         Args:
@@ -370,7 +372,7 @@ class TerminalClient(BaseServiceClient):
         description: str,
         priority: str = "Medium",
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a new issue.
 
         Args:
@@ -403,7 +405,7 @@ class TerminalClient(BaseServiceClient):
         return self.invoke_lambda(self.function_name, payload)
 
     # Activity Stream
-    def list_activities(self, customer_id: str) -> List[Dict[str, Any]]:
+    def list_activities(self, customer_id: str) -> list[dict[str, Any]]:
         """List recent activities across all OODA phases.
 
         Args:
@@ -425,7 +427,7 @@ class TerminalClient(BaseServiceClient):
         return result.get('activities', [])
 
     # ML Integration
-    def get_forecast_results(self, customer_id: str) -> List[Dict[str, Any]]:
+    def get_forecast_results(self, customer_id: str) -> list[dict[str, Any]]:
         """Get ML forecast results for a customer.
 
         Args:
@@ -445,7 +447,7 @@ class TerminalClient(BaseServiceClient):
         result = self.invoke_lambda(self.function_name, payload)
         return result.get('forecast_results', [])
 
-    def get_interpolation_results(self, customer_id: str) -> List[Dict[str, Any]]:
+    def get_interpolation_results(self, customer_id: str) -> list[dict[str, Any]]:
         """Get interpolation results for a customer.
 
         Args:
@@ -465,7 +467,7 @@ class TerminalClient(BaseServiceClient):
         result = self.invoke_lambda(self.function_name, payload)
         return result.get('interpolation_results', [])
 
-    def get_ml_models(self) -> List[Dict[str, Any]]:
+    def get_ml_models(self) -> list[dict[str, Any]]:
         """Get ML model registry (shared across customers).
 
         Returns:
@@ -480,7 +482,7 @@ class TerminalClient(BaseServiceClient):
         result = self.invoke_lambda(self.function_name, payload)
         return result.get('model_metrics', [])
 
-    def get_ml_ooda_summaries(self, customer_id: str) -> List[Dict[str, Any]]:
+    def get_ml_ooda_summaries(self, customer_id: str) -> list[dict[str, Any]]:
         """Get ML-enhanced OODA summaries for a customer.
 
         Args:
@@ -527,8 +529,8 @@ class TerminalClient(BaseServiceClient):
         self,
         customer_id: str,
         time_range: str = "1h",
-        asset_filter: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        asset_filter: list[str] | None = None
+    ) -> dict[str, Any]:
         """Get nowcast data for monitoring dashboard.
 
         Args:
@@ -556,10 +558,10 @@ class TerminalClient(BaseServiceClient):
     # Battery Health Helper Methods
     @staticmethod
     def calculate_remaining_warranty_life(
-        warranty_expiry_date: Optional[str],
-        warranty_throughput_kwh: Optional[float],
-        current_throughput_kwh: Optional[float] = None
-    ) -> Dict[str, Any]:
+        warranty_expiry_date: str | None,
+        warranty_throughput_kwh: float | None,
+        current_throughput_kwh: float | None = None
+    ) -> dict[str, Any]:
         """Calculate remaining warranty life for a battery asset.
 
         Args:

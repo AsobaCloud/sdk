@@ -1,18 +1,21 @@
 """Energy Analyst RAG service client."""
 
+from __future__ import annotations
+
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 import requests
 
-from .base import BaseServiceClient
 from ..config import OnaConfig
 from ..exceptions import (
+    ConfigurationError,
+    ResourceNotFoundError,
     ServiceUnavailableError,
     ValidationError,
-    ResourceNotFoundError,
-    ConfigurationError
 )
 from ..utils import retry_with_backoff
+from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +26,7 @@ class EnergyAnalystClient(BaseServiceClient):
     Provides methods for querying energy policy documents and uploading PDFs.
     """
 
-    def __init__(self, config: OnaConfig, base_url: Optional[str] = None):
+    def __init__(self, config: OnaConfig, base_url: str | None = None):
         """Initialize Energy Analyst client.
 
         Args:
@@ -44,9 +47,9 @@ class EnergyAnalystClient(BaseServiceClient):
         self,
         question: str,
         n_results: int = 3,
-        max_new_tokens: Optional[int] = None,
-        temperature: Optional[float] = None
-    ) -> Dict[str, Any]:
+        max_new_tokens: int | None = None,
+        temperature: float | None = None
+    ) -> dict[str, Any]:
         """Query the RAG system with a question.
 
         Args:
@@ -107,9 +110,9 @@ class EnergyAnalystClient(BaseServiceClient):
 
     def add_documents(
         self,
-        texts: List[str],
-        metadatas: Optional[List[Dict]] = None
-    ) -> Dict[str, Any]:
+        texts: list[str],
+        metadatas: list[dict] | None = None
+    ) -> dict[str, Any]:
         """Add documents to the vector database.
 
         Args:
@@ -145,7 +148,7 @@ class EnergyAnalystClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to add documents: {e}")
 
-    def upload_pdfs(self, file_paths: List[str]) -> Dict[str, Any]:
+    def upload_pdfs(self, file_paths: list[str]) -> dict[str, Any]:
         """Upload and process PDF files.
 
         Args:
@@ -187,7 +190,7 @@ class EnergyAnalystClient(BaseServiceClient):
             for _, file_tuple in files:
                 file_tuple[1].close()
 
-    def health(self) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """Check service health.
 
         Returns:
@@ -202,7 +205,7 @@ class EnergyAnalystClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Health check failed: {e}")
 
-    def get_collection_info(self) -> Dict[str, Any]:
+    def get_collection_info(self) -> dict[str, Any]:
         """Get information about the document collection.
 
         Returns:
@@ -217,7 +220,7 @@ class EnergyAnalystClient(BaseServiceClient):
         except requests.exceptions.RequestException as e:
             raise ServiceUnavailableError(f"Failed to get collection info: {e}")
 
-    def clear_collection(self) -> Dict[str, Any]:
+    def clear_collection(self) -> dict[str, Any]:
         """Clear all documents from the collection.
 
         Returns:

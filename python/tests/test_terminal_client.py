@@ -1,16 +1,19 @@
 """Tests for TerminalClient — battery health and warranty tracking."""
 
-import pytest
-from unittest.mock import MagicMock
 from datetime import date, timedelta
-from asoba.services.terminal import TerminalClient
+from unittest.mock import MagicMock
+
+import pytest
+
 from asoba.config import OnaConfig
 from asoba.exceptions import ResourceNotFoundError
+from asoba.services.terminal import TerminalClient
+
 
 def test_calculate_remaining_warranty_life():
     today = date.today()
     expiry = (today + timedelta(days=100)).isoformat()
-    
+
     # Case 1: Healthy battery, well within warranty
     res = TerminalClient.calculate_remaining_warranty_life(
         warranty_expiry_date=expiry,
@@ -52,7 +55,7 @@ def test_calculate_remaining_warranty_life():
     )
     assert res["warranty_status"] == "out_of_warranty"
     assert res["days_remaining"] == -1
-    
+
     # Case 5: Out of warranty due to throughput
     res = TerminalClient.calculate_remaining_warranty_life(
         warranty_expiry_date=expiry,
@@ -76,7 +79,7 @@ def test_get_asset_not_found():
     client = TerminalClient(config)
     # Mock invoke_lambda to raise ResourceNotFoundError
     client.invoke_lambda = MagicMock(side_effect=ResourceNotFoundError("Not found"))
-    
+
     asset = client.get_asset("cust-1", "asset-1")
     assert asset is None
 
@@ -89,7 +92,7 @@ def test_get_asset_success():
         "warranty_expiry_date": "2030-01-01"
     }
     client.invoke_lambda = MagicMock(return_value=mock_asset)
-    
+
     asset = client.get_asset("cust-1", "asset-1")
     assert asset["asset_id"] == "asset-1"
     assert asset["capacity_kwh"] == 13.5
@@ -108,7 +111,7 @@ def test_get_site_summary():
         }
     }
     client.invoke_lambda = MagicMock(return_value=mock_res)
-    
+
     summary = client.get_site_summary("site-1")
     assert "battery" in summary
     assert summary["battery"]["avg_soc"] == 85.0
