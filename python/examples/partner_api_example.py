@@ -2,7 +2,7 @@ import json
 import os
 import time
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def main():

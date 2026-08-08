@@ -1,6 +1,6 @@
 """Basic tests for OnaClient."""
 
-from ona_platform import OnaClient, OnaConfig
+from asoba import OnaClient, OnaConfig
 
 
 def test_client_initialization():

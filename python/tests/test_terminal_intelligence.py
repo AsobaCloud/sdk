@@ -1,5 +1,5 @@
 from unittest.mock import MagicMock, patch
-from ona_platform.services.terminal import TerminalClient
+from asoba.services.terminal import TerminalClient
 
 def test_get_site_summary_parsing():
     """Test that get_site_summary correctly parses the expanded response from terminalApi."""
@@ -8,7 +8,7 @@ def test_get_site_summary_parsing():
     mock_config.aws_region = 'af-south-1'
     
     # We mock BaseServiceClient's invoke_lambda method
-    with patch('ona_platform.services.terminal.BaseServiceClient.invoke_lambda') as mock_invoke:
+    with patch('asoba.services.terminal.BaseServiceClient.invoke_lambda') as mock_invoke:
         mock_response = {
             'success': True,
             'site_id': 'test-site',
@@ -73,7 +73,7 @@ def test_get_site_summary_backward_compatibility():
     mock_config = MagicMock()
     mock_config.aws_region = 'af-south-1'
     
-    with patch('ona_platform.services.terminal.BaseServiceClient.invoke_lambda') as mock_invoke:
+    with patch('asoba.services.terminal.BaseServiceClient.invoke_lambda') as mock_invoke:
         mock_response = {
             'success': True,
             'site_id': 'test-site',

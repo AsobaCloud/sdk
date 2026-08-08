@@ -1,6 +1,6 @@
 """Example usage of Terminal API client for OODA workflow."""
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def main():

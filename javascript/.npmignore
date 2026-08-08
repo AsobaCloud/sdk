@@ -20,11 +20,12 @@ tests/
 .env
 .env.*
 
-# IDE
+# IDE / OS
 *.swp
 *.swo
 *~
 .DS_Store
+*:Zone.Identifier
 
 # Logs
 *.log
@@ -32,3 +33,6 @@ tests/
 # Testing
 coverage/
 .nyc_output/
+
+# Lockfiles not needed in published tarball
+package-lock.json

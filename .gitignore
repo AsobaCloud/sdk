@@ -1,6 +1,3 @@
-# GitHub workflows
-.github/
-
 # Kiro specs and settings
 .kiro/
 
@@ -25,4 +22,9 @@ SDK_UPDATE_PLAN.md
 
 # Windows Zone.Identifier files (created when downloading files on Windows)
 *:Zone.Identifier
+
+# Local node / python envs
+node_modules/
+.venv/
+venv/
 

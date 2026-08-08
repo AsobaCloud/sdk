@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 import json
 
-from ona_platform import OnaClient, OnaConfig
-from ona_platform.exceptions import (
+from asoba import OnaClient, OnaConfig
+from asoba.exceptions import (
     AuthenticationError,
     ConfigurationError,
     ServiceUnavailableError,
@@ -33,7 +33,7 @@ def auth_config():
 @pytest.fixture
 def auth_client(auth_config):
     """Create AuthClient instance."""
-    from ona_platform.services.auth import AuthClient
+    from asoba.services.auth import AuthClient
     return AuthClient(auth_config)
 
 
@@ -399,7 +399,7 @@ class TestAuthConfiguration:
     def test_auth_client_requires_endpoint(self):
         """Test AuthClient requires auth endpoint in config."""
         config = OnaConfig(aws_region='af-south-1')  # No auth_endpoint
-        from ona_platform.services.auth import AuthClient
+        from asoba.services.auth import AuthClient
         
         with pytest.raises(ConfigurationError) as exc_info:
             AuthClient(config)
@@ -407,7 +407,7 @@ class TestAuthConfiguration:
 
     def test_auth_client_accepts_https_endpoint(self, auth_config):
         """Test AuthClient accepts HTTPS endpoint."""
-        from ona_platform.services.auth import AuthClient
+        from asoba.services.auth import AuthClient
         # Should not raise
         client = AuthClient(auth_config)
         assert client is not None
@@ -418,7 +418,7 @@ class TestAuthConfiguration:
             aws_region='af-south-1',
             auth_endpoint='http://insecure-api.asoba.co/prod'  # HTTP - insecure
         )
-        from ona_platform.services.auth import AuthClient
+        from asoba.services.auth import AuthClient
         
         with pytest.raises(ConfigurationError) as exc_info:
             AuthClient(config)

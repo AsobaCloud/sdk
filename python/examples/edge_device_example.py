@@ -1,6 +1,6 @@
 """Example usage of Edge Device Registry client."""
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def main():

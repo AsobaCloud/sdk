@@ -1,58 +1,23 @@
-"""Ona Platform SDK - Python client for Ona Energy Management Platform.
+"""Backward-compatibility shim for the renamed ``asoba`` package.
 
-This SDK provides a unified interface to all Ona Platform services including:
-- Solar energy forecasting
-- OODA workflow (asset management, fault detection, diagnostics, scheduling)
-- Energy policy analysis with RAG
-- Edge device management
-- Data collection and processing
-- ML model training
-
-Quick Start:
-    >>> from ona_platform import OnaClient
-    >>>
-    >>> # Initialize client (uses environment variables)
-    >>> client = OnaClient()
-    >>>
-    >>> # Get solar forecast
-    >>> forecast = client.forecasting.get_site_forecast('Sibaya', hours=24)
-    >>>
-    >>> # Query energy policies
-    >>> answer = client.energy_analyst.query(
-    ...     "What are the grid code requirements for solar installations?"
-    ... )
-    >>>
-    >>> # Run fault detection
-    >>> detection = client.terminal.run_detection(
-    ...     customer_id='customer123',
-    ...     asset_id='asset456'
-    ... )
+``ona_platform`` has been renamed to ``asoba``. This module re-exports
+``asoba`` and emits a :class:`DeprecationWarning` on import so existing
+code keeps working during the migration window.
 """
 
-from .client import OnaClient
-from .config import OnaConfig
-from .exceptions import (
-    OnaError,
-    ConfigurationError,
-    ServiceUnavailableError,
-    ValidationError,
-    AuthenticationError,
-    ResourceNotFoundError,
-    RateLimitError,
-    TimeoutError
+from __future__ import annotations
+
+import sys
+import warnings
+
+import asoba
+
+warnings.warn(
+    "'ona_platform' has been renamed to 'asoba'. "
+    "Please update your imports to 'import asoba'. "
+    "'ona_platform' will be removed in a future release.",
+    DeprecationWarning,
+    stacklevel=2,
 )
 
-__version__ = "1.0.0"
-
-__all__ = [
-    "OnaClient",
-    "OnaConfig",
-    "OnaError",
-    "ConfigurationError",
-    "ServiceUnavailableError",
-    "ValidationError",
-    "AuthenticationError",
-    "ResourceNotFoundError",
-    "RateLimitError",
-    "TimeoutError",
-]
+sys.modules[__name__] = asoba

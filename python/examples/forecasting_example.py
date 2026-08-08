@@ -1,6 +1,6 @@
 """Example usage of Forecasting API client."""
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def main():

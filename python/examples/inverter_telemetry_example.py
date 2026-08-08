@@ -13,10 +13,10 @@ Prerequisites:
     export INVERTER_TELEMETRY_API_KEY=your_api_key
 """
 
-from ona_platform import OnaClient
-from ona_platform.exceptions import AuthenticationError, ValidationError
-from ona_platform.models.telemetry import TimeRange
-from ona_platform.services.inverter_telemetry import RateLimitError
+from asoba import OnaClient
+from asoba.exceptions import AuthenticationError, ValidationError
+from asoba.models.telemetry import TimeRange
+from asoba.services.inverter_telemetry import RateLimitError
 
 
 def main():

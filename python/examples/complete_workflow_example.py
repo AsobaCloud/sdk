@@ -1,6 +1,6 @@
 """Complete workflow example using multiple services."""
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def main():

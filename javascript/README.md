@@ -16,13 +16,13 @@ Official JavaScript SDK for the Asoba Ona Energy Management Platform. This SDK p
 ## Installation
 
 ```bash
-npm install @asoba/ona-sdk
+npm install @asobacloud/sdk
 ```
 
 ## Quick Start
 
 ```javascript
-const { OnaSDK } = require('@asoba/ona-sdk');
+const { OnaSDK } = require('@asobacloud/sdk');
 
 // Initialize the SDK
 const sdk = new OnaSDK({
@@ -271,7 +271,7 @@ const {
   ValidationError,
   AuthenticationError,
   TimeoutError
-} = require('@asoba/ona-sdk');
+} = require('@asobacloud/sdk');
 
 try {
   const forecast = await sdk.forecasting.getSiteForecast({
@@ -298,7 +298,7 @@ try {
 The SDK includes comprehensive TypeScript type definitions:
 
 ```typescript
-import { OnaSDK, SiteForecastParams, ForecastResult } from '@asoba/ona-sdk';
+import { OnaSDK, SiteForecastParams, ForecastResult } from '@asobacloud/sdk';
 
 const sdk = new OnaSDK({
   region: 'af-south-1',

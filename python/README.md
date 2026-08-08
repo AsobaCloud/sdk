@@ -14,7 +14,7 @@ Python SDK for the Ona Energy Management Platform. Provides a unified interface 
 ## Installation
 
 ```bash
-pip install ona-platform
+pip install asoba
 ```
 
 Or install from source:
@@ -27,7 +27,7 @@ pip install -e .
 ## Quick Start
 
 ```python
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 # Initialize client (uses environment variables)
 client = OnaClient()
@@ -463,7 +463,7 @@ result = client.data_ingestion.ingest()
 Validate records locally against the ODSE schema before uploading to the platform:
 
 ```python
-from ona_platform.models.odse import (
+from asoba.models.odse import (
     ODSE_REQUIRED_FIELDS,
     ODSE_ALLOWED_FIELDS,
     ODSE_ERROR_TYPES
@@ -522,7 +522,7 @@ models = client.training.list_models()
 The SDK provides custom exceptions for different error types:
 
 ```python
-from ona_platform import (
+from asoba import (
     OnaError,
     ConfigurationError,
     ServiceUnavailableError,
@@ -585,15 +585,15 @@ pip install -e ".[dev]"
 
 ```bash
 pytest
-pytest --cov=ona_platform
+pytest --cov=asoba
 ```
 
 ### Code Formatting
 
 ```bash
-black ona_platform/
-flake8 ona_platform/
-mypy ona_platform/
+black asoba/
+flake8 asoba/
+mypy asoba/
 ```
 
 ## Architecture
@@ -663,7 +663,7 @@ Contributions are welcome! Please follow the existing code style and include tes
 ### Version 1.1.0 (2026-05-31)
 
 - **Data Ingestion Validation** - Added `validate_local_records()` method for client-side ODSE record validation with 100% service parity
-- **ODSE Models** - New `ona_platform.models.odse` module with schema constants
+- **ODSE Models** - New `asoba.models.odse` module with schema constants
 - **Site Intelligence** - Enhanced Terminal API with soiling analysis and asset prognostics via `get_site_summary()`
 - **Battery Health** - Added battery State of Health (SOH) and warranty tracking support
 

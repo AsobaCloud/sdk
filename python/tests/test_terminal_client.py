@@ -3,9 +3,9 @@
 import pytest
 from unittest.mock import MagicMock
 from datetime import date, timedelta
-from ona_platform.services.terminal import TerminalClient
-from ona_platform.config import OnaConfig
-from ona_platform.exceptions import ResourceNotFoundError
+from asoba.services.terminal import TerminalClient
+from asoba.config import OnaConfig
+from asoba.exceptions import ResourceNotFoundError
 
 def test_calculate_remaining_warranty_life():
     today = date.today()
@@ -152,7 +152,7 @@ def test_pv_insight_synthesis_live():
     - llm_analysis['recommendation'] is a string with length > 20
     - llm_analysis['cited_sources'] is a list with length > 0
     """
-    from ona_platform import OnaClient  # matches terminal_ooda_example.py import
+    from asoba import OnaClient  # matches terminal_ooda_example.py import
 
     client = OnaClient()  # reads AWS creds from env; default timeout 120s
     result = client.terminal.run_pv_insight_synthesis(JEPA_DETECTION)
@@ -177,7 +177,7 @@ def test_pv_insight_synthesis_missing_detection_raises():
     config = OnaConfig(aws_region="af-south-1")
     client = TerminalClient(config)
 
-    from ona_platform.exceptions import ValidationError
+    from asoba.exceptions import ValidationError
     client.invoke_lambda = MagicMock(
         side_effect=ValidationError("detection is required")
     )
@@ -193,7 +193,7 @@ def test_pv_insight_synthesis_invalid_severity_label_raises():
 
     bad_detection = dict(JEPA_DETECTION, severity_label="nope")
 
-    from ona_platform.exceptions import ValidationError
+    from asoba.exceptions import ValidationError
     client.invoke_lambda = MagicMock(
         side_effect=ValidationError("invalid severity_label")
     )

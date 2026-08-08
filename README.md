@@ -33,12 +33,22 @@ Contact **support@asoba.org** to get an API key.
 
 **JavaScript:**
 ```bash
+npm install @asobacloud/sdk
+```
+
+Or from source:
+```bash
 git clone https://github.com/AsobaCloud/sdk.git
 cd sdk/javascript
 npm install
 ```
 
 **Python:**
+```bash
+pip install asoba
+```
+
+Or from source:
 ```bash
 git clone https://github.com/AsobaCloud/sdk.git
 cd sdk/python
@@ -123,7 +133,7 @@ for await (const record of sdk.inverterTelemetry.streamInverter({
 
 ### Python
 ```python
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 client = OnaClient()
 
@@ -193,8 +203,8 @@ for await (const alert of sdk.oodaTerminal.streamTerminal({
 
 ### Python
 ```python
-from ona_platform import OnaClient
-from ona_platform.models.ooda import TimeRange
+from asoba import OnaClient
+from asoba.models.ooda import TimeRange
 
 client = OnaClient()
 
@@ -294,7 +304,7 @@ for (const task of schedule.tasks) {
 
 ### Python
 ```python
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 client = OnaClient()
 
@@ -562,9 +572,9 @@ ODS-E includes transforms that convert vendor-specific data into the canonical s
 Validate records locally against the full ODS-E energy-timeseries schema (65 fields) before uploading to catch issues early. The SDK supports both basic schema validation and conformance profile validation.
 
 ```python
-from ona_platform import OnaClient
-from ona_platform.utils.validation import validate_odse_record, validate_with_profile, validate_batch
-from ona_platform.models.odse import ODSE_REQUIRED_FIELDS, ODSE_ALLOWED_FIELDS, ODSE_PROFILES
+from asoba import OnaClient
+from asoba.utils.validation import validate_odse_record, validate_with_profile, validate_batch
+from asoba.models.odse import ODSE_REQUIRED_FIELDS, ODSE_ALLOWED_FIELDS, ODSE_PROFILES
 
 client = OnaClient()
 
@@ -593,7 +603,7 @@ for item in result['invalid_records']:
 For trading workflows (wheeling, bilateral, SAWEM, municipal reconciliation, BESS dispatch, wind SCADA), use `validate_with_profile()`:
 
 ```python
-from ona_platform.utils.validation import validate_with_profile
+from asoba.utils.validation import validate_with_profile
 
 # Bilateral trade settlement
 bilateral_record = {
@@ -828,12 +838,12 @@ sdk/
 │       ├── inverterTelemetry.test.js
 │       └── partnerApi.test.js
 ├── python/
-│   ├── ona_platform/services/inverter_telemetry.py
-│   ├── ona_platform/services/ooda_terminal.py
-│   ├── ona_platform/services/partner_api.py
-│   ├── ona_platform/services/data_ingestion.py
-│   ├── ona_platform/utils/validation.py
-│   ├── ona_platform/models/odse.py
+│   ├── asoba/services/inverter_telemetry.py
+│   ├── asoba/services/ooda_terminal.py
+│   ├── asoba/services/partner_api.py
+│   ├── asoba/services/data_ingestion.py
+│   ├── asoba/utils/validation.py
+│   ├── asoba/models/odse.py
 │   ├── examples/inverter_telemetry_example.py
 │   ├── examples/ooda_terminal_example.py
 │   ├── examples/partner_api_example.py

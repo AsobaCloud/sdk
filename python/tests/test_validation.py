@@ -1,4 +1,4 @@
-from ona_platform.utils.validation import validate_odse_record, validate_batch
+from asoba.utils.validation import validate_odse_record, validate_batch
 
 
 def test_validate_odse_record_accepts_valid_minimal_record():

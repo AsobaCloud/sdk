@@ -10,15 +10,15 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from ona_platform.config import OnaConfig
-from ona_platform.exceptions import (
+from asoba.config import OnaConfig
+from asoba.exceptions import (
     AuthenticationError,
     ConfigurationError,
     ValidationError,
 )
-from ona_platform.models.telemetry import TelemetryRecord, TimeRange
-from ona_platform.services.inverter_telemetry import MAX_LIMIT, InverterTelemetryClient
-from ona_platform.services.telemetry_cursor import CursorSerializer
+from asoba.models.telemetry import TelemetryRecord, TimeRange
+from asoba.services.inverter_telemetry import MAX_LIMIT, InverterTelemetryClient
+from asoba.services.telemetry_cursor import CursorSerializer
 
 # ---------------------------------------------------------------------------
 # Helpers

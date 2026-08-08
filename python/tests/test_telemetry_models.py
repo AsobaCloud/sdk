@@ -4,8 +4,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from ona_platform.exceptions import ValidationError
-from ona_platform.models.telemetry import OPTIONAL_FIELDS, REQUIRED_FIELDS, TelemetryRecord
+from asoba.exceptions import ValidationError
+from asoba.models.telemetry import OPTIONAL_FIELDS, REQUIRED_FIELDS, TelemetryRecord
 
 # Strategies for required field values
 _required_strategy = st.fixed_dictionaries(

@@ -33,8 +33,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
-from ona_platform.exceptions import ServiceUnavailableError, ValidationError
-from ona_platform.services.freemium_forecast import FreemiumForecastClient
+from asoba.exceptions import ServiceUnavailableError, ValidationError
+from asoba.services.freemium_forecast import FreemiumForecastClient
 
 # ---------------------------------------------------------------------------
 # Fake in-process HTTP server
@@ -174,7 +174,7 @@ class TestBaseUrl:
 
     def test_ec1_old_constant_not_used(self):
         """Module-level constant must not equal the old URL."""
-        import ona_platform.services.freemium_forecast as mod
+        import asoba.services.freemium_forecast as mod
 
         # The old URL that must no longer be the base
         assert getattr(mod, "FREEMIUM_BASE_URL", None) != "https://api.asoba.org/v1/freemium-forecast"

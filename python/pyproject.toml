@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ona-platform"
+name = "asoba"
 version = "1.0.0"
-description = "Python SDK for Ona Energy Management Platform"
+description = "Python SDK for the Asoba Energy Management Platform"
 readme = "README.md"
 authors = [
-    {name = "Asoba Energy", email = "info@asoba.co"}
+    {name = "Asoba", email = "support@asoba.co"}
 ]
 license = {text = "MIT"}
 classifiers = [
@@ -39,9 +39,14 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AsobaCloud/platform"
-Documentation = "https://github.com/AsobaCloud/platform/tree/main/sdk/python"
-Repository = "https://github.com/AsobaCloud/platform"
+Homepage = "https://github.com/AsobaCloud/sdk"
+Documentation = "https://github.com/AsobaCloud/sdk/tree/main/python"
+Repository = "https://github.com/AsobaCloud/sdk"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["asoba*", "ona_platform*"]
+exclude = ["tests*", "examples*"]
 
 [tool.black]
 line-length = 100
@@ -58,3 +63,6 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+filterwarnings = [
+    "default::DeprecationWarning:ona_platform",
+]

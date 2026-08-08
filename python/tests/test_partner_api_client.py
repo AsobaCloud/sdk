@@ -16,14 +16,14 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from ona_platform.config import OnaConfig
-from ona_platform.exceptions import (
+from asoba.config import OnaConfig
+from asoba.exceptions import (
     AuthenticationError,
     ConfigurationError,
     RateLimitError,
     ServiceUnavailableError,
 )
-from ona_platform.services.partner_api import PartnerApiClient
+from asoba.services.partner_api import PartnerApiClient
 
 # ---------------------------------------------------------------------------
 # Sample payloads matching the live S3 snapshot shapes

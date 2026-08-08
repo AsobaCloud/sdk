@@ -17,8 +17,8 @@ Example usage:
 
 from datetime import datetime, timedelta
 
-from ona_platform import OnaClient
-from ona_platform.models.ooda import TimeRange
+from asoba import OnaClient
+from asoba.models.ooda import TimeRange
 
 
 def main():

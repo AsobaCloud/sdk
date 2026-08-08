@@ -19,7 +19,7 @@ import csv
 import os
 import tempfile
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def create_sample_csv(path: str) -> None:

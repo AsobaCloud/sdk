@@ -1,0 +1,7 @@
+include LICENSE README.md
+recursive-include asoba *.py
+recursive-include ona_platform *.py
+global-exclude *.py[cod] __pycache__ *.so .DS_Store *:Zone.Identifier
+prune tests
+prune examples
+prune .venv

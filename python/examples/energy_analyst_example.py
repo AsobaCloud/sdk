@@ -1,6 +1,6 @@
 """Example usage of Energy Analyst RAG client."""
 
-from ona_platform import OnaClient
+from asoba import OnaClient
 
 
 def main():
