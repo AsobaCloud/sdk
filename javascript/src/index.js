@@ -17,6 +17,8 @@ const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
 const PartnerApiClient = require('./services/PartnerApiClient');
+const InverterTelemetryClient = require('./services/InverterTelemetryClient');
+const OodaTerminalClient = require('./services/OodaTerminalClient');
 
 // Utilities
 const errors = require('./utils/errors');
@@ -27,44 +29,27 @@ const validators = require('./utils/validators');
  */
 class OnaSDK {
   /**
-   * Create a new Ona SDK instance
-   * @param {Object} options - SDK options
-   * @param {string} [options.region='af-south-1'] - AWS region
-   * @param {Object} [options.credentials] - AWS credentials
-   * @param {string} [options.credentials.accessKeyId] - AWS access key ID
-   * @param {string} [options.credentials.secretAccessKey] - AWS secret access key
-   * @param {string} [options.credentials.sessionToken] - AWS session token
-   * @param {Object} [options.endpoints] - Service endpoints
-   * @param {string} [options.partnerApiKey] - API key for Partner API
-   * @param {number} [options.timeout=30000] - Request timeout in milliseconds
-   * @param {number} [options.retries=3] - Number of retries for failed requests
-   * @param {number} [options.retryDelay=1000] - Delay between retries in milliseconds
+   * Create a new Ona SDK instance.
+   *
+   * @param {Object} [options]
+   * @param {string} [options.apiKey] - API key for telemetry, OODA, and partner APIs.
+   *   Falls back to process.env.ASOBA_API_KEY.
+   * @param {number} [options.timeout=30000] - Request timeout ms.
+   * @param {number} [options.retries=3] - Retry count.
+   * @param {number} [options.retryDelay=1000] - Retry delay ms.
+   * @param {Object} [options.endpoints] - Override specific endpoint URLs (advanced).
+   * @param {Object} [options.credentials] - AWS credentials for internal Lambda clients.
    *
    * @example
-   * const sdk = new OnaSDK({
-   *   region: 'af-south-1',
-   *   credentials: {
-   *     accessKeyId: 'YOUR_ACCESS_KEY',
-   *     secretAccessKey: 'YOUR_SECRET_KEY'
-   *   },
-   *   endpoints: {
-   *     forecasting: 'https://forecasting.api.asoba.co',
-   *     terminal: 'https://terminal.api.asoba.co',
-   *     edgeRegistry: 'http://edge-registry:8082',
-   *     energyAnalyst: 'http://energy-analyst:8000',
-   *     partnerApi: 'https://partner.api.asoba.co'
-   *   },
-   *   partnerApiKey: 'YOUR_PARTNER_API_KEY'
-   * });
+   * // From environment variable ASOBA_API_KEY
+   * const sdk = new OnaSDK();
+   *
+   * // Explicit key
+   * const sdk = new OnaSDK({ apiKey: 'your_key' });
    */
   constructor(options = {}) {
-    // Initialize configuration
     this.config = new Config(options);
-
-    // Initialize HTTP client
     this.httpClient = new HTTPClient(this.config);
-
-    // Initialize service clients
     this._initializeClients();
   }
 
@@ -132,6 +117,18 @@ class OnaSDK {
      * @type {PartnerApiClient}
      */
     this.partner = new PartnerApiClient(this.httpClient, this.config);
+
+    /**
+     * Inverter Telemetry API client
+     * @type {InverterTelemetryClient}
+     */
+    this.inverterTelemetry = new InverterTelemetryClient(this.config);
+
+    /**
+     * OODA Terminal Alerts API client
+     * @type {OodaTerminalClient}
+     */
+    this.oodaTerminal = new OodaTerminalClient(this.config);
   }
 
   /**

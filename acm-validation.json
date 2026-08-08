@@ -1,0 +1,31 @@
+{
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_30904b8d7f802ae55f1eea75e8458ead.telemetry.api.asoba.co.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{"Value": "_7181002dba982f3775920d79ec9e323d.jkddzztszm.acm-validations.aws."}]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_ee11fd9dc8be09955eb6e6f338b7ef06.partner.api.asoba.co.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{"Value": "_5526aaabb3dfcf7dcb3808c1ac6e524e.jkddzztszm.acm-validations.aws."}]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_845a6559ab16b01aad62390cd0f2834d.ooda.api.asoba.co.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{"Value": "_984fbec88e1b6a959154d768b32e1224.jkddzztszm.acm-validations.aws."}]
+      }
+    }
+  ]
+}

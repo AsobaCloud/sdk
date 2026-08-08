@@ -9,7 +9,6 @@ import requests
 from ..config import OnaConfig
 from ..exceptions import (
     AuthenticationError,
-    ConfigurationError,
     RateLimitError,
     ServiceUnavailableError,
 )
@@ -22,21 +21,18 @@ class PartnerApiClient:
     """
 
     def __init__(self, config: OnaConfig):
-        if not config.partner_api_endpoint:
-            raise ConfigurationError("partner_api_endpoint is required")
-        if not config.partner_api_endpoint.startswith("https://"):
-            raise ConfigurationError("partner_api_endpoint must use https://")
-        if not config.partner_api_key:
-            raise AuthenticationError("partner_api_key is required")
-
-        self._endpoint = config.partner_api_endpoint.rstrip("/")
-        self._api_key = config.partner_api_key
+        if not config.api_key:
+            raise AuthenticationError(
+                "api_key is required. Set ASOBA_API_KEY or pass api_key= to OnaClient."
+            )
+        self._endpoint = config.partner_endpoint.rstrip("/")
+        self._api_key = config.api_key
         self._session = requests.Session()
         self._session.headers.update(
             {
                 "x-api-key": self._api_key,
                 "Accept": "application/json",
-                "User-Agent": "ona-platform-sdk-python/1.1.0",
+                "User-Agent": "asoba-sdk-python/1.0",
             }
         )
         self._etag_cache: dict[str, dict] = {}  # url -> {etag, data}

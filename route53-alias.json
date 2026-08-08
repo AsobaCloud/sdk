@@ -1,0 +1,40 @@
+{
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "telemetry.api.asoba.co.",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2DHW2332DAMTN",
+          "DNSName": "d-qq52tuvj5k.execute-api.af-south-1.amazonaws.com",
+          "EvaluateTargetHealth": false
+        }
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "ooda.api.asoba.co.",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2DHW2332DAMTN",
+          "DNSName": "d-v2urgjbw23.execute-api.af-south-1.amazonaws.com",
+          "EvaluateTargetHealth": false
+        }
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "partner.api.asoba.co.",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2DHW2332DAMTN",
+          "DNSName": "d-2405ica61e.execute-api.af-south-1.amazonaws.com",
+          "EvaluateTargetHealth": false
+        }
+      }
+    }
+  ]
+}

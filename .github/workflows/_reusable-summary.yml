@@ -1,0 +1,174 @@
+# Reusable Workflow: Summary Report Generator
+# Called by other workflows to generate a consolidated summary report
+# when a workflow completes. Satisfies Requirement 10.1.
+#
+# Usage:
+#   jobs:
+#     report:
+#       uses: ./.github/workflows/_reusable-summary.yml
+#       with:
+#         workflow_name: "Python CI"
+#         python_result: ${{ needs.lint.result }}
+#         javascript_result: "skipped"
+#         test_result: ${{ needs.test.result }}
+#         security_result: "skipped"
+#       secrets: inherit
+
+name: Reusable Summary Report
+
+on:
+  workflow_call:
+    inputs:
+      workflow_name:
+        description: "Name of the calling workflow"
+        required: true
+        type: string
+      python_result:
+        description: "Result of Python jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      javascript_result:
+        description: "Result of JavaScript jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      test_result:
+        description: "Result of test jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      security_result:
+        description: "Result of security jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      integration_result:
+        description: "Result of integration jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      performance_result:
+        description: "Result of performance jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      docs_result:
+        description: "Result of documentation jobs (success/failure/skipped/cancelled)"
+        required: false
+        type: string
+        default: "skipped"
+      artifact_name:
+        description: "Name prefix for uploaded summary artifact"
+        required: false
+        type: string
+        default: "workflow-summary"
+      retention_days:
+        description: "Number of days to retain the summary artifact"
+        required: false
+        type: number
+        default: 7
+
+permissions:
+  contents: read
+  checks: write
+  actions: read
+
+jobs:
+  generate-summary:
+    name: Generate Summary Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Generate consolidated summary report
+        id: summary
+        run: |
+          WORKFLOW="${{ inputs.workflow_name }}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Helper: emoji for result
+          result_emoji() {
+            case "$1" in
+              success)   echo "✅" ;;
+              failure)   echo "❌" ;;
+              cancelled) echo "⚠️" ;;
+              skipped)   echo "⏭️" ;;
+              *)         echo "❓" ;;
+            esac
+          }
+
+          # Determine overall status
+          OVERALL="success"
+          for result in \
+            "${{ inputs.python_result }}" \
+            "${{ inputs.javascript_result }}" \
+            "${{ inputs.test_result }}" \
+            "${{ inputs.security_result }}" \
+            "${{ inputs.integration_result }}" \
+            "${{ inputs.performance_result }}" \
+            "${{ inputs.docs_result }}"; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              OVERALL="$result"
+              break
+            fi
+          done
+
+          OVERALL_EMOJI=$(result_emoji "$OVERALL")
+
+          # Build the summary markdown
+          cat > summary-report.md << EOF
+          # ${OVERALL_EMOJI} CI/CD Summary Report: ${WORKFLOW}
+
+          **Run:** [#${{ github.run_number }}](${RUN_URL})
+          **Branch:** \`${{ github.ref_name }}\`
+          **Commit:** \`${{ github.sha }}\`
+          **Triggered by:** ${{ github.actor }}
+          **Timestamp:** ${TIMESTAMP}
+
+          ## Job Results
+
+          | Component | Status |
+          |-----------|--------|
+          | Python | $(result_emoji "${{ inputs.python_result }}") ${{ inputs.python_result }} |
+          | JavaScript | $(result_emoji "${{ inputs.javascript_result }}") ${{ inputs.javascript_result }} |
+          | Tests | $(result_emoji "${{ inputs.test_result }}") ${{ inputs.test_result }} |
+          | Security | $(result_emoji "${{ inputs.security_result }}") ${{ inputs.security_result }} |
+          | Integration | $(result_emoji "${{ inputs.integration_result }}") ${{ inputs.integration_result }} |
+          | Performance | $(result_emoji "${{ inputs.performance_result }}") ${{ inputs.performance_result }} |
+          | Documentation | $(result_emoji "${{ inputs.docs_result }}") ${{ inputs.docs_result }} |
+
+          ## Overall Status
+
+          **${OVERALL_EMOJI} ${OVERALL}**
+
+          ## Links
+
+          - [View full run logs](${RUN_URL})
+          - [Download artifacts](${RUN_URL}#artifacts)
+
+          ---
+          *Generated automatically by the Ona SDK CI/CD pipeline*
+          EOF
+
+          echo "overall_status=$OVERALL" >> $GITHUB_OUTPUT
+          echo "report_file=summary-report.md" >> $GITHUB_OUTPUT
+
+      - name: Write summary to GitHub Actions job summary
+        run: cat summary-report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload summary report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.artifact_name }}-${{ github.run_number }}
+          path: summary-report.md
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: warn
+
+      - name: Fail workflow if any job failed
+        if: steps.summary.outputs.overall_status == 'failure' || steps.summary.outputs.overall_status == 'cancelled'
+        run: |
+          echo "One or more jobs failed. See summary report above."
+          exit 1

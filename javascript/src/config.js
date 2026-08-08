@@ -5,138 +5,75 @@
 const { ConfigurationError } = require('./utils/errors');
 
 /**
- * Default configuration values
+ * Canonical endpoint defaults — not intended to be overridden in normal use.
  */
-const DEFAULTS = {
-  region: 'af-south-1',
-  timeout: 30000, // 30 seconds
-  retries: 3,
-  retryDelay: 1000, // 1 second
-  endpoints: {
-    forecasting: null,
-    dataIngestion: null,
-    dataStandardization: null,
-    edgeRegistry: null,
-    energyAnalyst: null,
-    enphaseHistorical: null,
-    enphaseRealTime: null,
-    huaweiHistorical: null,
-    huaweiRealTime: null,
-    globalTraining: null,
-    interpolation: null,
-    terminal: null,
-    weather: null,
-    partnerApi: null
-  }
+const DEFAULT_ENDPOINTS = {
+  inverterTelemetry: 'https://telemetry.api.asoba.co',
+  oodaTerminal:      'https://ooda.api.asoba.co',
+  partnerApi:        'https://partner.api.asoba.co',
+  terminal:          'https://api.asoba.co',
+  // Internal / advanced
+  forecasting:       null,
+  dataIngestion:     null,
+  edgeRegistry:      null,
+  energyAnalyst:     null,
+  globalTraining:    null,
+  interpolation:     null,
+  weather:           null,
 };
 
 /**
- * Configuration class for SDK
+ * SDK configuration.
+ *
+ * The only required value is apiKey (or ASOBA_API_KEY environment variable).
+ * All endpoint URLs default to the canonical production values.
  */
 class Config {
   /**
-   * Create a new configuration
-   * @param {Object} options - Configuration options
-   * @param {string} [options.region] - AWS region
-   * @param {Object} [options.credentials] - AWS credentials
-   * @param {string} [options.credentials.accessKeyId] - AWS access key ID
-   * @param {string} [options.credentials.secretAccessKey] - AWS secret access key
-   * @param {string} [options.credentials.sessionToken] - AWS session token
-   * @param {Object} [options.endpoints] - Service endpoints
-   * @param {string} [options.partnerApiKey] - API key for Partner API
-   * @param {number} [options.timeout] - Request timeout in milliseconds
-   * @param {number} [options.retries] - Number of retries for failed requests
-   * @param {number} [options.retryDelay] - Delay between retries in milliseconds
+   * @param {Object} [options]
+   * @param {string} [options.apiKey]  - API key for telemetry, OODA, and partner APIs.
+   *                                     Falls back to process.env.ASOBA_API_KEY.
+   * @param {number} [options.timeout]     - Request timeout ms (default 30000).
+   * @param {number} [options.retries]     - Retry count (default 3).
+   * @param {number} [options.retryDelay]  - Retry delay ms (default 1000).
+   * @param {Object} [options.endpoints]   - Override specific endpoint URLs (advanced).
+   * @param {Object} [options.credentials] - AWS credentials for internal Lambda clients.
    */
   constructor(options = {}) {
-    this.region = options.region || DEFAULTS.region;
+    this.apiKey = options.apiKey || process.env.ASOBA_API_KEY || null;
+    this.timeout = options.timeout || 30000;
+    this.retries = options.retries !== undefined ? options.retries : 3;
+    this.retryDelay = options.retryDelay || 1000;
     this.credentials = options.credentials || null;
-    this.timeout = options.timeout || DEFAULTS.timeout;
-    this.retries = options.retries !== undefined ? options.retries : DEFAULTS.retries;
-    this.retryDelay = options.retryDelay || DEFAULTS.retryDelay;
-    this.partnerApiKey = options.partnerApiKey || null;
 
-    // Merge custom endpoints with defaults
     this.endpoints = {
-      ...DEFAULTS.endpoints,
-      ...(options.endpoints || {})
+      ...DEFAULT_ENDPOINTS,
+      ...(options.endpoints || {}),
     };
-
-    this.validate();
   }
 
   /**
-   * Validate configuration
-   * @throws {ConfigurationError} If configuration is invalid
-   */
-  validate() {
-    // Validate region
-    if (typeof this.region !== 'string' || this.region.length === 0) {
-      throw new ConfigurationError('Region must be a non-empty string', ['region']);
-    }
-
-    // Validate timeout
-    if (typeof this.timeout !== 'number' || this.timeout <= 0) {
-      throw new ConfigurationError('Timeout must be a positive number', ['timeout']);
-    }
-
-    // Validate retries
-    if (typeof this.retries !== 'number' || this.retries < 0) {
-      throw new ConfigurationError('Retries must be a non-negative number', ['retries']);
-    }
-
-    // Validate credentials if provided
-    if (this.credentials) {
-      const missingFields = [];
-
-      if (!this.credentials.accessKeyId) {
-        missingFields.push('credentials.accessKeyId');
-      }
-
-      if (!this.credentials.secretAccessKey) {
-        missingFields.push('credentials.secretAccessKey');
-      }
-
-      if (missingFields.length > 0) {
-        throw new ConfigurationError(
-          'AWS credentials require both accessKeyId and secretAccessKey',
-          missingFields
-        );
-      }
-    }
-  }
-
-  /**
-   * Get endpoint for a service
-   * @param {string} serviceName - Name of the service
-   * @returns {string|null} Service endpoint URL
+   * Get endpoint for a service.
+   * @param {string} serviceName
+   * @returns {string|null}
    */
   getEndpoint(serviceName) {
     return this.endpoints[serviceName] || null;
   }
 
   /**
-   * Set endpoint for a service
-   * @param {string} serviceName - Name of the service
-   * @param {string} endpoint - Service endpoint URL
-   */
-  setEndpoint(serviceName, endpoint) {
-    this.endpoints[serviceName] = endpoint;
-  }
-
-  /**
-   * Check if credentials are configured
-   * @returns {boolean} True if credentials are configured
+   * Check if AWS credentials are configured (for internal Lambda clients).
+   * @returns {boolean}
    */
   hasCredentials() {
-    return this.credentials !== null &&
-           this.credentials.accessKeyId !== undefined &&
-           this.credentials.secretAccessKey !== undefined;
+    return !!(this.credentials &&
+      this.credentials.accessKeyId &&
+      this.credentials.secretAccessKey);
   }
 
   /**
-   * Get AWS credentials
-   * @returns {Object|null} AWS credentials object
+   * Get AWS credentials.
+   * @returns {Object|null}
    */
   getCredentials() {
     return this.credentials;

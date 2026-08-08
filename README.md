@@ -54,25 +54,11 @@ pip3 install -e .
 
 ### 3. Set Environment Variables
 
-**Inverter Telemetry:**
 ```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://telemetry.api.asoba.co
-export INVERTER_TELEMETRY_API_KEY=<your_api_key>
+export ASOBA_API_KEY=<your_api_key>
 ```
 
-**OODA Terminal Alerts:**
-```bash
-export OODA_TERMINAL_ENDPOINT=https://ooda.api.asoba.co
-export OODA_TERMINAL_API_KEY=<your_api_key>
-```
-
-**Partner API:**
-```bash
-export PARTNER_API_ENDPOINT=https://partner.api.asoba.co
-export PARTNER_API_KEY=<your_api_key>
-```
-
-> The same API key works for all endpoints — just set it in the respective variables.
+One key works for all APIs. Endpoint URLs are built into the SDK.
 
 ### 4. Test It Works
 
@@ -102,12 +88,8 @@ Query and stream live power output, energy, temperature, and state data from sol
 ```javascript
 const { OnaSDK } = require('./src/index');
 
-const sdk = new OnaSDK({
-  endpoints: {
-    inverterTelemetry: process.env.INVERTER_TELEMETRY_ENDPOINT,
-  },
-  inverterTelemetryApiKey: process.env.INVERTER_TELEMETRY_API_KEY,
-});
+const sdk = new OnaSDK();
+// apiKey from ASOBA_API_KEY env var
 
 // Query historical data
 const records = await sdk.inverterTelemetry.getInverterTelemetry({
@@ -162,12 +144,8 @@ Query and stream OODA (Observe, Orient, Decide, Act) fault detection and diagnos
 ```javascript
 const { OnaSDK } = require('./src/index');
 
-const sdk = new OnaSDK({
-  endpoints: {
-    oodaTerminal: process.env.OODA_TERMINAL_ENDPOINT,
-  },
-  oodaTerminalApiKey: process.env.OODA_TERMINAL_API_KEY,
-});
+const sdk = new OnaSDK();
+// apiKey from ASOBA_API_KEY env var
 
 // Query historical alerts
 const alerts = await sdk.oodaTerminal.getTerminalAlerts({
@@ -263,18 +241,12 @@ print(f"Training status: {status['status']}")
 
 Fetch pre-computed JSON snapshots for embedding and partner integrations. This API is optimized for speed using ETag-based conditional GETs and in-memory caching.
 
-> **Config note (Python):** `partner_api_endpoint` must use `https://` — the SDK raises `ConfigurationError` on init if it doesn't. Set via `PARTNER_API_ENDPOINT` env var or the `OnaConfig(partner_api_endpoint=...)` dataclass field. The `partner_api_key` is sent as the `x-api-key` header.
-
 ### JavaScript
 ```javascript
 const { OnaSDK } = require('./src/index');
 
-const sdk = new OnaSDK({
-  endpoints: {
-    partnerApi: process.env.PARTNER_API_ENDPOINT,
-  },
-  partnerApiKey: process.env.PARTNER_API_KEY,
-});
+const sdk = new OnaSDK();
+// apiKey from ASOBA_API_KEY env var
 
 // 1. KPI rollup (first call: full fetch; second call: returns cached if ETag matches)
 const kpis = await sdk.partner.getKpiRollup({ site_id: 'Sibaya' });
@@ -812,9 +784,7 @@ print(f"Training status: {status['status']}")
 | `ConfigurationError` | Missing endpoint or API key | Verify environment variables are set |
 
 **Debug Steps:**
-1. Verify all three env vars are set to the same API key:
-   `echo $INVERTER_TELEMETRY_API_KEY` / `echo $OODA_TERMINAL_API_KEY` / `echo $PARTNER_API_KEY`
-   (a single key value, exported under three names — see Quick Start §3)
+1. Verify your API key is set: `echo $ASOBA_API_KEY`
 2. Run the provided examples first — they test the full flow
 3. Ensure you're querying a valid `site_id` (try `Sibaya` for testing)
 

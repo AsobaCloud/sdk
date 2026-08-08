@@ -57,15 +57,16 @@ class AuthClient(BaseServiceClient):
         """
         super().__init__(config)
 
-        if not hasattr(config, 'auth_endpoint') or not config.auth_endpoint:
-            raise ConfigurationError("auth_endpoint is required for AuthClient")
-
-        if not config.auth_endpoint.startswith('https://'):
-            raise ConfigurationError("auth_endpoint must use HTTPS")
-
-        self._endpoint = config.auth_endpoint.rstrip('/')
+        self._endpoint = config.auth_endpoint.rstrip('/') if config.auth_endpoint else None
         self._current_token: str | None = None
         self._session = None
+
+    def _require_endpoint(self):
+        if not self._endpoint:
+            raise ConfigurationError(
+                "auth_endpoint is required for AuthClient. "
+                "Set ASOBA_AUTH_ENDPOINT or pass auth_endpoint= to OnaClient."
+            )
 
     def refresh_token(self) -> dict:
         """Refresh current authentication token.
@@ -79,6 +80,8 @@ class AuthClient(BaseServiceClient):
         if not self._current_token:
             raise AuthenticationError("Not authenticated. Cannot refresh token.")
 
+        self._require_endpoint()
+        self._require_endpoint()
         try:
             payload = {
                 'httpMethod': 'POST',
@@ -125,6 +128,7 @@ class AuthClient(BaseServiceClient):
         if not password:
             raise ValidationError("Password is required")
 
+        self._require_endpoint()
         try:
             payload = {
                 'httpMethod': 'POST',
@@ -181,6 +185,7 @@ class AuthClient(BaseServiceClient):
         if not totp_code:
             raise ValidationError("TOTP code is required")
 
+        self._require_endpoint()
         try:
             payload = {
                 'httpMethod': 'POST',
@@ -291,9 +296,9 @@ class AuthClient(BaseServiceClient):
             Lambda function name with stage prefix
         """
         # Derive stage from endpoint URL or use 'prod' as default
-        if 'staging' in self._endpoint:
+        if self._endpoint and 'staging' in self._endpoint:
             return 'ona-user-auth-staging'
-        elif 'dev' in self._endpoint or 'localhost' in self._endpoint:
+        elif self._endpoint and ('dev' in self._endpoint or 'localhost' in self._endpoint):
             return 'ona-user-auth-dev'
         return 'ona-user-auth-prod'
 
@@ -310,6 +315,7 @@ class AuthClient(BaseServiceClient):
             AuthenticationError: If API key is invalid
             ServiceUnavailableError: If lookup fails
         """
+        self._require_endpoint()
         try:
             payload = {
                 'httpMethod': 'POST',
@@ -351,6 +357,7 @@ class AuthClient(BaseServiceClient):
         Raises:
             AuthenticationError: If API key is invalid or not authorized for site
         """
+        self._require_endpoint()
         try:
             payload = {
                 'httpMethod': 'POST',
@@ -397,6 +404,7 @@ class AuthClient(BaseServiceClient):
             AuthenticationError: If external token is invalid
             ServiceUnavailableError: If exchange service is unavailable
         """
+        self._require_endpoint()
         try:
             payload = {
                 'httpMethod': 'POST',

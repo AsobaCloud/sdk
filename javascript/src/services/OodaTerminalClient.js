@@ -28,7 +28,7 @@ class ServiceUnavailableError extends Error {
 class OodaTerminalClient {
   constructor(config) {
     const endpoint = (config.endpoints && config.endpoints.oodaTerminal) || null;
-    const apiKey = config.oodaTerminalApiKey || null;
+    const apiKey = config.apiKey || null;
 
     if (!endpoint) {
       throw new ConfigurationError('oodaTerminal endpoint is required', ['endpoints.oodaTerminal']);
@@ -37,7 +37,7 @@ class OodaTerminalClient {
       throw new ConfigurationError('oodaTerminal endpoint must use https://', ['endpoints.oodaTerminal']);
     }
     if (!apiKey) {
-      throw new AuthenticationError('oodaTerminalApiKey is required');
+      throw new AuthenticationError('apiKey is required. Set ASOBA_API_KEY or pass apiKey= to OnaSDK.');
     }
 
     this._endpoint = endpoint.replace(/\/$/, '');

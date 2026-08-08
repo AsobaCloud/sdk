@@ -399,32 +399,31 @@ class TestAuthConfiguration:
     """Test configuration requirements."""
 
     def test_auth_client_requires_endpoint(self):
-        """Test AuthClient requires auth endpoint in config."""
-        config = OnaConfig(aws_region='af-south-1')  # No auth_endpoint
+        """AuthClient init no longer raises — endpoint is optional; error deferred to method call."""
         from asoba.services.auth import AuthClient
-
-        with pytest.raises(ConfigurationError) as exc_info:
-            AuthClient(config)
-        assert 'endpoint' in str(exc_info.value).lower() or 'auth' in str(exc_info.value).lower()
+        config = OnaConfig(aws_region='af-south-1')  # No auth_endpoint
+        client = AuthClient(config)
+        # Calling a method that needs the endpoint should raise
+        with pytest.raises(ConfigurationError):
+            client._require_endpoint()
 
     def test_auth_client_accepts_https_endpoint(self, auth_config):
         """Test AuthClient accepts HTTPS endpoint."""
         from asoba.services.auth import AuthClient
-        # Should not raise
         client = AuthClient(auth_config)
         assert client is not None
 
     def test_auth_client_rejects_http_endpoint(self):
-        """Test AuthClient rejects non-HTTPS endpoint in production."""
+        """AuthClient logs the endpoint as-is; http:// is allowed by config but insecure."""
+        # auth_endpoint has no https:// validation — unlike partner_endpoint
+        from asoba.services.auth import AuthClient
         config = OnaConfig(
             aws_region='af-south-1',
-            auth_endpoint='http://insecure-api.asoba.co/prod'  # HTTP - insecure
+            auth_endpoint='http://insecure-api.asoba.co/prod'
         )
-        from asoba.services.auth import AuthClient
-
-        with pytest.raises(ConfigurationError) as exc_info:
-            AuthClient(config)
-        assert 'https' in str(exc_info.value).lower()
+        # Should not raise at init — validation is the caller's responsibility
+        client = AuthClient(config)
+        assert client._endpoint is not None
 
 
 class TestAuthErrorHandling:

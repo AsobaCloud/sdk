@@ -11,7 +11,6 @@ import requests
 from ..config import OnaConfig
 from ..exceptions import (
     AuthenticationError,
-    ConfigurationError,
     RateLimitError,
     ServiceUnavailableError,
     ValidationError,
@@ -26,14 +25,12 @@ MAX_TIME_RANGE_DAYS = 31
 
 class OodaTerminalClient:
     def __init__(self, config: OnaConfig):
-        if not config.ooda_terminal_endpoint:
-            raise ConfigurationError("ooda_terminal_endpoint is required")
-        if not config.ooda_terminal_endpoint.startswith("https://"):
-            raise ConfigurationError("ooda_terminal_endpoint must use https://")
-        if not config.ooda_terminal_api_key:
-            raise AuthenticationError("ooda_terminal_api_key is required")
-        self._endpoint = config.ooda_terminal_endpoint.rstrip("/")
-        self._api_key = config.ooda_terminal_api_key
+        if not config.api_key:
+            raise AuthenticationError(
+                "api_key is required. Set ASOBA_API_KEY or pass api_key= to OnaClient."
+            )
+        self._endpoint = config.ooda_endpoint.rstrip("/")
+        self._api_key = config.api_key
         self._polling_interval = config.ooda_polling_interval
         self._max_retries = config.max_retries
         self._session = requests.Session()

@@ -28,7 +28,7 @@ class ServiceUnavailableError extends Error {
 class InverterTelemetryClient {
   constructor(config) {
     const endpoint = (config.endpoints && config.endpoints.inverterTelemetry) || null;
-    const apiKey = config.inverterTelemetryApiKey || null;
+    const apiKey = config.apiKey || null;
 
     if (!endpoint) {
       throw new ConfigurationError('inverterTelemetry endpoint is required', ['endpoints.inverterTelemetry']);
@@ -37,7 +37,7 @@ class InverterTelemetryClient {
       throw new ConfigurationError('inverterTelemetry endpoint must use https://', ['endpoints.inverterTelemetry']);
     }
     if (!apiKey) {
-      throw new AuthenticationError('inverterTelemetryApiKey is required');
+      throw new AuthenticationError('apiKey is required. Set ASOBA_API_KEY or pass apiKey= to OnaSDK.');
     }
 
     this._endpoint = endpoint.replace(/\/$/, '');

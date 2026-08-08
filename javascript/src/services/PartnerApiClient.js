@@ -15,7 +15,7 @@ class PartnerApiClient {
     this.config = config;
 
     this.endpoint = this.config.endpoints.partnerApi;
-    this.apiKey = this.config.partnerApiKey;
+    this.apiKey = this.config.apiKey;
 
     if (!this.endpoint) {
       throw new ConfigurationError('partnerApi endpoint is required', [
@@ -28,7 +28,7 @@ class PartnerApiClient {
       ]);
     }
     if (!this.apiKey) {
-      throw new AuthenticationError('partnerApiKey is required');
+      throw new AuthenticationError('apiKey is required. Set ASOBA_API_KEY or pass apiKey= to OnaSDK.');
     }
 
     this.endpoint = this.endpoint.replace(/\/$/, '');

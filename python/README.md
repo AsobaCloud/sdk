@@ -48,15 +48,10 @@ for record in client.inverter_telemetry.stream_inverter(
 Set environment variables before running:
 
 ```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://telemetry.api.asoba.co
-export OODA_TERMINAL_ENDPOINT=https://ooda.api.asoba.co
-export PARTNER_API_ENDPOINT=https://partner.api.asoba.co
-export INVERTER_TELEMETRY_API_KEY=<your_api_key>
-export OODA_TERMINAL_API_KEY=<your_api_key>
-export PARTNER_API_KEY=<your_api_key>
+export ASOBA_API_KEY=<your_api_key>
 ```
 
-The same API key value works for all three variables.
+The same API key works for inverter telemetry, OODA terminal alerts, and the Partner API. Endpoint URLs are hardcoded to the canonical production values and do not need to be set.
 
 ## Inverter Telemetry
 

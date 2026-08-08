@@ -1,0 +1,227 @@
+# Common configuration for all workflows
+# =========================================
+# This file documents shared configuration patterns reused across all
+# CI/CD workflows. Copy the relevant blocks into your workflow file.
+#
+# NOTE: GitHub Actions does not support YAML anchors across files.
+# Use this file as a reference and copy blocks into individual workflows.
+#
+# Requirements addressed:
+#   - 9.1: Dependency caching to reduce execution time
+#   - 9.2: Concurrent workflow execution
+#   - 10.1: Summary reports (see _reusable-summary.yml)
+
+# ---------------------------------------------------------------------------
+# GLOBAL ENVIRONMENT VARIABLES
+# Copy into the top-level `env:` block of your workflow.
+# ---------------------------------------------------------------------------
+# env:
+#   PYTHON_VERSION: "3.11"          # Default Python version
+#   NODE_VERSION: "20"              # Default Node.js version
+#   REPO_NAME: ${{ github.repository }}
+#   BRANCH_NAME: ${{ github.ref_name }}
+#   ARTIFACT_RETENTION_DAYS: 7
+
+# ---------------------------------------------------------------------------
+# DEFAULTS
+# Copy into the top-level `defaults:` block of your workflow.
+# ---------------------------------------------------------------------------
+# defaults:
+#   run:
+#     shell: bash
+
+# ---------------------------------------------------------------------------
+# CONCURRENCY CONTROL  (Requirement 9.2)
+# Cancels in-progress runs for the same workflow+branch when a new run starts,
+# enabling concurrent execution across different branches/PRs while preventing
+# redundant runs on the same ref.
+# Copy into the top-level `concurrency:` block of your workflow.
+# ---------------------------------------------------------------------------
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
+
+# ---------------------------------------------------------------------------
+# WORKFLOW PERMISSIONS
+# Minimal permissions following the principle of least privilege.
+# Copy into the top-level `permissions:` block of your workflow.
+# ---------------------------------------------------------------------------
+# permissions:
+#   contents: read
+#   issues: read
+#   checks: write
+#   actions: read
+#   packages: read
+#   pull-requests: write
+
+# ---------------------------------------------------------------------------
+# COMMON WORKFLOW TRIGGERS
+# Copy into the `on:` block of your workflow and adjust paths as needed.
+# ---------------------------------------------------------------------------
+# on:
+#   push:
+#     branches:
+#       - main
+#       - develop
+#       - 'feature/**'
+#       - 'bugfix/**'
+#       - 'release/**'
+#     paths:
+#       - 'python/**'
+#       - 'javascript/**'
+#       - '.github/workflows/**'
+#       - '**/requirements.txt'
+#       - '**/package.json'
+#       - '**/pyproject.toml'
+#   pull_request:
+#     branches:
+#       - main
+#       - develop
+#     paths:
+#       - 'python/**'
+#       - 'javascript/**'
+#       - '.github/workflows/**'
+#       - '**/requirements.txt'
+#       - '**/package.json'
+#       - '**/pyproject.toml'
+#   workflow_dispatch:
+#     inputs:
+#       reason:
+#         description: 'Reason for manual trigger'
+#         required: false
+#         default: 'Manual execution'
+#         type: string
+
+# ---------------------------------------------------------------------------
+# PYTHON DEPENDENCY CACHE  (Requirement 9.1)
+# Add this step after `actions/setup-python` in your workflow.
+# The cache key includes the OS, Python version, and a hash of dependency
+# files so the cache is invalidated when dependencies change.
+# ---------------------------------------------------------------------------
+# - name: Cache Python dependencies
+#   uses: actions/cache@v4
+#   with:
+#     path: |
+#       ~/.cache/pip
+#       ~/.local/share/virtualenvs
+#       python/.pytest_cache
+#     key: ${{ runner.os }}-python-${{ matrix.python-version || env.PYTHON_VERSION }}-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
+#     restore-keys: |
+#       ${{ runner.os }}-python-${{ matrix.python-version || env.PYTHON_VERSION }}-
+#       ${{ runner.os }}-python-
+
+# ---------------------------------------------------------------------------
+# NODE.JS DEPENDENCY CACHE  (Requirement 9.1)
+# Add this step after `actions/setup-node` in your workflow.
+# The cache key includes the OS, Node version, and a hash of package-lock.json
+# so the cache is invalidated when dependencies change.
+# ---------------------------------------------------------------------------
+# - name: Cache Node.js dependencies
+#   uses: actions/cache@v4
+#   with:
+#     path: |
+#       javascript/node_modules
+#       ~/.npm
+#       ~/.cache/jest
+#     key: ${{ runner.os }}-node-${{ matrix.node-version || env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+#     restore-keys: |
+#       ${{ runner.os }}-node-${{ matrix.node-version || env.NODE_VERSION }}-
+#       ${{ runner.os }}-node-
+
+# ---------------------------------------------------------------------------
+# PYTHON VERSION MATRIX  (Requirement 9.4)
+# Use in the `strategy.matrix` block of Python jobs.
+# ---------------------------------------------------------------------------
+# strategy:
+#   fail-fast: false
+#   matrix:
+#     python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+# ---------------------------------------------------------------------------
+# NODE.JS VERSION MATRIX  (Requirement 9.4)
+# Use in the `strategy.matrix` block of JavaScript jobs.
+# ---------------------------------------------------------------------------
+# strategy:
+#   fail-fast: false
+#   matrix:
+#     node-version: ["14", "16", "18", "20"]
+
+# ---------------------------------------------------------------------------
+# ARTIFACT UPLOAD  (Requirement 10.3)
+# Standard artifact upload step. Copy and adjust `name` and `path`.
+# ---------------------------------------------------------------------------
+# - name: Upload test artifacts
+#   uses: actions/upload-artifact@v4
+#   if: always()
+#   with:
+#     name: test-results-${{ github.run_number }}
+#     path: |
+#       **/*.xml
+#       **/*.json
+#       **/coverage/
+#     retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+#     if-no-files-found: warn
+
+# ---------------------------------------------------------------------------
+# SUMMARY REPORT  (Requirement 10.1)
+# Call the reusable summary workflow as the final job in your workflow.
+# Pass the `result` outputs from your jobs as inputs.
+# ---------------------------------------------------------------------------
+# jobs:
+#   report:
+#     needs: [lint, test, ...]
+#     if: always()
+#     uses: ./.github/workflows/_reusable-summary.yml
+#     with:
+#       workflow_name: "My Workflow Name"
+#       python_result: ${{ needs.lint.result }}
+#       test_result: ${{ needs.test.result }}
+#     secrets: inherit
+
+# ---------------------------------------------------------------------------
+# CHECKOUT STEP
+# Standard repository checkout. Use fetch-depth: 0 for change detection.
+# ---------------------------------------------------------------------------
+# - name: Checkout repository
+#   uses: actions/checkout@v4
+#   with:
+#     fetch-depth: 0
+
+# ---------------------------------------------------------------------------
+# CHANGE DETECTION
+# Detect which components changed to enable selective job execution.
+# ---------------------------------------------------------------------------
+# - name: Detect changed components
+#   id: changes
+#   run: |
+#     BASE="${{ github.event.before }}"
+#     HEAD="${{ github.sha }}"
+#     CHANGED=$(git diff --name-only "${BASE}" "${HEAD}" 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+#
+#     if echo "$CHANGED" | grep -qE '^python/|requirements.*\.txt$|pyproject\.toml$'; then
+#       echo "python=true" >> $GITHUB_OUTPUT
+#     else
+#       echo "python=false" >> $GITHUB_OUTPUT
+#     fi
+#
+#     if echo "$CHANGED" | grep -qE '^javascript/|package(-lock)?\.json$'; then
+#       echo "javascript=true" >> $GITHUB_OUTPUT
+#     else
+#       echo "javascript=false" >> $GITHUB_OUTPUT
+#     fi
+
+# ---------------------------------------------------------------------------
+# JOB TIMEOUT
+# Apply to all jobs to prevent runaway executions.
+# ---------------------------------------------------------------------------
+# timeout-minutes: 30
+
+# ---------------------------------------------------------------------------
+# FAILURE NOTIFICATION STEP  (Requirement 10.2)
+# Add as the last step in a job, conditioned on failure.
+# ---------------------------------------------------------------------------
+# - name: Notify on failure
+#   if: failure()
+#   run: |
+#     echo "::error::Job '${{ github.job }}' failed in workflow '${{ github.workflow }}'"
+#     echo "::error::Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -1,0 +1,327 @@
+# Workflow Template
+# This template can be used as a starting point for new workflows
+
+name: Template Workflow
+
+# Workflow triggers
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'release/**'
+    paths:
+      - 'python/**'
+      - 'javascript/**'
+      - '.github/workflows/**'
+      - '**/requirements.txt'
+      - '**/package.json'
+      - '**/pyproject.toml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'python/**'
+      - 'javascript/**'
+      - '.github/workflows/**'
+      - '**/requirements.txt'
+      - '**/package.json'
+      - '**/pyproject.toml'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual execution'
+        type: string
+
+# Workflow permissions
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  actions: read
+  packages: read
+  pull-requests: write
+
+# Environment variables
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+  REPO_NAME: ${{ github.repository }}
+  BRANCH_NAME: ${{ github.ref_name }}
+  CACHE_PREFIX: "ci-cache-${{ github.run_id }}"
+  ARTIFACT_RETENTION_DAYS: 7
+  WORKFLOW_NAME: ${{ github.workflow }}
+  WORKFLOW_RUN_ID: ${{ github.run_id }}
+
+# Defaults
+defaults:
+  run:
+    shell: bash
+
+# Concurrency control
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Setup job
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_files: ${{ steps.detect-changes.outputs.changed_files }}
+      python_changed: ${{ steps.detect-changes.outputs.python_changed }}
+      javascript_changed: ${{ steps.detect-changes.outputs.javascript_changed }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Detect changes
+        id: detect-changes
+        run: |
+          # Detect changed files
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} 2>/dev/null || echo "")
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          
+          # Check for Python changes
+          if echo "$CHANGED_FILES" | grep -q -E '\.py$|requirements\.txt$|pyproject\.toml$'; then
+            echo "python_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "python_changed=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check for JavaScript changes
+          if echo "$CHANGED_FILES" | grep -q -E '\.js$|\.ts$|package\.json$|package-lock\.json$'; then
+            echo "javascript_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "javascript_changed=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Setup Python
+        if: steps.detect-changes.outputs.python_changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Setup Node.js
+        if: steps.detect-changes.outputs.javascript_changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-${{ github.workflow }}-${{ hashFiles('**/lockfiles') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.workflow }}-
+            ${{ runner.os }}-
+          path: |
+            ~/.cache/pip
+            ~/.local/share/virtualenvs
+            javascript/node_modules
+            ~/.npm
+
+  # Main job template
+  main:
+    runs-on: ubuntu-latest
+    needs: [setup]
+    strategy:
+      matrix:
+        # Define matrix variables here
+        example: [1, 2, 3]
+    
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    timeout-minutes: 30
+    
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-${{ github.workflow }}-${{ hashFiles('**/lockfiles') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.workflow }}-
+            ${{ runner.os }}-
+          path: |
+            ~/.cache/pip
+            ~/.local/share/virtualenvs
+            javascript/node_modules
+            ~/.npm
+      
+      - name: Run main task
+        run: |
+          echo "Running main task for matrix value: ${{ matrix.example }}"
+          # Add your main task logic here
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.workflow }}-${{ matrix.example }}-artifacts
+          path: |
+            **/*.log
+            **/*.json
+            **/*.xml
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+          if-no-files-found: warn
+
+  # Validation job template
+  validate:
+    runs-on: ubuntu-latest
+    needs: [main]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    timeout-minutes: 30
+    
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.workflow }}-${{ needs.main.outputs.matrix_value }}-artifacts
+      
+      - name: Validate results
+        run: |
+          echo "Validating workflow results..."
+          # Add validation logic here
+      
+      - name: Generate report
+        run: |
+          echo "Generating validation report..."
+          # Add report generation logic here
+      
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.workflow }}-validation-report
+          path: validation-report.md
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+          if-no-files-found: warn
+
+  # Notification job template
+  notify:
+    runs-on: ubuntu-latest
+    needs: [validate]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    timeout-minutes: 30
+    
+    if: always()
+    
+    steps:
+      - name: Determine notification type
+        id: determine-notification
+        run: |
+          if [ "${{ needs.validate.result }}" == "success" ]; then
+            echo "type=success" >> $GITHUB_OUTPUT
+            echo "message=Workflow completed successfully" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.validate.result }}" == "failure" ]; then
+            echo "type=failure" >> $GITHUB_OUTPUT
+            echo "message=Workflow failed" >> $GITHUB_OUTPUT
+          elif [ "${{ needs.validate.result }}" == "cancelled" ]; then
+            echo "type=cancelled" >> $GITHUB_OUTPUT
+            echo "message=Workflow was cancelled" >> $GITHUB_OUTPUT
+          else
+            echo "type=unknown" >> $GITHUB_OUTPUT
+            echo "message=Workflow completed with unknown status" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Send notification
+        if: steps.determine-notification.outputs.type == 'failure'
+        run: |
+          echo "Sending notification: ${{ steps.determine-notification.outputs.message }}"
+          # Add notification logic here
+          # Example: curl -X POST -H 'Content-type: application/json' --data '{"text":"${{ steps.determine-notification.outputs.message }}"}' $SLACK_WEBHOOK_URL
+      
+      - name: Update status check
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            // Update status check logic here
+            console.log(`Pull request #${context.issue.number} status updated`);
+
+  # Cleanup job
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [notify]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    timeout-minutes: 30
+    
+    if: always()
+    
+    steps:
+      - name: Cleanup temporary files
+        run: |
+          echo "Cleaning up temporary files..."
+          rm -rf /tmp/gh-actions/*
+          rm -rf ~/.cache/pip/http/*
+      
+      - name: Upload cleanup logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ github.workflow }}-cleanup-logs
+          path: |
+            /tmp/gh-actions/*.log
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+          if-no-files-found: warn
+
+# Workflow outputs
+outputs:
+  workflow_id:
+    description: "Workflow run ID"
+    value: ${{ github.run_id }}
+  
+  workflow_status:
+    description: "Final workflow status"
+    value: ${{ job.status }}
+  
+  artifacts_url:
+    description: "URL to workflow artifacts"
+    value: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+# Notes and documentation
+# This template includes:
+# 1. Common setup job with change detection
+# 2. Main job with matrix strategy support
+# 3. Validation job for result verification
+# 4. Notification job for status updates
+# 5. Cleanup job for resource management
+#
+# To use this template:
+# 1. Copy this file to a new workflow
+# 2. Update the workflow name
+# 3. Customize the matrix strategy in the main job
+# 4. Implement the main task logic
+# 5. Add workflow-specific validation logic
+# 6. Configure notifications as needed
