@@ -24,7 +24,7 @@ Planned: Energy Policy Analysis, Data Collection integrations.
 ## Quick Start
 
 ### 1. Get an API Key
-Contact **support@asoba.org** to get an API key.
+Contact **support@asoba.co** to get an API key.
 
 ### 2. Install the SDK
 
@@ -56,19 +56,19 @@ pip3 install -e .
 
 **Inverter Telemetry:**
 ```bash
-export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_ENDPOINT=https://telemetry.api.asoba.co
 export INVERTER_TELEMETRY_API_KEY=<your_api_key>
 ```
 
 **OODA Terminal Alerts:**
 ```bash
-export OODA_TERMINAL_ENDPOINT=https://3lpq00xevg.execute-api.af-south-1.amazonaws.com/prod
+export OODA_TERMINAL_ENDPOINT=https://ooda.api.asoba.co
 export OODA_TERMINAL_API_KEY=<your_api_key>
 ```
 
 **Partner API:**
 ```bash
-export PARTNER_API_ENDPOINT=https://8el3o25tc1.execute-api.af-south-1.amazonaws.com/prod
+export PARTNER_API_ENDPOINT=https://partner.api.asoba.co
 export PARTNER_API_KEY=<your_api_key>
 ```
 
@@ -795,9 +795,9 @@ print(f"Training status: {status['status']}")
 
 | API | Endpoint |
 |-----|----------|
-| Inverter Telemetry | `https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod` |
-| OODA Terminal Alerts | `https://3lpq00xevg.execute-api.af-south-1.amazonaws.com/prod` |
-| Partner API | `https://8el3o25tc1.execute-api.af-south-1.amazonaws.com/prod` |
+| Inverter Telemetry | `https://telemetry.api.asoba.co` |
+| OODA Terminal Alerts | `https://ooda.api.asoba.co` |
+| Partner API | `https://partner.api.asoba.co` |
 
 ---
 
@@ -805,7 +805,7 @@ print(f"Training status: {status['status']}")
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `401 Unauthorized` | Invalid/missing API key | Check your API key with support@asoba.org |
+| `401 Unauthorized` | Invalid/missing API key | Check your API key with support@asoba.co |
 | `403 Forbidden` | API key not scoped to site | Request access to the site_id you're querying |
 | `429 Too Many Requests` | Rate limit exceeded | Wait and retry (60 req/min limit) |
 | `ValidationError` | Invalid parameters | Check time ranges, limits, and required fields |
@@ -859,11 +859,11 @@ sdk/
 
 ## Support
 
-**Need an API Key?** Contact **support@asoba.org** with your use case.
+**Need an API Key?** Contact **support@asoba.co** with your use case.
 
 **Issues?** Open one at https://github.com/AsobaCloud/sdk/issues
 
-**Email:** support@asoba.org
+**Email:** support@asoba.co
 
 ---
 
