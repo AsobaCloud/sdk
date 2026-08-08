@@ -20,7 +20,7 @@ class HTTPClient {
       timeout: config.timeout,
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': '@asobacloud/sdk/1.0.4'
+        'User-Agent': '@asobacloud/sdk/1.0.5'
       }
     });
   }

@@ -1,6 +1,6 @@
 {
   "name": "@asobacloud/sdk",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Official JavaScript SDK for the Asoba Energy Management Platform",
   "main": "src/index.js",
   "types": "src/types/index.d.ts",
@@ -22,7 +22,10 @@
   ],
   "author": "Asoba <support@asoba.co>",
   "license": "MIT",
-  "homepage": "https://github.com/AsobaCloud/sdk",
+  "homepage": "https://asoba.co",
+  "bugs": {
+    "url": "https://github.com/AsobaCloud/sdk/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/AsobaCloud/sdk.git",

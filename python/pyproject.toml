@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asoba"
-version = "1.0.4"
+version = "1.0.5"
 description = "Python SDK for the Asoba Energy Management Platform"
 readme = "README.md"
 authors = [
@@ -39,9 +39,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AsobaCloud/sdk"
-Documentation = "https://github.com/AsobaCloud/sdk/tree/main/python"
+Homepage = "https://asoba.co"
+Documentation = "https://docs.asoba.co"
 Repository = "https://github.com/AsobaCloud/sdk"
+Issues = "https://github.com/AsobaCloud/sdk/issues"
+Changelog = "https://github.com/AsobaCloud/sdk/releases"
 
 [tool.setuptools.packages.find]
 where = ["."]
