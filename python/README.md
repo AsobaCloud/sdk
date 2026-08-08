@@ -1,15 +1,10 @@
-# Ona Platform SDK - Python
+# <img src="https://raw.githubusercontent.com/AsobaCloud/sdk/main/docs/asoba-logo.svg" alt="Asoba" width="36" height="36" align="bottom" /> Ona SDK — Python
 
-Python SDK for the Ona Energy Management Platform. Provides a unified interface to all platform services including solar forecasting, fault detection, AI diagnostics, energy policy analysis, and more.
+[![PyPI](https://img.shields.io/pypi/v/asoba.svg)](https://pypi.org/project/asoba/)
+[![CI](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Features
-
-- **Solar Energy Forecasting**: Device, site, and customer-level predictions
-- **OODA Workflow**: Asset management, fault detection, diagnostics, and maintenance scheduling
-- **Energy Policy Analysis**: RAG-powered queries on energy regulations
-- **Edge Device Management**: Discovery, registration, and capability detection
-- **Data Collection**: Enphase, Huawei, and weather data integration
-- **ML Operations**: Model training, interpolation, and data standardization
+Python SDK for live energy asset data — inverter telemetry, OODA terminal alerts, Partner API snapshots, battery warranty intelligence, and ODS-E schema validation.
 
 ## Installation
 
@@ -17,606 +12,343 @@ Python SDK for the Ona Energy Management Platform. Provides a unified interface 
 pip install asoba
 ```
 
-Or install from source:
+Or from source:
 
 ```bash
+git clone https://github.com/AsobaCloud/sdk.git
 cd sdk/python
 pip install -e .
 ```
 
-## Quick Start
+## Quick start
 
 ```python
 from asoba import OnaClient
 
-# Initialize client (uses environment variables)
 client = OnaClient()
 
-# Get solar forecast
-forecast = client.forecasting.get_site_forecast('Sibaya', hours=24)
-print(f"Next hour: {forecast['forecasts'][0]['kWh_forecast']} kWh")
-
-# Run fault detection
-detection = client.terminal.run_detection(
-    customer_id='customer123',
-    asset_id='asset456',
-    lookback_hours=6
+# Query historical inverter data
+records = client.inverter_telemetry.get_inverter_telemetry(
+    asset_id='INV-1000000054495190',
+    site_id='Sibaya',
+    time_range={'start': '2025-11-01T00:00:00', 'end': '2025-11-01T12:00:00'},
+    resolution='5min',
+    limit=100,
 )
-print(f"Severity: {detection['analysis']['severity_label']}")
 
-# Query energy policies
-answer = client.energy_analyst.query(
-    "What are the grid code requirements for solar installations?"
-)
-print(answer['answer'])
+# Stream live data
+for record in client.inverter_telemetry.stream_inverter(
+    asset_id='INV-1000000054495190',
+    site_id='Sibaya',
+    polling_interval=30,
+):
+    print(f"{record.timestamp}: {record.power} kW")
 ```
 
-## Configuration
-
-Configure the SDK using environment variables or constructor parameters:
-
-### Environment Variables
+Set environment variables before running:
 
 ```bash
-export AWS_REGION=af-south-1
-export INPUT_BUCKET=sa-api-client-input
-export OUTPUT_BUCKET=sa-api-client-output
-export ENERGY_ANALYST_URL=http://localhost:8000
-export EDGE_API_URL=http://localhost:8082
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
+export OODA_TERMINAL_ENDPOINT=https://3lpq00xevg.execute-api.af-south-1.amazonaws.com/prod
+export PARTNER_API_ENDPOINT=https://8el3o25tc1.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_API_KEY=<your_api_key>
+export OODA_TERMINAL_API_KEY=<your_api_key>
+export PARTNER_API_KEY=<your_api_key>
 ```
 
-### Constructor Parameters
+The same API key value works for all three variables.
+
+## Inverter Telemetry
 
 ```python
-client = OnaClient(
-    aws_region='af-south-1',
-    energy_analyst_url='http://localhost:8000',
-    edge_api_url='http://localhost:8082',
-    auth_endpoint='https://auth-api.asoba.co/prod',
-    timeout=120,
-    max_retries=3
-)
-```
+from asoba import OnaClient
 
-## Authentication
+client = OnaClient()
 
-The SDK provides the `AuthClient` for user authentication, MFA verification, token management, and API key introspection.
-
-### Login with Username/Password
-
-```python
-# Login
-result = client.auth.login('user@example.com', 'password')
-
-# Handle MFA if required
-if result.get('mfa_required'):
-    if result.get('mfa_enrollment'):
-        # First-time MFA setup - display provisioning_uri as QR code
-        print(f"Setup MFA: {result['provisioning_uri']}")
-    
-    # Verify MFA code
-    result = client.auth.verify_mfa(result['mfa_token'], '123456')
-
-# Token is automatically stored
-print(f"Logged in as: {result['user']['username']}")
-```
-
-### Token Management
-
-```python
-# Set token directly (for external integrations)
-client.auth.set_token('eyJhbGciOiJIUzI1NiIs...')
-
-# Get current user from token
-user = client.auth.get_current_user()
-print(f"User: {user['username']} (Role: {user['role_id']})")
-
-# Refresh token before expiry
-new_token = client.auth.refresh_token()
-
-# Check authentication status
-if client.auth.is_authenticated():
-    print("Authenticated")
-
-# Logout
-client.auth.logout()
-```
-
-### API Key Introspection
-
-```python
-# Get API key information
-info = client.auth.get_api_key_info('opa_prod_xxxxx')
-print(f"Expires: {info['expires_at']}")
-print(f"Sites: {info['permitted_site_ids']}")
-
-# Validate API key for specific site
-validation = client.auth.validate_api_key('opa_prod_xxxxx', 'Sibaya')
-if validation['valid']:
-    print("API key is valid for site")
-```
-
-### Token Exchange (SSO Integration)
-
-```python
-# Exchange external token for Ona token (for SSO)
-result = client.auth.exchange_token(
-    external_token='external_jwt_token',
-    provider='external-sso'
-)
-print(f"Ona token: {result['token']}")
-```
-
-### Environment Variables
-
-```bash
-export ONA_AUTH_ENDPOINT=https://auth-api.asoba.co/prod
-```
-
-## Services
-
-### Forecasting API
-
-Get solar energy forecasts at different levels:
-
-```python
-# Device-level forecast
-device_forecast = client.forecasting.get_device_forecast(
+# Historical data for one inverter
+records = client.inverter_telemetry.get_inverter_telemetry(
+    asset_id='INV-1000000054495190',
     site_id='Sibaya',
-    device_id='INV001',
-    forecast_hours=24
+    time_range={'start': '2025-11-01T00:00:00', 'end': '2025-11-01T12:00:00'},
+    resolution='5min',
+    limit=100,
 )
 
-# Site-level aggregated forecast
-site_forecast = client.forecasting.get_site_forecast(
+# Historical data for all inverters at a site
+site_records = client.inverter_telemetry.get_site_telemetry(
     site_id='Sibaya',
-    forecast_hours=24,
-    include_device_breakdown=True
+    time_range={'start': '2025-11-01T00:00:00', 'end': '2025-11-01T12:00:00'},
 )
 
-# Customer-level forecast (legacy LSTM path)
-# Pass platform customer_id (UUID) or legacy site-style id.
-# forecastingApi maps UUID → site_name via ona-platform-customers, then loads
-# customer_tailored/{site_name}/ or generic. Prefer get_site_forecast / get_device_forecast
-# for site-based platform use. See services/forecastingApi/README.md.
-customer_forecast = client.forecasting.get_customer_forecast(
-    customer_id='customer123',
-    forecast_hours=24
-)
+# Discover available data range
+period = client.inverter_telemetry.get_data_period(site_id='Sibaya')
+print(f"Data from {period.first_record} to {period.last_record}")
+
+# Stream live data (cursor-resumable)
+for record in client.inverter_telemetry.stream_inverter(
+    asset_id='INV-1000000054495190',
+    site_id='Sibaya',
+    polling_interval=30,
+):
+    print(f"{record.timestamp}: {record.power} kW")
 ```
 
-### Terminal API - OODA Workflow
-
-Complete OODA (Observe, Orient, Decide, Act) workflow:
+## OODA Terminal Alerts
 
 ```python
-# OBSERVE: Fault detection
-detection = client.terminal.run_detection(
-    customer_id='customer123',
-    asset_id='asset456',
-    lookback_hours=6
+from asoba.models.ooda import TimeRange
+
+# Historical alerts for one terminal device
+alerts = client.ooda_terminal.get_terminal_alerts(
+    terminal_device_id='TERM-1000000054495190',
+    site_id='Sibaya',
+    time_range=TimeRange(start='2025-11-01T00:00:00', end='2025-11-01T12:00:00'),
+    limit=100,
 )
 
-# OBSERVE: pv-insight O&M synthesis (RAG + Nehanda on a JEPA detection)
-synthesis = client.terminal.run_pv_insight_synthesis(
-    detection=detection,
-    user_query='Analyze JEPA Anomaly & Recommend BOM',
+# All terminal devices at a site
+site_alerts = client.ooda_terminal.get_site_alerts(
+    site_id='Sibaya',
+    time_range=TimeRange(start='2025-11-01T00:00:00', end='2025-11-01T12:00:00'),
 )
 
-# ORIENT: AI diagnostics
-diagnostic = client.terminal.run_diagnostics(
-    customer_id='customer123',
-    asset_id='asset456',
-    detection_id=detection['detection_id']
-)
+# Discover available data range
+period = client.ooda_terminal.get_data_period(site_id='Sibaya')
+print(f"Data from {period.first_record} to {period.last_record}")
 
-# DECIDE: Create maintenance schedule
-schedule = client.terminal.create_schedule(
-    customer_id='customer123',
-    asset_id='asset456',
-    description='Replace inverter filter',
-    priority='High',
-    estimated_duration_hours=8
-)
-
-# ACT: View activity stream
-activities = client.terminal.list_activities(
-    customer_id='customer123'
-)
+# Stream live alerts
+for alert in client.ooda_terminal.stream_terminal(
+    terminal_device_id='TERM-1000000054495190',
+    site_id='Sibaya',
+    polling_interval=30,
+):
+    print(f"{alert.timestamp}: [{alert.alert_severity}] {alert.message}")
 ```
 
-#### Asset Management
+## Partner API
+
+Pre-computed snapshots with ETag caching — sub-100ms on repeat calls.
+
+> `partner_api_endpoint` must use `https://` — `OnaConfig` raises `ConfigurationError` on init otherwise.
 
 ```python
-# List assets
-#### Asset Management
+# KPI rollup (first call: full fetch; second call: returns cached if ETag matches)
+kpis = client.partner.get_kpi_rollup(site_id='Sibaya')
+cached = client.partner.get_kpi_rollup(site_id='Sibaya')
 
-```python
-# List all assets
-assets = client.terminal.list_assets(customer_id='customer123')
-
-# Get specific asset (including battery details)
-asset = client.terminal.get_asset(
-    customer_id='customer123',
-    asset_id='BAT-789'
+# Maintenance signals (detected anomalies) — optional since/severity filters
+signals = client.partner.get_maintenance_signals(
+    site_id='Sibaya',
+    since='2025-11-01T00:00:00',
+    severity='high',
 )
 
-# Add new battery asset
-asset = client.terminal.add_asset(
-    customer_id='customer123',
-    asset_id='BAT-789',
-    name='Home Battery 1',
-    asset_type='battery',
-    capacity_kw=5.0,
-    location='Durban',
-    capacity_kwh=13.5,
-    warranty_expiry_date='2030-01-01',
-    warranty_throughput_kwh=10000.0
-)
+# 24h solar forecast snapshot
+forecast = client.partner.get_forecast_snapshot(site_id='Sibaya')
+print(f"{forecast['horizon_hours']}h, {len(forecast['intervals'])} intervals")
+
+# 90-day preventive maintenance schedule (SEP-062)
+schedule = client.partner.get_maintenance_schedule(site_id='Sibaya')
+for task in schedule['tasks']:
+    print(f"{task['recommended_date']} — {task['asset_id']} — {task['task_type']} ({task['priority']})")
 ```
 
-#### Battery Warranty Tracking
-
-Calculate remaining warranty life based on time and energy throughput:
+## Battery & Site Intelligence
 
 ```python
-# Calculate remaining warranty
-warranty = client.terminal.calculate_remaining_warranty_life(
-    warranty_expiry_date='2030-01-01',
-    warranty_throughput_kwh=10000.0,
-    current_throughput_kwh=2500.0
-)
-
-print(f"Status: {warranty['warranty_status']}")
-print(f"Days left: {warranty['days_remaining']}")
-print(f"Limiting factor: {warranty['limiting_factor']}")
-```
-
-#### ML Integration
-
-```python
-# Get forecast results
-forecasts = client.terminal.get_forecast_results(
-    customer_id='customer123'
-)
-
-# Get interpolation results
-interpolations = client.terminal.get_interpolation_results(
-    customer_id='customer123'
-)
-
-# Get model registry
-models = client.terminal.get_ml_models()
-
-# Get ML-enhanced OODA summaries
-summaries = client.terminal.get_ml_ooda_summaries(
-    customer_id='customer123'
-)
-```
-
-#### Nowcast Data
-
-```python
-# Get real-time monitoring data
-nowcast = client.terminal.get_nowcast_data(
-    customer_id='customer123',
-    time_range='1h',  # '1h', '6h', '24h', '7d', 'latest'
-    asset_filter=['asset1', 'asset2']
-)
-```
-
-#### Site Summary & Performance Intelligence
-
-Get aggregated site-level KPIs including soiling analysis and asset prognostics:
-
-```python
-# Get high-level site summary
+# Site summary with battery health KPIs
 summary = client.terminal.get_site_summary(site_id='Sibaya')
-
-print(f"Total kWh Today: {summary['total_kWh_today']}")
 print(f"Fleet PR: {summary['fleet_pr_pct']}%")
 
-# Soiling Audit
-if summary.get('soiling'):
-    soiling = summary['soiling']
-    print(f"Soiling Rate: {soiling['soiling_rate_pct_day']}%/day")
-    print(f"Recovery Gain: {soiling['recovery_gain_kwh_last_event']} kWh")
+if 'soiling' in summary:
+    print(f"Soiling rate: {summary['soiling']['soiling_rate_pct_day']}%/day")
 
-# Asset Prognostics
-if summary.get('prognostics'):
-    prog = summary['prognostics']
-    print(f"Health Score: {prog['health_score']}/100")
-    print(f"Battery Retirement: {prog['battery_retirement_date']}")
+if 'battery' in summary:
+    print(f"Avg SOH: {summary['battery']['avg_soh']}%")
+
+# Asset detail (includes battery capacity and warranty)
+asset = client.terminal.get_asset(customer_id='cust123', asset_id='BAT-001')
+
+# Calculate remaining warranty life
+status = client.terminal.calculate_remaining_warranty_life(
+    warranty_expiry_date='2030-12-31',
+    warranty_throughput_kwh=10000.0,
+    current_throughput_kwh=8500.0,
+)
+print(f"{status['warranty_status']} — {status['throughput_remaining_pct']}% throughput remaining")
 ```
 
-### Energy Analyst RAG
+## ODS-E Data Validation
 
-Query energy policies and regulations:
-
-```python
-# Query documents
-result = client.energy_analyst.query(
-    question="What are the NRS 097 grid connection requirements?",
-    n_results=3,
-    max_new_tokens=512,
-    temperature=0.7
-)
-print(result['answer'])
-print(f"Source: {result['citation']}")
-
-# Upload PDF documents
-upload_result = client.energy_analyst.upload_pdfs([
-    '/path/to/policy1.pdf',
-    '/path/to/policy2.pdf'
-])
-
-# Add text documents
-client.energy_analyst.add_documents(
-    texts=["Document text..."],
-    metadatas=[{"source": "doc.pdf", "document_title": "Policy Document"}]
-)
-
-# Check service health
-health = client.energy_analyst.health()
-print(f"Documents: {health['document_count']}")
-
-# Get collection info
-info = client.energy_analyst.get_collection_info()
-print(f"Storage: {info['storage_mb']} MB")
-```
-
-### Edge Device Registry
-
-Discover and manage edge devices:
+Validate records locally against the full 65-field energy-timeseries schema before uploading.
 
 ```python
-# Discover new device
-device = client.edge_devices.discover_device(
-    ip='192.168.1.100',
-    username='admin'
-)
+from asoba.utils.validation import validate_batch, validate_with_profile
 
-# List all devices
-devices = client.edge_devices.list_devices()
-
-# Get device details
-details = client.edge_devices.get_device(device_id)
-
-# Get device capabilities
-capabilities = client.edge_devices.get_device_capabilities(device_id)
-
-# Update device
-client.edge_devices.update_device(
-    device_id,
-    {"name": "Updated Name", "status": "online"}
-)
-```
-
-### Data Collection Services
-
-#### Enphase
-
-```python
-# Collect real-time data
-realtime = client.enphase.collect_realtime(site_id='site123')
-
-# Collect historical data
-historical = client.enphase.collect_historical(
-    site_id='site123',
-    start_date='2025-01-01',
-    end_date='2025-01-31'
-)
-```
-
-#### Huawei
-
-```python
-# Collect real-time data
-realtime = client.huawei.collect_realtime(plant_code='plant456')
-
-# Collect historical data
-historical = client.huawei.collect_historical(
-    plant_code='plant456',
-    start_date='2025-01-01',
-    end_date='2025-01-31'
-)
-```
-
-#### Weather
-
-```python
-# Trigger weather update
-client.weather.trigger_update()
-
-# Get cached weather data
-weather = client.weather.get_cached_weather(location='Durban')
-```
-
-### Data Processing Services
-
-#### Interpolation
-
-```python
-result = client.interpolation.interpolate(
-    customer_id='customer123',
-    dataset_key='data/dataset.csv'
-)
-```
-
-#### Standardization
-
-```python
-result = client.standardization.standardize(
-    customer_id='customer123',
-    dataset_key='data/dataset.csv'
-)
-```
-
-#### Data Ingestion
-
-```python
-result = client.data_ingestion.ingest()
-```
-
-##### Local Record Validation (Pre-Upload)
-
-Validate records locally against the ODSE schema before uploading to the platform:
-
-```python
-from asoba.models.odse import (
-    ODSE_REQUIRED_FIELDS,
-    ODSE_ALLOWED_FIELDS,
-    ODSE_ERROR_TYPES
-)
-
-# Records to validate
 records = [
-    {"timestamp": "2025-01-01T00:00:00Z", "kWh": 100.5, "error_type": "normal", "asset_id": "INV001"},
-    {"timestamp": "invalid-date", "kWh": "not-a-number", "error_type": "unknown"},
+    {'timestamp': '2025-01-01T00:00:00Z', 'kWh': 100.5, 'error_type': 'normal'},
+    {'timestamp': 'invalid-date', 'kWh': 'not-a-number', 'error_type': 'unknown'},
 ]
 
-# Validate locally
-result = client.data_ingestion.validate_local_records(records)
+result = validate_batch(records)
+print(f"Valid: {result['summary']['valid']}/{result['summary']['total']}")
 
-print(f"Total: {result['summary']['total']}")
-print(f"Valid: {result['summary']['valid']}")
-print(f"Invalid: {result['summary']['invalid']}")
-
-# Access valid records for upload
-for record in result['valid_records']:
-    print(f"Valid: {record}")
-
-# Review invalid records and errors
 for item in result['invalid_records']:
-    print(f"Record {item['index']}: {item['errors']}")
+    print(f"Errors: {item['errors']}")
 ```
 
-The validation checks:
-- **Required fields**: `timestamp`, `kWh`, `error_type`
-- **Allowed fields**: `timestamp`, `kWh`, `error_type`, `error_code`, `kVArh`, `kVA`, `PF`, `asset_id`, `device_id`
-- **Numeric validation**: `kWh` (non-negative), `kVArh`, `kVA` (non-negative), `PF` (0-1)
-- **Timestamp format**: ISO 8601 with timezone
-- **Error types**: `normal`, `warning`, `critical`, `fault`, `offline`, `standby`, `unknown`
-
-This client-side validation provides 100% parity with service-side validation, allowing you to catch issues before uploading.
-
-### ML Training
+### Conformance profile validation
 
 ```python
-# Start training job
-job = client.training.start_training(
-    model_type='forecasting',
-    training_data_key='training/data.csv',
-    model_params={'epochs': 100, 'batch_size': 32}
-)
+# Bilateral trade settlement
+is_valid, errors, normalized = validate_with_profile({
+    'timestamp': '2026-06-27T14:00:00+02:00',
+    'kWh': 87.3,
+    'error_type': 'normal',
+    'seller_party_id': 'nersa:gen:SOLARPK-001',
+    'buyer_party_id': 'nersa:offtaker:MUN042',
+    'settlement_period_start': '2026-06-27T14:00:00+02:00',
+    'settlement_period_end': '2026-06-27T14:30:00+02:00',
+    'contract_reference': 'PPA-SOLARPK-MUN042-2025-003',
+    'settlement_type': 'bilateral',
+}, 'bilateral')
 
-# Get training status
-status = client.training.get_training_status(job_id='job123')
+# BESS dispatch
+is_valid, errors, normalized = validate_with_profile({
+    'timestamp': '2026-06-27T10:00:00Z',
+    'kWh': 50.0,
+    'error_type': 'normal',
+    'dispatch_mode': 'charging',
+    'soc': 75.0,
+}, 'bess_dispatch')
 
-# List models
-models = client.training.list_models()
+# Wind SCADA
+is_valid, errors, normalized = validate_with_profile({
+    'timestamp': '2026-06-27T10:00:00Z',
+    'kWh': 320.0,
+    'error_type': 'normal',
+    'wind_speed_ms': 8.5,
+}, 'wind_scada')
 ```
 
-## Error Handling
+Available profiles: `bilateral`, `wheeling`, `sawem_brp`, `municipal_recon`, `bess_dispatch`, `wind_scada`.
 
-The SDK provides custom exceptions for different error types:
+## Advanced ML Services
 
 ```python
-from asoba import (
-    OnaError,
-    ConfigurationError,
-    ServiceUnavailableError,
-    ValidationError,
-    ResourceNotFoundError,
-    TimeoutError
-)
+# Trigger a training job
+client.training.trigger_training(customer_id='Sibaya', promote=True)
+
+# Check status
+status = client.training.get_training_status(customer_id='Sibaya')
+print(f"Training status: {status['status']}")
+
+# Gap detection
+result = client.gap_detection.detect_gaps(customer_id='Sibaya')
+if result['needs_backfill']:
+    print(f"Missing intervals: {result['total_missing_intervals']}")
+```
+
+## Error handling
+
+```python
+from asoba import OnaClient
+from asoba.exceptions import ConfigurationError, ValidationError
 
 try:
-    result = client.forecasting.get_site_forecast('InvalidSite')
-except ResourceNotFoundError as e:
-    print(f"Site not found: {e}")
-except ServiceUnavailableError as e:
-    print(f"Service error: {e}")
+    records = client.inverter_telemetry.get_inverter_telemetry(...)
 except ValidationError as e:
-    print(f"Invalid request: {e}")
-except OnaError as e:
-    print(f"SDK error: {e}")
+    print(f"Bad params: {e}")
+except ConfigurationError as e:
+    print(f"Config error: {e}")
 ```
 
-## Retry Logic
+## API reference
 
-The SDK automatically retries failed requests with exponential backoff:
+### Inverter Telemetry
 
-- Max retries: 3 (configurable)
-- Backoff factor: 2.0 (2s, 4s, 8s, 16s)
-- Retries on: `ServiceUnavailableError`, `TimeoutError`
+| Method | Description |
+|--------|-------------|
+| `get_inverter_telemetry(...)` | Historical data for one inverter |
+| `get_site_telemetry(...)` | Historical data for all inverters at a site |
+| `get_data_period(...)` | Available data time range |
+| `stream_inverter(...)` | Stream live data from one inverter |
+| `stream_site(...)` | Stream live data from all inverters at a site |
 
-Configure retry behavior:
+### OODA Terminal Alerts
+
+| Method | Description |
+|--------|-------------|
+| `get_terminal_alerts(...)` | Historical alerts for one terminal device |
+| `get_site_alerts(...)` | Historical alerts for all terminal devices at a site |
+| `get_asset(...)` | Asset details including battery capacity and warranty |
+| `get_site_summary(...)` | Site summary with battery health KPIs |
+| `get_data_period(...)` | Available alert time range |
+| `stream_terminal(...)` | Stream live alerts from one terminal device |
+| `stream_site(...)` | Stream live alerts from all terminal devices at a site |
+
+### Partner API
+
+| Method | Description |
+|--------|-------------|
+| `get_kpi_rollup(...)` | KPI summary snapshot (`KpiRollupSnapshot` with `EarKpis` + `FinancialKpis`) |
+| `get_maintenance_signals(...)` | Pending maintenance and health signals |
+| `get_forecast_snapshot(...)` | Pre-computed 24h solar forecast |
+| `get_maintenance_schedule(...)` | 90-day preventive maintenance task list |
+| `get_snapshot(...)` | Generic snapshot fetch by kind |
+
+### Shared parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `resolution` | `"5min"` (default) or `"daily"` |
+| `limit` | Max records per query (default 100, max 1000) |
+| `cursor` | Resume from a previous position |
+| `polling_interval` | Seconds between polls when streaming (min 5, default 5) |
+
+### Rate limits
+
+- 60 requests per minute per API key
+- Max 1000 records per query
+- Max 31-day time range per query
+- Min 5-second polling interval for streaming
+
+## Migrating from `ona_platform`
+
+The package was renamed from `ona_platform` to `asoba`. The old name still works during the migration window but emits a `DeprecationWarning`:
 
 ```python
-client = OnaClient(max_retries=5, retry_backoff=2.5)
-```
+# Before
+from ona_platform import OnaClient   # DeprecationWarning
 
-## Examples
-
-See the `examples/` directory for complete usage examples:
-
-- `forecasting_example.py` - Solar forecasting
-- `terminal_ooda_example.py` - OODA workflow
-- `energy_analyst_example.py` - Energy policy queries
-- `edge_device_example.py` - Edge device management
-- `complete_workflow_example.py` - Multi-service workflow
-
-Run an example:
-
-```bash
-python examples/forecasting_example.py
-```
-
-## Development
-
-### Install Development Dependencies
-
-```bash
-pip install -e ".[dev]"
-```
-
-### Run Tests
-
-```bash
-pytest
-pytest --cov=asoba
-```
-
-### Code Formatting
-
-```bash
-black asoba/
-flake8 asoba/
-mypy asoba/
+# After
+from asoba import OnaClient
 ```
 
 ## Architecture
 
-The SDK is organized into the following components:
-
-- `client.py` - Main OnaClient class
-- `config.py` - Configuration management
-- `exceptions.py` - Custom exception classes
-- `services/` - Service-specific clients
-  - `base.py` - Base client with common functionality
-  - `auth.py` - Authentication and authorization client
-  - `forecasting.py` - Forecasting API client
-  - `terminal.py` - Terminal API client (OODA workflow)
-  - `energy_analyst.py` - Energy Analyst RAG client
-  - `edge_device.py` - Edge Device Registry client
-  - `weather.py`, `enphase.py`, `huawei.py` - Data collection clients
-  - `data_ingestion.py`, `interpolation.py`, `standardization.py` - Data processing
-  - `training.py` - ML training client
-- `utils/` - Utilities (retry, logging, validation)
-  - `validation.py` - ODSE record validation with pandas-free service parity
-- `models/` - Data models
-  - `odse.py` - ODSE schema constants (required/allowed fields, error types)
+```
+asoba/
+├── client.py          — OnaClient
+├── config.py          — OnaConfig dataclass
+├── exceptions.py      — ConfigurationError, ValidationError, …
+├── services/          — per-API clients
+│   ├── inverter_telemetry.py
+│   ├── ooda_terminal.py
+│   ├── partner_api.py
+│   ├── terminal.py
+│   ├── training.py
+│   └── …
+├── models/            — typed dataclasses
+│   ├── odse.py        — ODS-E schema constants and enums
+│   ├── ooda.py        — TimeRange, alert models
+│   ├── snapshots.py   — KpiRollupSnapshot, EarKpis, FinancialKpis
+│   └── …
+└── utils/
+    ├── validation.py  — validate_batch, validate_with_profile
+    └── …
+ona_platform/          — deprecation shim (re-exports asoba)
+```
 
 ## Requirements
 
@@ -624,52 +356,21 @@ The SDK is organized into the following components:
 - boto3 >= 1.28.0
 - requests >= 2.31.0
 
-## AWS Credentials
+## Examples
 
-The SDK uses boto3 for AWS services. Configure AWS credentials using:
+```bash
+python3 examples/inverter_telemetry_example.py
+python3 examples/ooda_terminal_example.py
+python3 examples/partner_api_example.py
+```
 
-1. Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
-2. AWS credentials file (`~/.aws/credentials`)
-3. IAM role (when running on EC2/Lambda)
+## Development
 
-See [boto3 documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html) for details.
+```bash
+pip install -e ".[dev]"
+pytest
+```
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Support
-
-For issues and questions:
-
-- GitHub Issues: https://github.com/AsobaCloud/platform/issues
-- Email: info@asoba.co
-
-## Contributing
-
-Contributions are welcome! Please follow the existing code style and include tests for new features.
-
-## Changelog
-
-### Version 1.2.0 (2026-06-02)
-
-- **AuthClient** - New authentication client with support for:
-  - Username/password login with MFA
-  - Token lifecycle management (set, refresh, logout)
-  - JWT token decoding and user context
-  - API key introspection and validation
-  - External token exchange for SSO integrations
-
-### Version 1.1.0 (2026-05-31)
-
-- **Data Ingestion Validation** - Added `validate_local_records()` method for client-side ODSE record validation with 100% service parity
-- **ODSE Models** - New `asoba.models.odse` module with schema constants
-- **Site Intelligence** - Enhanced Terminal API with soiling analysis and asset prognostics via `get_site_summary()`
-- **Battery Health** - Added battery State of Health (SOH) and warranty tracking support
-
-### Version 1.0.0 (2025-01-29)
-
-- Initial release
-- Support for 11 platform services
-- Comprehensive error handling and retry logic
-- Complete documentation and examples
+MIT © [Asoba](https://asoba.co)

@@ -1,26 +1,23 @@
-# Ona SDK
+# <img src="https://raw.githubusercontent.com/AsobaCloud/sdk/main/docs/asoba-logo.svg" alt="Asoba" width="36" height="36" align="bottom" /> Ona SDK
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python CI](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml)
 [![JavaScript CI](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml)
 
-## What Works Right Now
+Live APIs for energy asset data across solar PV, wind, battery storage (BESS), and grid meters — with ODS-E (Open Data Schema for Energy) standardization covering market settlement, wheeling, tariffs, renewable certificates, and conformance profiles for SA trading workflows.
 
-This SDK provides live APIs for energy asset data across solar PV, wind, battery storage (BESS), and grid meters — with ODS-E (Open Data Schema for Energy) standardization covering market settlement, wheeling, tariffs, renewable certificates, and conformance profiles for SA trading workflows.
+## What's included
 
-**✅ Working Features:**
-- **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution) for solar, wind and BESS; solar production forecasting
-- **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
-- **Battery Health & Warranty Tracking** — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
-- **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
-- **ODS-E Data Validation (Python)** — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
+- Inverter Telemetry — query historical and stream live inverter data (5-min and daily resolution) for solar, wind and BESS; solar production forecasting
+- OODA Terminal Alerts — query historical and stream live OODA fault/diagnostic alerts from terminal devices
+- Battery Health & Warranty Tracking — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
+- Partner API — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
+- ODS-E Data Validation (Python) — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
 - Resumable streaming with cursor tokens for telemetry and alerts
 - Built-in rate limiting and cost protection
-- **Edge Device Management**
+- Edge Device Management
 
-**🚧 Planned Features:**
-- Energy Policy Analysis
-- Data Collection integrations
+Planned: Energy Policy Analysis, Data Collection integrations.
 
 ---
 

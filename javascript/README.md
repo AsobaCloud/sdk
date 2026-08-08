@@ -1,17 +1,10 @@
-# Asoba Ona Energy Management Platform - JavaScript SDK
+# <img src="https://raw.githubusercontent.com/AsobaCloud/sdk/main/docs/asoba-logo.svg" alt="Asoba" width="36" height="36" align="bottom" /> Ona SDK — JavaScript
 
-Official JavaScript SDK for the Asoba Ona Energy Management Platform. This SDK provides a comprehensive interface to all Ona platform services including forecasting, OODA workflow management, edge device registry, energy policy analysis, and more.
+[![npm](https://img.shields.io/npm/v/@asobacloud/sdk.svg)](https://www.npmjs.com/package/@asobacloud/sdk)
+[![CI](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Features
-
-- ✅ **Complete Service Coverage** - Access all 13 Ona platform services
-- ✅ **TypeScript Support** - Full TypeScript type definitions included
-- ✅ **Modern JavaScript** - ES6+ syntax with Promise-based API
-- ✅ **Automatic Retries** - Built-in retry logic for failed requests
-- ✅ **AWS Integration** - AWS Signature v4 signing for Lambda services
-- ✅ **Comprehensive Error Handling** - Custom error classes with detailed messages
-- ✅ **Input Validation** - Built-in validation for all API calls
-- ✅ **Well Documented** - JSDoc comments and examples for every method
+JavaScript SDK for live energy asset data — inverter telemetry, OODA terminal alerts, Partner API snapshots, and battery warranty intelligence.
 
 ## Installation
 
@@ -19,387 +12,269 @@ Official JavaScript SDK for the Asoba Ona Energy Management Platform. This SDK p
 npm install @asobacloud/sdk
 ```
 
-## Quick Start
+## Quick start
 
 ```javascript
 const { OnaSDK } = require('@asobacloud/sdk');
 
-// Initialize the SDK
 const sdk = new OnaSDK({
-  region: 'af-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-  },
   endpoints: {
-    forecasting: 'https://forecasting.api.asoba.co',
-    terminal: 'https://terminal.api.asoba.co',
-    edgeRegistry: 'http://edge-registry:8082',
-    energyAnalyst: 'http://energy-analyst:8000'
-  }
+    inverterTelemetry: process.env.INVERTER_TELEMETRY_ENDPOINT,
+    oodaTerminal: process.env.OODA_TERMINAL_ENDPOINT,
+    partnerApi: process.env.PARTNER_API_ENDPOINT,
+  },
+  inverterTelemetryApiKey: process.env.INVERTER_TELEMETRY_API_KEY,
+  oodaTerminalApiKey: process.env.OODA_TERMINAL_API_KEY,
+  partnerApiKey: process.env.PARTNER_API_KEY,
 });
 
-// Get energy forecast
-const forecast = await sdk.forecasting.getSiteForecast({
+// Query historical inverter data
+const records = await sdk.inverterTelemetry.getInverterTelemetry({
+  asset_id: 'INV-1000000054495190',
   site_id: 'Sibaya',
-  forecast_hours: 24
+  time_range: { start: '2025-11-01T00:00:00', end: '2025-11-01T12:00:00' },
+  resolution: '5min',
+  limit: 100,
 });
 
-console.log('Forecast:', forecast);
-```
-
-## Services
-
-### Forecasting API
-
-Generate energy forecasts at device, site, or customer levels.
-
-```javascript
-// Device-level forecast
-const deviceForecast = await sdk.forecasting.getDeviceForecast({
+// Stream live data
+for await (const record of sdk.inverterTelemetry.streamInverter({
+  asset_id: 'INV-1000000054495190',
   site_id: 'Sibaya',
-  device_id: 'INV001',
-  forecast_hours: 24
-});
-
-// Site-level forecast (aggregated)
-const siteForecast = await sdk.forecasting.getSiteForecast({
-  site_id: 'Sibaya',
-  forecast_hours: 24,
-  include_device_breakdown: true
-});
-
-// Customer-level forecast (legacy)
-const customerForecast = await sdk.forecasting.getCustomerForecast({
-  customer_id: 'customer123',
-  forecast_hours: 24
-});
-```
-
-### Terminal API (OODA Workflow)
-
-Comprehensive API for Observe, Orient, Decide, Act workflow operations.
-
-```javascript
-// List all assets
-const assets = await sdk.terminal.listAssets({
-  customer_id: 'customer123'
-});
-
-// Run fault detection (Observe)
-const detection = await sdk.terminal.runDetection({
-  customer_id: 'customer123',
-  asset_id: 'asset456',
-  lookback_hours: 6
-});
-
-// Run diagnostics (Orient)
-const diagnostic = await sdk.terminal.runDiagnostics({
-  customer_id: 'customer123',
-  asset_id: 'asset456',
-  detection_id: detection.detection_id
-});
-
-// Create maintenance schedule (Decide)
-const schedule = await sdk.terminal.createSchedule({
-  customer_id: 'customer123',
-  asset_id: 'asset456',
-  priority: 'High',
-  description: 'Replace faulty inverter'
-});
-
-// Get real-time monitoring data
-const nowcast = await sdk.terminal.getNowcastData({
-  customer_id: 'customer123',
-  time_range: '1h'
-});
-
-// Get high-level site summary with intelligence data
-const summary = await sdk.terminal.getSiteSummary({
-  site_id: 'Sibaya'
-});
-
-console.log(`Site PR: ${summary.fleet_pr_pct}%`);
-
-if (summary.soiling) {
-  console.log(`Soiling Rate: ${summary.soiling.soiling_rate_pct_day}%/day`);
-}
-
-if (summary.prognostics) {
-  console.log(`Asset Health: ${summary.prognostics.health_score}/100`);
+  polling_interval: 30,
+})) {
+  console.log(`${record.timestamp}: ${record.power} kW`);
 }
 ```
 
-### Energy Analyst (RAG)
-
-AI-powered energy policy and regulatory compliance analysis.
-
-```javascript
-// Query the RAG system
-const answer = await sdk.energyAnalyst.query({
-  question: 'What are the key regulatory requirements for solar installations in South Africa?',
-  n_results: 3,
-  temperature: 0.7
-});
-
-console.log('Answer:', answer.answer);
-console.log('Citation:', answer.citation);
-
-// Add documents to the knowledge base
-await sdk.energyAnalyst.addDocuments({
-  texts: [
-    'Document text 1...',
-    'Document text 2...'
-  ],
-  metadatas: [
-    { source: 'regulation.pdf', page: 1 },
-    { source: 'regulation.pdf', page: 2 }
-  ]
-});
-
-// Get collection information
-const info = await sdk.energyAnalyst.getCollectionInfo();
-console.log(`Collection has ${info.count} documents (${info.storage_mb} MB)`);
-```
-
-### Edge Device Registry
-
-Manage distributed edge devices with automatic capability detection.
-
-```javascript
-// Get all devices
-const devices = await sdk.edgeRegistry.getDevices();
-
-// Discover and register a new device
-const device = await sdk.edgeRegistry.discoverDevice({
-  ip: '192.168.1.100',
-  username: 'admin'
-});
-
-// Get device capabilities
-const capabilities = await sdk.edgeRegistry.getDeviceCapabilities(device.id);
-
-// Get device services
-const services = await sdk.edgeRegistry.getDeviceServices(device.id);
-```
-
-### Enphase & Huawei Clients
-
-Access inverter data from Enphase and Huawei systems.
-
-```javascript
-// Enphase data
-const enphaseHistorical = await sdk.enphase.getHistoricalData({
-  site_id: 'site123',
-  start_date: '2025-01-01',
-  end_date: '2025-01-31'
-});
-
-const enphaseRealtime = await sdk.enphase.getRealTimeData({
-  site_id: 'site123'
-});
-
-// Huawei data
-const huaweiHistorical = await sdk.huawei.getHistoricalData({
-  site_id: 'site123',
-  start_date: '2025-01-01',
-  end_date: '2025-01-31'
-});
-
-const huaweiRealtime = await sdk.huawei.getRealTimeData({
-  site_id: 'site123'
-});
-```
-
-## Configuration
-
-### SDK Options
-
-```javascript
-const sdk = new OnaSDK({
-  // AWS region (default: 'af-south-1')
-  region: 'af-south-1',
-
-  // AWS credentials for Lambda services
-  credentials: {
-    accessKeyId: 'YOUR_ACCESS_KEY',
-    secretAccessKey: 'YOUR_SECRET_KEY',
-    sessionToken: 'OPTIONAL_SESSION_TOKEN'
-  },
-
-  // Service endpoints
-  endpoints: {
-    forecasting: 'https://forecasting.api.asoba.co',
-    terminal: 'https://terminal.api.asoba.co',
-    edgeRegistry: 'http://edge-registry:8082',
-    energyAnalyst: 'http://energy-analyst:8000',
-    // ... other endpoints
-  },
-
-  // Request timeout in milliseconds (default: 30000)
-  timeout: 30000,
-
-  // Number of retries for failed requests (default: 3)
-  retries: 3,
-
-  // Delay between retries in milliseconds (default: 1000)
-  retryDelay: 1000
-});
-```
-
-### Environment Variables
-
-You can also configure the SDK using environment variables:
+Set environment variables before running:
 
 ```bash
-export AWS_ACCESS_KEY_ID=your_access_key
-export AWS_SECRET_ACCESS_KEY=your_secret_key
-export AWS_REGION=af-south-1
-export ONA_FORECASTING_ENDPOINT=https://forecasting.api.asoba.co
-export ONA_TERMINAL_ENDPOINT=https://terminal.api.asoba.co
+export INVERTER_TELEMETRY_ENDPOINT=https://af5jy5ob3e.execute-api.af-south-1.amazonaws.com/prod
+export OODA_TERMINAL_ENDPOINT=https://3lpq00xevg.execute-api.af-south-1.amazonaws.com/prod
+export PARTNER_API_ENDPOINT=https://8el3o25tc1.execute-api.af-south-1.amazonaws.com/prod
+export INVERTER_TELEMETRY_API_KEY=<your_api_key>
+export OODA_TERMINAL_API_KEY=<your_api_key>
+export PARTNER_API_KEY=<your_api_key>
 ```
 
-## Error Handling
+The same API key value works for all three variables.
 
-The SDK provides custom error classes for different error scenarios:
+## Inverter Telemetry
 
 ```javascript
-const {
-  OnaSDKError,
-  APIError,
-  ConfigurationError,
-  ValidationError,
-  AuthenticationError,
-  TimeoutError
-} = require('@asobacloud/sdk');
+// Historical data for one inverter
+const records = await sdk.inverterTelemetry.getInverterTelemetry({
+  asset_id: 'INV-1000000054495190',
+  site_id: 'Sibaya',
+  time_range: { start: '2025-11-01T00:00:00', end: '2025-11-01T12:00:00' },
+  resolution: '5min',   // '5min' | 'daily'
+  limit: 100,
+});
 
-try {
-  const forecast = await sdk.forecasting.getSiteForecast({
-    site_id: 'Sibaya',
-    forecast_hours: 24
-  });
-} catch (error) {
-  if (error instanceof ValidationError) {
-    console.error('Validation error:', error.field, error.message);
-  } else if (error instanceof APIError) {
-    console.error('API error:', error.statusCode, error.message);
-  } else if (error instanceof TimeoutError) {
-    console.error('Request timed out after', error.timeout, 'ms');
-  } else if (error instanceof AuthenticationError) {
-    console.error('Authentication failed:', error.message);
-  } else {
-    console.error('Unknown error:', error);
-  }
+// Historical data for all inverters at a site
+const siteRecords = await sdk.inverterTelemetry.getSiteTelemetry({
+  site_id: 'Sibaya',
+  time_range: { start: '2025-11-01T00:00:00', end: '2025-11-01T12:00:00' },
+});
+
+// Discover available data range
+const period = await sdk.inverterTelemetry.getDataPeriod({ site_id: 'Sibaya' });
+console.log(`Data from ${period.first_record} to ${period.last_record}`);
+
+// Stream a single inverter (cursor-resumable)
+for await (const record of sdk.inverterTelemetry.streamInverter({
+  asset_id: 'INV-1000000054495190',
+  site_id: 'Sibaya',
+  polling_interval: 30,
+})) {
+  console.log(`${record.timestamp}: ${record.power} kW`);
 }
 ```
 
-## TypeScript Support
+## OODA Terminal Alerts
 
-The SDK includes comprehensive TypeScript type definitions:
-
-```typescript
-import { OnaSDK, SiteForecastParams, ForecastResult } from '@asobacloud/sdk';
-
-const sdk = new OnaSDK({
-  region: 'af-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!
-  }
+```javascript
+// Historical alerts for one terminal device
+const alerts = await sdk.oodaTerminal.getTerminalAlerts({
+  terminal_device_id: 'TERM-1000000054495190',
+  site_id: 'Sibaya',
+  time_range: { start: '2025-11-01T00:00:00', end: '2025-11-01T12:00:00' },
+  limit: 100,
 });
 
-const params: SiteForecastParams = {
+// All terminal devices at a site
+const siteAlerts = await sdk.oodaTerminal.getSiteAlerts({
   site_id: 'Sibaya',
-  forecast_hours: 24
-};
+  time_range: { start: '2025-11-01T00:00:00', end: '2025-11-01T12:00:00' },
+});
 
-const result: ForecastResult = await sdk.forecasting.getSiteForecast(params);
+// Stream live alerts
+for await (const alert of sdk.oodaTerminal.streamTerminal({
+  terminal_device_id: 'TERM-1000000054495190',
+  site_id: 'Sibaya',
+  polling_interval: 30,
+})) {
+  console.log(`${alert.timestamp}: [${alert.alert_severity}] ${alert.message}`);
+}
+```
+
+## Partner API
+
+Pre-computed snapshots with ETag caching — sub-100ms on repeat calls.
+
+```javascript
+// KPI rollup (typed KpiRollupSnapshot with EarKpis + FinancialKpis)
+const kpis = await sdk.partner.getKpiRollup({ site_id: 'Sibaya' });
+const cached = await sdk.partner.getKpiRollup({ site_id: 'Sibaya' }); // uses ETag
+
+// Maintenance signals (detected anomalies)
+const signals = await sdk.partner.getMaintenanceSignals({
+  site_id: 'Sibaya',
+  since: '2025-11-01T00:00:00',
+  severity: 'high',
+});
+
+// 24h solar forecast snapshot
+const forecast = await sdk.partner.getForecastSnapshot({ site_id: 'Sibaya' });
+console.log(`${forecast.horizon_hours}h, ${forecast.intervals.length} intervals`);
+
+// 90-day preventive maintenance schedule (SEP-062)
+const schedule = await sdk.partner.getMaintenanceSchedule({ site_id: 'Sibaya' });
+for (const task of schedule.tasks) {
+  console.log(`${task.recommended_date} — ${task.asset_id} — ${task.task_type} (${task.priority})`);
+}
+```
+
+## Battery & Site Intelligence
+
+```javascript
+// Site summary with battery health KPIs
+const summary = await sdk.terminal.getSiteSummary({ site_id: 'Sibaya' });
+console.log(`Fleet PR: ${summary.fleet_pr_pct}%`);
+
+if (summary.soiling) {
+  console.log(`Soiling rate: ${summary.soiling.soiling_rate_pct_day}%/day`);
+}
+
+// Asset detail (includes warranty fields for battery assets)
+const asset = await sdk.terminal.getAsset({
+  customer_id: 'cust123',
+  asset_id: 'BAT-001',
+});
+
+// Calculate remaining warranty life
+const status = sdk.terminal.constructor.calculateRemainingWarrantyLife({
+  warranty_expiry_date: asset.warranty_expiry_date,
+  warranty_throughput_kwh: asset.warranty_throughput_kwh,
+  current_throughput_kwh: 5420.5,
+});
+console.log(`${status.warranty_status} — limited by ${status.limiting_factor}`);
+```
+
+## Advanced ML Services
+
+```javascript
+// Gap detection
+const gaps = await sdk.gapDetection.detectGaps({ customer_id: 'Sibaya' });
+if (gaps.needs_backfill) {
+  console.log(`Missing intervals: ${gaps.total_missing_intervals}`);
+}
+```
+
+## Error handling
+
+```javascript
+const { ConfigurationError, ValidationError, AuthenticationError } = require('@asobacloud/sdk');
+
+try {
+  const records = await sdk.inverterTelemetry.getInverterTelemetry({ ... });
+} catch (err) {
+  if (err instanceof ValidationError)     console.error('Bad params:', err.message);
+  else if (err instanceof AuthenticationError) console.error('Auth failed:', err.message);
+  else if (err instanceof ConfigurationError)  console.error('Config:', err.message);
+  else throw err;
+}
+```
+
+## API reference
+
+### Inverter Telemetry
+
+| Method | Description |
+|--------|-------------|
+| `getInverterTelemetry(params)` | Historical data for one inverter |
+| `getSiteTelemetry(params)` | Historical data for all inverters at a site |
+| `getDataPeriod(params)` | Available data time range |
+| `streamInverter(params)` | Stream live data from one inverter |
+| `streamSite(params)` | Stream live data from all inverters at a site |
+
+### OODA Terminal Alerts
+
+| Method | Description |
+|--------|-------------|
+| `getTerminalAlerts(params)` | Historical alerts for one terminal device |
+| `getSiteAlerts(params)` | Historical alerts for all terminal devices at a site |
+| `getAsset(params)` | Asset details including battery capacity and warranty |
+| `getSiteSummary(params)` | Site summary with battery health KPIs |
+| `getDataPeriod(params)` | Available alert time range |
+| `streamTerminal(params)` | Stream live alerts from one terminal device |
+| `streamSite(params)` | Stream live alerts from all terminal devices at a site |
+
+### Partner API
+
+| Method | Description |
+|--------|-------------|
+| `getKpiRollup(params)` | KPI summary snapshot (`KpiRollupSnapshot` with `EarKpis` + `FinancialKpis`) |
+| `getMaintenanceSignals(params)` | Pending maintenance and health signals |
+| `getForecastSnapshot(params)` | Pre-computed 24h solar forecast |
+| `getMaintenanceSchedule(params)` | 90-day preventive maintenance task list |
+| `getSnapshot(params)` | Generic snapshot fetch by kind |
+
+### Shared parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `resolution` | `"5min"` (default) or `"daily"` |
+| `limit` | Max records per query (default 100, max 1000) |
+| `cursor` | Resume from a previous position |
+| `polling_interval` | Seconds between polls when streaming (min 5, default 5) |
+
+### Rate limits
+
+- 60 requests per minute per API key
+- Max 1000 records per query
+- Max 31-day time range per query
+- Min 5-second polling interval for streaming
+
+## TypeScript
+
+Type definitions are included. The `PartnerApiClient`, `KpiRollupSnapshot`, `EarKpis`, and `FinancialKpis` interfaces are exported from `src/types/index.d.ts`.
+
+```typescript
+import { OnaSDK, KpiRollupSnapshot, EarKpis } from '@asobacloud/sdk';
+
+const sdk = new OnaSDK({ ... });
+const kpis: KpiRollupSnapshot = await sdk.partner.getKpiRollup({ site_id: 'Sibaya' });
 ```
 
 ## Examples
 
-See the `examples/` directory for complete working examples:
+```bash
+node examples/inverter-telemetry-example.js
+node examples/ooda-terminal-example.js
+node examples/partner-api-example.js
+```
 
-- `basic-usage.js` - Basic SDK initialization and usage
-- `forecasting-example.js` - Energy forecasting examples
-- `terminal-api-example.js` - OODA workflow examples
-- `edge-device-example.js` - Edge device management examples
+## Development
 
-## API Reference
-
-### Forecasting Client
-
-- `getDeviceForecast(params)` - Get device-level forecast
-- `getSiteForecast(params)` - Get site-level forecast (aggregated)
-- `getCustomerForecast(params)` - Get customer-level forecast (legacy)
-
-### Terminal Client
-
-**Assets:**
-- `listAssets(params)` - List all assets
-- `addAsset(params)` - Add a new asset
-- `getAsset(params)` - Get specific asset
-
-**Detection (Observe):**
-- `runDetection(params)` - Run fault detection
-- `listDetections(params)` - List detections
-- `runPvInsightSynthesis(params)` - Run pv-insight O&M synthesis
-
-**Diagnostics (Orient):**
-- `runDiagnostics(params)` - Run diagnostics
-- `listDiagnostics(params)` - List diagnostics
-
-**Scheduling (Decide):**
-- `createSchedule(params)` - Create maintenance schedule
-- `listSchedules(params)` - List schedules
-
-**Operations (Act):**
-- `buildBOM(params)` - Build Bill of Materials
-- `listBOMs(params)` - List BOMs
-- `createOrder(params)` - Create work order
-- `listOrders(params)` - List orders
-
-**Monitoring:**
-- `getNowcastData(params)` - Get real-time monitoring data
-- `listActivities(params)` - List all OODA activities
-- `listIssues(params)` - List issues
-
-**ML Integration:**
-- `getForecastResults(params)` - Get ML forecast results
-- `getInterpolationResults(params)` - Get interpolation results
-- `getMLModels()` - Get ML model registry
-- `getMLOODA(params)` - Get ML-enhanced OODA data
-
-### Energy Analyst Client
-
-- `query(params)` - Query the RAG system
-- `addDocuments(params)` - Add documents to knowledge base
-- `uploadPDFs(files)` - Upload PDF files
-- `getCollectionInfo()` - Get collection information
-- `clearCollection()` - Clear all documents
-- `getHealth()` - Get service health
-
-### Edge Device Registry Client
-
-- `getDevices()` - Get all devices
-- `getDevice(deviceId)` - Get specific device
-- `discoverDevice(params)` - Discover and register device
-- `updateDevice(deviceId, updates)` - Update device
-- `deleteDevice(deviceId)` - Delete device
-- `getDeviceCapabilities(deviceId)` - Get device capabilities
-- `getDeviceServices(deviceId)` - Get device services
-- `getHealth()` - Get service health
+```bash
+git clone https://github.com/AsobaCloud/sdk.git
+cd sdk/javascript
+npm install
+npm test
+```
 
 ## License
 
-MIT
-
-## Support
-
-For issues and questions:
-- GitHub Issues: https://github.com/AsobaCloud/platform/issues
-- Documentation: https://docs.asoba.co
-
-## Contributing
-
-Contributions are welcome! Please see CONTRIBUTING.md for guidelines.
+MIT © [Asoba](https://asoba.co)
