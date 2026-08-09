@@ -8,16 +8,34 @@ Live APIs for energy asset data across solar PV, wind, battery storage (BESS), a
 
 ## What's included
 
-- Inverter Telemetry — query historical and stream live inverter data (5-min and daily resolution) for solar, wind and BESS; solar production forecasting
-- OODA Terminal Alerts — query historical and stream live OODA fault/diagnostic alerts from terminal devices
-- Battery Health & Warranty Tracking — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
-- Partner API — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
-- ODS-E Data Validation (Python) — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
-- Resumable streaming with cursor tokens for telemetry and alerts
-- Built-in rate limiting and cost protection
-- Edge Device Management
+### Core APIs
+- **Inverter Telemetry** — query historical and stream live inverter data (5-min and daily resolution) for solar, wind and BESS
+- **OODA Terminal Alerts** — query historical and stream live OODA fault/diagnostic alerts from terminal devices
+- **Partner API** — fetch pre-computed JSON snapshots (KPIs, maintenance signals, forecasts, and preventive-maintenance schedules) with sub-100ms response times via ETag caching
 
-Planned: Energy Policy Analysis, Data Collection integrations.
+### Advanced Services
+- **Terminal API** — complete OODA workflow (Observe, Orient, Decide, Act) for asset management, fault detection, diagnostics, and scheduling
+- **Energy Analyst** — RAG-based energy policy analysis and compliance queries
+- **Edge Device Registry** — manage and monitor edge devices
+- **Data Ingestion** — collect and process data from various sources
+- **Weather Services** — cached weather data for forecasting
+- **Interpolation Services** — fill missing data intervals
+- **Standardization Services** — transform vendor-specific data to ODS-E standard
+
+### Vendor-Specific Clients
+- **Enphase Client** — data collection from Enphase Envoy systems
+- **Huawei Client** — data collection from Huawei FusionSolar systems
+
+### ML & Analytics
+- **Global Training** — trigger and manage ML model training jobs
+- **Gap Detection** — identify missing data intervals and trigger backfill
+- **Freemium Forecasting** — CSV-based solar forecasting (no API key required)
+
+### Data Standards
+- **ODS-E Data Validation (Python)** — client-side validation against the full 65-field energy-timeseries schema with 6 conformance profiles (bilateral, wheeling, sawem_brp, municipal_recon, bess_dispatch, wind_scada)
+- **Battery Health & Warranty Tracking** — monitor battery State of Health (SOH), capacity, and track warranty expiry via date or throughput limits
+- **Resumable streaming** with cursor tokens for telemetry and alerts
+- **Built-in rate limiting** and cost protection
 
 ---
 
@@ -68,6 +86,10 @@ cd javascript
 node examples/inverter-telemetry-example.js
 node examples/ooda-terminal-example.js
 node examples/partner-api-example.js
+node examples/terminal-api-example.js
+node examples/edge-device-example.js
+node examples/forecasting-example.js
+node examples/freemium-forecast-example.js
 ```
 
 **Python:**
@@ -76,6 +98,11 @@ cd python
 python3 examples/inverter_telemetry_example.py
 python3 examples/ooda_terminal_example.py
 python3 examples/partner_api_example.py
+python3 examples/terminal_ooda_example.py
+python3 examples/edge_device_example.py
+python3 examples/forecasting_example.py
+python3 examples/freemium_forecast_example.py
+python3 examples/complete_workflow_example.py
 ```
 
 ---
@@ -213,26 +240,216 @@ for alert in client.ooda_terminal.stream_terminal(
 
 ---
 
+## Terminal API (OODA Workflow)
+
+Complete asset management workflow including fault detection, diagnostics, scheduling, and ML model management.
+
+### JavaScript
+```javascript
+const { OnaSDK } = require('./src/index');
+
+const sdk = new OnaSDK();
+// Requires authentication via terminal endpoint
+
+// List assets
+const assets = await sdk.terminal.listAssets({ customer_id: 'Sibaya' });
+
+// Run fault detection
+const detection = await sdk.terminal.runDetection({
+  customer_id: 'Sibaya',
+  asset_id: 'INV-001',
+  lookback_hours: 6
+});
+
+// Run diagnostics
+const diagnostic = await sdk.terminal.runDiagnostics({
+  customer_id: 'Sibaya',
+  asset_id: 'INV-001',
+  detection_id: detection.detection_id
+});
+
+// Create maintenance schedule
+const schedule = await sdk.terminal.createSchedule({
+  customer_id: 'Sibaya',
+  asset_id: 'INV-001',
+  description: 'Replace inverter',
+  priority: 'High',
+  estimated_duration_hours: 8
+});
+
+// Get ML models
+const models = await sdk.terminal.getMLModels();
+```
+
+### Python
+```python
+from asoba import OnaClient
+
+client = OnaClient()
+
+# Login required for Terminal API
+client.auth.login("user@example.com", "password")
+
+# List assets
+assets = client.terminal.list_assets(customer_id='Sibaya')
+
+# Run fault detection
+detection = client.terminal.run_detection(
+    customer_id='Sibaya',
+    asset_id='INV-001',
+    lookback_hours=6
+)
+
+# Run diagnostics
+diagnostic = client.terminal.run_diagnostics(
+    customer_id='Sibaya',
+    asset_id='INV-001',
+    detection_id=detection['detection_id']
+)
+
+# Create maintenance schedule
+schedule = client.terminal.create_schedule(
+    customer_id='Sibaya',
+    asset_id='INV-001',
+    description='Replace inverter',
+    priority='High',
+    estimated_duration_hours=8
+)
+
+# Get ML models
+models = client.terminal.get_ml_models()
+```
+
+---
+
+## Energy Analyst API
+
+RAG-based energy policy analysis and compliance queries.
+
+### JavaScript
+```javascript
+const answer = await sdk.energyAnalyst.query({
+  question: 'What are the grid code requirements for solar installations?',
+  n_results: 3
+});
+console.log(`Answer: ${answer.answer}`);
+console.log(`Citation: ${answer.citation}`);
+```
+
+### Python
+```python
+answer = client.energy_analyst.query(
+    question='What are the grid code requirements for solar installations?',
+    n_results=3
+)
+print(f"Answer: {answer['answer']}")
+print(f"Citation: {answer['citation']}")
+```
+
+---
+
+## Edge Device Management
+
+Manage and monitor edge devices in the field.
+
+### JavaScript
+```javascript
+// List all devices
+const devices = await sdk.edgeRegistry.getDevices();
+
+// Get device details
+const device = await sdk.edgeRegistry.getDevice({ device_id: 'EDGE-001' });
+
+// Update device status
+await sdk.edgeRegistry.updateDevice({
+  device_id: 'EDGE-001',
+  status: 'online'
+});
+```
+
+### Python
+```python
+# List all devices
+devices = client.edge_devices.get_devices()
+
+# Get device details
+device = client.edge_devices.get_device(device_id='EDGE-001')
+
+# Update device status
+client.edge_devices.update_device(
+    device_id='EDGE-001',
+    status='online'
+)
+```
+
+---
+
+## Forecasting Services
+
+### Internal Forecasting (JavaScript)
+```javascript
+const forecast = await sdk.forecasting.getSiteForecast({
+  site_id: 'Sibaya',
+  forecast_hours: 24
+});
+console.log(`Forecast generated at: ${forecast.generated_at}`);
+```
+
+### Freemium Forecasting (No API Key Required)
+```javascript
+const forecast = await sdk.freemiumForecast.getForecast({
+  site_id: 'Sibaya',
+  hours: 24
+});
+```
+
+```python
+# Python
+forecast = client.freemium_forecast.get_forecast(
+    site_id='Sibaya',
+    hours=24
+)
+```
+
+---
+
 ## Advanced ML Services
 
-Trigger model training, detect data gaps, and manage edge devices directly via the SDK.
+Trigger model training, detect data gaps, and manage ML workflows.
 
 ### Gap Detection
-```javascript
-const results = await sdk.gapDetection.detectGaps({ customer_id: 'Sibaya' });
-if (results.needs_backfill) {
-  console.log(`Missing intervals: ${results.total_missing_intervals}`);
-}
+```python
+# Python
+from asoba import OnaClient
+
+client = OnaClient()
+
+results = client.gap_detection.detect_gaps(
+    customer_id='Sibaya',
+    lookback_days=7,
+    min_gap_minutes=15
+)
+
+if results.get('needs_backfill'):
+    print(f"Missing intervals: {results['total_missing_intervals']}")
 ```
 
 ### Global Training
 ```python
-# Trigger a new training job
-client.training.trigger_training(customer_id='Sibaya', promote=True)
+# Python
+# Start a training job
+result = client.training.start_training(
+    model_type='fault_detection',
+    training_data_key='s3://bucket/training-data.csv',
+    model_params={'epochs': 100}
+)
 
 # Check status
-status = client.training.get_training_status(customer_id='Sibaya')
+status = client.training.get_training_status(job_id=result['job_id'])
 print(f"Training status: {status['status']}")
+
+# List models
+models = client.training.list_models()
 ```
 
 ---
@@ -612,82 +829,106 @@ Validation checks include: required fields, allowed field whitelist (65 fields),
 
 ---
 
-## Performance Intelligence & Battery Health
+## Data Ingestion & Standardization
 
-The Terminal API provides advanced intelligence for asset health, soiling analysis, and battery warranty tracking.
+Collect data from various sources and transform vendor-specific formats to ODS-E standard.
 
-### Site Summary & Intelligence
-Get high-level KPIs and automated analysis for a site.
-
-#### JavaScript
+### Data Ingestion
 ```javascript
-const summary = await sdk.terminal.getSiteSummary({ site_id: 'Sibaya' });
-
-console.log(`Fleet PR: ${summary.fleet_pr_pct}%`);
-
-// Soiling Analysis
-if (summary.soiling) {
-  console.log(`Soiling Rate: ${summary.soiling.soiling_rate_pct_day}%/day`);
-  console.log(`Last Wash Gain: ${summary.soiling.recovery_gain_kwh_last_event} kWh`);
-}
-
-// Asset Prognostics
-if (summary.prognostics) {
-  console.log(`Health Score: ${summary.prognostics.health_score}/100`);
-  console.log(`Est. Retirement: ${summary.prognostics.battery_retirement_date}`);
-}
+// Ingest data from external sources
+const result = await sdk.dataIngestion.ingestData({
+  source: 'enphase',
+  site_id: 'Sibaya',
+  time_range: { start: '2025-11-01', end: '2025-11-02' }
+});
 ```
 
-#### Python
 ```python
-summary = client.terminal.get_site_summary(site_id='Sibaya')
-
-print(f"Fleet PR: {summary['fleet_pr_pct']}%")
-
-# Soiling Analysis
-if 'soiling' in summary:
-    soiling = summary['soiling']
-    print(f"Soiling Rate: {soiling['soiling_rate_pct_day']}%/day")
-
-# Battery Health (aggregated)
-if 'battery' in summary:
-    bat = summary['battery']
-    print(f"Avg SOH: {bat['avg_soh']}%")
+# Python
+result = client.data_ingestion.ingest_data(
+    source='enphase',
+    site_id='Sibaya',
+    time_range={'start': '2025-11-01', 'end': '2025-11-02'}
+)
 ```
 
-### Battery Warranty Tracking
-Monitor individual battery assets and calculate remaining warranty life based on both date and throughput.
+### Standardization
+```python
+# Transform vendor data to ODS-E standard
+standardized = client.standardization.transform_to_odse(
+    vendor_data=raw_data,
+    source_system='huawei-fusionsolar'
+)
+```
 
-#### JavaScript
+### Vendor-Specific Clients
 ```javascript
-// 1. Get asset with warranty details
-const asset = await sdk.terminal.getAsset({ 
-  customer_id: 'cust123', 
-  asset_id: 'BAT-001' 
+// Enphase data collection
+const enphaseData = await sdk.enphase.getData({
+  site_id: 'Sibaya',
+  time_range: { start: '2025-11-01', end: '2025-11-02' }
 });
 
-// 2. Calculate remaining warranty life
-const status = sdk.terminal.constructor.calculateRemainingWarrantyLife({
-  warranty_expiry_date: asset.warranty_expiry_date,
-  warranty_throughput_kwh: asset.warranty_throughput_kwh,
-  current_throughput_kwh: 5420.5 // From telemetry
+// Huawei data collection
+const huaweiData = await sdk.huawei.getData({
+  plant_id: 'PLANT-001',
+  time_range: { start: '2025-11-01', end: '2025-11-02' }
 });
-
-console.log(`Warranty Status: ${status.warranty_status}`);
-console.log(`Limiting Factor: ${status.limiting_factor}`);
 ```
 
-#### Python
 ```python
-# Calculate remaining warranty life
-status = client.terminal.calculate_remaining_warranty_life(
-    warranty_expiry_date='2030-12-31',
-    warranty_throughput_kwh=10000.0,
-    current_throughput_kwh=8500.0
+# Python
+# Enphase data collection
+enphase_data = client.enphase.get_data(
+    site_id='Sibaya',
+    time_range={'start': '2025-11-01', 'end': '2025-11-02'}
 )
 
-print(f"Warranty Status: {status['warranty_status']}")
-print(f"Throughput Remaining: {status['throughput_remaining_pct']}%")
+# Huawei data collection
+huawei_data = client.huawei.get_data(
+    plant_id='PLANT-001',
+    time_range={'start': '2025-11-01', 'end': '2025-11-02'}
+)
+```
+
+---
+
+## Weather & Interpolation Services
+
+### Weather Services
+```javascript
+// Get cached weather data
+const weather = await sdk.weather.getWeather({
+  location: 'Durban',
+  date: '2025-11-01'
+});
+```
+
+```python
+# Python
+weather = client.weather.get_weather(
+    location='Durban',
+    date='2025-11-01'
+)
+```
+
+### Interpolation Services
+```javascript
+// Fill missing data intervals
+const interpolated = await sdk.interpolation.interpolate({
+  data: partial_data,
+  method: 'linear',
+  max_gap_minutes: 30
+});
+```
+
+```python
+# Python
+interpolated = client.interpolation.interpolate(
+    data=partial_data,
+    method='linear',
+    max_gap_minutes=30
+)
 ```
 
 ---
@@ -714,27 +955,59 @@ print(f"Throughput Remaining: {status['throughput_remaining_pct']}%")
 | `streamTerminal` / `stream_terminal` | Stream live alerts from a single terminal device |
 | `streamSite` / `stream_site` | Stream live alerts from all terminal devices at a site |
 
-### Advanced ML Services
+### Terminal API (OODA Workflow) Methods
+|| Method | Description |
+||--------|-------------|
+|| `listAssets` / `list_assets` | List all assets for a customer |
+|| `runDetection` / `run_detection` | Run fault detection on an asset |
+|| `runDiagnostics` / `run_diagnostics` | Run diagnostics on a detection result |
+|| `createSchedule` / `create_schedule` | Create maintenance schedule |
+|| `listActivities` / `list_activities` | List recent activities |
+|| `getMLModels` / `get_ml_models` | Get registered ML models |
+|| `getNowcastData` / `get_nowcast_data` | Get current site metrics |
 
-Trigger model training, detect data gaps, and manage edge devices directly via the SDK.
+### Energy Analyst Methods
+|| Method | Description |
+||--------|-------------|
+|| `query` / `query` | Query energy policy and compliance information |
 
-### Gap Detection
-```javascript
-const results = await sdk.gapDetection.detectGaps({ customer_id: 'Sibaya' });
-if (results.needs_backfill) {
-  console.log(`Missing intervals: ${results.total_missing_intervals}`);
-}
-```
+### Edge Device Registry Methods
+|| Method | Description |
+||--------|-------------|
+|| `getDevices` / `get_devices` | List all edge devices |
+|| `getDevice` / `get_device` | Get device details |
+|| `updateDevice` / `update_device` | Update device status |
 
-### Global Training
-```python
-# Trigger a new training job
-client.training.trigger_training(customer_id='Sibaya', promote=True)
+### Forecasting Methods
+|| Method | Description |
+||--------|-------------|
+|| `getSiteForecast` / `get_site_forecast` | Get internal forecast (requires credentials) |
+|| `getForecast` / `get_forecast` | Get freemium forecast (no API key required) |
 
-# Check status
-status = client.training.get_training_status(customer_id='Sibaya')
-print(f"Training status: {status['status']}")
-```
+### ML & Analytics Methods
+|| Method | Description |
+||--------|-------------|
+|| `detectGaps` / `detect_gaps` | Detect missing data intervals |
+|| `startTraining` / `start_training` | Start ML model training job |
+|| `getTrainingStatus` / `get_training_status` | Get training job status |
+|| `listModels` / `list_models` | List trained models |
+
+### Data Ingestion & Standardization Methods
+|| Method | Description |
+||--------|-------------|
+|| `ingestData` / `ingest_data` | Ingest data from external sources |
+|| `transformToOdse` / `transform_to_odse` | Transform vendor data to ODS-E standard |
+
+### Vendor-Specific Methods
+|| Method | Description |
+||--------|-------------|
+|| `getData` / `get_data` | Get data from vendor-specific systems (Enphase, Huawei) |
+
+### Weather & Interpolation Methods
+|| Method | Description |
+||--------|-------------|
+|| `getWeather` / `get_weather` | Get cached weather data |
+|| `interpolate` / `interpolate` | Fill missing data intervals |
 
 ---
 
@@ -794,35 +1067,78 @@ print(f"Training status: {status['status']}")
 ```
 sdk/
 ├── javascript/
-│   ├── src/services/InverterTelemetryClient.js
-│   ├── src/services/OodaTerminalClient.js
-│   ├── src/services/PartnerApiClient.js
-│   ├── src/types/index.d.ts          
-│   ├── examples/inverter-telemetry-example.js
-│   ├── examples/ooda-terminal-example.js
-│   ├── examples/partner-api-example.js
+│   ├── src/services/
+│   │   ├── InverterTelemetryClient.js
+│   │   ├── OodaTerminalClient.js
+│   │   ├── PartnerApiClient.js
+│   │   ├── TerminalClient.js
+│   │   ├── EnergyAnalystClient.js
+│   │   ├── EdgeDeviceRegistryClient.js
+│   │   ├── DataIngestionClient.js
+│   │   ├── WeatherClient.js
+│   │   ├── InterpolationClient.js
+│   │   ├── ForecastingClient.js
+│   │   ├── FreemiumForecastClient.js
+│   │   ├── EnphaseClient.js
+│   │   ├── HuaweiClient.js
+│   │   └── [utility files]
+│   ├── src/types/index.d.ts
+│   ├── examples/
+│   │   ├── inverter-telemetry-example.js
+│   │   ├── ooda-terminal-example.js
+│   │   ├── partner-api-example.js
+│   │   ├── terminal-api-example.js
+│   │   ├── edge-device-example.js
+│   │   ├── forecasting-example.js
+│   │   └── freemium-forecast-example.js
 │   └── tests/
 │       ├── inverterTelemetry.test.js
-│       └── partnerApi.test.js
+│       ├── partnerApi.test.js
+│       └── [other test files]
 ├── python/
-│   ├── asoba/services/inverter_telemetry.py
-│   ├── asoba/services/ooda_terminal.py
-│   ├── asoba/services/partner_api.py
-│   ├── asoba/services/data_ingestion.py
-│   ├── asoba/utils/validation.py
-│   ├── asoba/models/odse.py
-│   ├── examples/inverter_telemetry_example.py
-│   ├── examples/ooda_terminal_example.py
-│   ├── examples/partner_api_example.py
+│   ├── asoba/services/
+│   │   ├── inverter_telemetry.py
+│   │   ├── ooda_terminal.py
+│   │   ├── partner_api.py
+│   │   ├── terminal.py
+│   │   ├── energy_analyst.py
+│   │   ├── edge_device.py
+│   │   ├── data_ingestion.py
+│   │   ├── weather.py
+│   │   ├── interpolation.py
+│   │   ├── forecasting.py
+│   │   ├── freemium_forecast.py
+│   │   ├── standardization.py
+│   │   ├── enphase.py
+│   │   ├── huawei.py
+│   │   ├── training.py
+│   │   ├── gap_detection.py
+│   │   └── [other services]
+│   ├── asoba/utils/
+│   │   ├── validation.py
+│   │   └── [other utilities]
+│   ├── asoba/models/
+│   │   ├── odse.py
+│   │   └── [other models]
+│   ├── examples/
+│   │   ├── inverter_telemetry_example.py
+│   │   ├── ooda_terminal_example.py
+│   │   ├── partner_api_example.py
+│   │   ├── terminal_ooda_example.py
+│   │   ├── edge_device_example.py
+│   │   ├── forecasting_example.py
+│   │   ├── freemium_forecast_example.py
+│   │   └── complete_workflow_example.py
 │   └── tests/
 │       ├── test_client.py
 │       ├── test_inverter_telemetry_client.py
 │       ├── test_partner_api_client.py
-│       └── test_validation.py
+│       ├── test_validation.py
+│       └── [other test files]
 └── backend/
-    ├── inverter_telemetry_api/   
-    ├── ooda_terminal_api/        
-    └── partner_api/              
+    ├── inverter_telemetry_api/
+    ├── ooda_terminal_api/
+    └── partner_api/
 ```
 
 ---
