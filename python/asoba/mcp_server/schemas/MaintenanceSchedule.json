@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MaintenanceSchedule",
+  "description": "Schema for maintenance schedule snapshots recommending service actions.",
+  "type": "object",
+  "required": ["site_id", "generated_at", "horizon", "tasks", "summary"],
+  "properties": {
+    "site_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "horizon": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "task_type", "reason", "recommended_date", "priority"],
+        "properties": {
+          "asset_id": { "type": "string" },
+          "task_type": {
+            "type": "string",
+            "enum": ["inspection", "corrective_maintenance", "scheduled_service"]
+          },
+          "reason": { "type": "string" },
+          "recommended_date": { "type": "string", "format": "date" },
+          "estimated_duration_hours": { "type": "number" },
+          "priority": {
+            "type": "string",
+            "enum": ["Critical", "High", "Medium", "Low"]
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_tasks", "by_priority", "by_task_type", "by_asset"],
+      "properties": {
+        "total_tasks": { "type": "integer" },
+        "by_priority": { "type": "object" },
+        "by_task_type": { "type": "object" },
+        "by_asset": { "type": "object" }
+      }
+    }
+  }
+}

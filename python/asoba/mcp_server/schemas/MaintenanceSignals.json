@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MaintenanceSignals",
+  "description": "Schema for maintenance signal snapshots identifying underperformance and faults.",
+  "type": "object",
+  "required": ["site_id", "generated_at", "cursor", "signals", "summary"],
+  "properties": {
+    "site_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "cursor": { "type": "string" },
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "timestamp", "asset_id", "type", "severity", "description"],
+        "properties": {
+          "id": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "asset_id": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["Critical State", "Warning State", "Temperature", "Capacity Underperformance", "Zero Production"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["Critical", "High", "Medium", "Low"]
+          },
+          "state_code": { "type": ["string", "null"] },
+          "rated_kw": { "type": ["number", "null"] },
+          "expected_kw": { "type": ["number", "null"] },
+          "actual_kw": { "type": ["number", "null"] },
+          "capacity_pct": { "type": ["number", "null"] },
+          "irradiance_wm2": { "type": ["number", "null"] },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["by_type", "by_severity", "by_asset"],
+      "properties": {
+        "by_type": { "type": "object" },
+        "by_severity": { "type": "object" },
+        "by_asset": { "type": "object" }
+      }
+    }
+  }
+}

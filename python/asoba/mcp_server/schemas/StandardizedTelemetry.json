@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StandardizedTelemetry",
+  "description": "Canonical schema for standardized telemetry (total_load.csv) across the platform.",
+  "type": "object",
+  "required": ["timestamp", "kWh", "error_type"],
+  "properties": {
+    "timestamp": { "type": "string", "format": "date-time" },
+    "kWh": { "type": "number" },
+    "error_type": { "type": "string" },
+    "error_code": { "type": "string" },
+    "kVArh": { "type": "number" },
+    "kVA": { "type": "number" },
+    "PF": { "type": "number" },
+    "power": { "type": "number" },
+    "temperature": { "type": "number" },
+    "voltage": { "type": "number" },
+    "irradiance": { "type": "number" },
+    "wind_speed": { "type": "number" },
+    "inverter_state": { "type": "string" },
+    "run_state": { "type": "string" },
+    "asset_id": { "type": "string" },
+    "efficiency": { "type": "number" },
+    "mppt_power": { "type": "number" },
+    "day_cap": { "type": "number" },
+    "total_cap": { "type": "number" }
+  }
+}

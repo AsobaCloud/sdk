@@ -19,12 +19,13 @@ from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
-logger = logging.getLogger("mcp_asoba_server")
+logger = logging.getLogger("asoba.mcp_server")
 
 # ---------------------------------------------------------------------------
-# Schema directory (relative to this file, at repo root)
+# Schema directory (bundled with the package)
 # ---------------------------------------------------------------------------
-_SCHEMAS_DIR = Path(__file__).resolve().parent.parent / "docs" / "schemas"
+_SCHEMAS_DIR = Path(__file__).resolve().parent / "schemas"
+
 
 # ---------------------------------------------------------------------------
 # JSON-serialisation helper
@@ -68,7 +69,7 @@ server = MCPServer(
     name="asoba",
     version="1.0.0",
     description=(
-        "Ona Energy Management Platform — inverter telemetry, OODA alerts, "
+        "Ona Energy Management Platform \u2014 inverter telemetry, OODA alerts, "
         "KPI rollups, maintenance signals, and forecasting."
     ),
     instructions=(
@@ -81,7 +82,7 @@ server = MCPServer(
 
 
 # ===================================================================
-# Tools — Inverter Telemetry
+# Tools \u2014 Inverter Telemetry
 # ===================================================================
 
 
@@ -118,8 +119,8 @@ def get_inverter_telemetry(
         site_id: Site identifier (e.g. Sibaya).
         start: Start of time range (ISO 8601, e.g. 2025-11-01T00:00:00Z).
         end: End of time range (ISO 8601).
-        resolution: Aggregation resolution — 5min (default), 15min, 1h, 1d.
-        limit: Max records to return (1–1000, default 100).
+        resolution: Aggregation resolution \u2014 5min (default), 15min, 1h, 1d.
+        limit: Max records to return (1\u20131000, default 100).
 
     Returns JSON array of telemetry records with timestamp, power_kw, voltage, current, etc.
     """
@@ -161,7 +162,7 @@ def get_site_telemetry(
 
 
 # ===================================================================
-# Tools — OODA Terminal Alerts
+# Tools \u2014 OODA Terminal Alerts
 # ===================================================================
 
 
@@ -201,7 +202,7 @@ def get_terminal_alerts(
         start: Start of time range (ISO 8601).
         end: End of time range (ISO 8601).
         resolution: Aggregation resolution (default 5min).
-        limit: Max alerts to return (1–1000).
+        limit: Max alerts to return (1\u20131000).
     """
     from asoba.models.ooda import TimeRange
 
@@ -241,7 +242,7 @@ def get_site_alerts(
 
 
 # ===================================================================
-# Tools — Partner API (pre-computed snapshots)
+# Tools \u2014 Partner API (pre-computed snapshots)
 # ===================================================================
 
 
@@ -320,7 +321,7 @@ def get_forecast_snapshot(
 
 
 # ===================================================================
-# Tools — Forecasting
+# Tools \u2014 Forecasting
 # ===================================================================
 
 
@@ -369,7 +370,7 @@ def get_site_forecast(
 
 
 # ===================================================================
-# Resources — JSON Schemas
+# Resources \u2014 JSON Schemas
 # ===================================================================
 
 
@@ -401,3 +402,17 @@ def _res_telemetry() -> str:
 @server.resource("schema://ODSERecord", name="ODSERecord", description="JSON schema for OODA terminal alert records", mime_type="application/json")
 def _res_odse() -> str:
     return (_SCHEMAS_DIR / "ODSERecord.json").read_text()
+
+
+# ===================================================================
+# Entry point
+# ===================================================================
+
+
+def run():
+    """Start the MCP server on stdio transport."""
+    server.run(transport="stdio")
+
+
+if __name__ == "__main__":
+    run()
