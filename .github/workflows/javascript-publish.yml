@@ -33,17 +33,4 @@ jobs:
         run: npm ci
 
       - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "Publishing with NPM_TOKEN (classic auth)"
-            npm publish --access public
-          else
-            echo "Publishing with OIDC trusted publishing"
-            if [ -n "${NPM_CONFIG_USERCONFIG:-}" ] && [ -f "$NPM_CONFIG_USERCONFIG" ]; then
-              sed -i '/_authToken/d' "$NPM_CONFIG_USERCONFIG"
-            fi
-            npm publish --access public --provenance
-          fi
+        run: npm publish --access public --provenance

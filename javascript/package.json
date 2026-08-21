@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AsobaCloud/sdk.git",
+    "url": "git+https://github.com/AsobaCloud/sdk.git",
     "directory": "javascript"
   },
   "publishConfig": {
