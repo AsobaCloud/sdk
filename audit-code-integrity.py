@@ -206,7 +206,6 @@ class CodeIntegrityAuditor:
 
         patched_targets = []
         has_substantive_assert = False
-        has_any_assert = False
         is_internal_mocked = False
         is_live_aws = False
 
@@ -247,17 +246,10 @@ class CodeIntegrityAuditor:
 
             # Inspect Assert statements
             if isinstance(subnode, ast.Assert):
-                has_any_assert = True
                 assert_str = ast.unparse(subnode.test) if hasattr(ast, "unparse") else ""
                 # Substantive assertions check equality, subscripting, in-comparisons, or value bounds
                 if any(op in assert_str for op in ["==", "!=", " in ", ">", "<", "[", "]"]):
                     has_substantive_assert = True
-
-            # Inspect mock assertion calls like mock.assert_called_once()
-            if isinstance(subnode, ast.Expr) and isinstance(subnode.value, ast.Call):
-                call_str = ast.unparse(subnode.value.func) if hasattr(ast, "unparse") else ""
-                if "assert_called" in call_str:
-                    has_any_assert = True
 
         # Flag tests with zero substantive outcome assertions (Assertion Theater)
         if not has_substantive_assert:
