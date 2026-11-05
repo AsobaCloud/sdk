@@ -160,7 +160,7 @@ class OnaSDK {
    * @returns {string} SDK version
    */
   static getVersion() {
-    return '2.0.0';
+    return '2.0.1';
   }
 }
 
