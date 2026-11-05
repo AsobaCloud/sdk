@@ -24,7 +24,7 @@ class InterpolationClient {
    * @returns {Promise<Object>} Interpolation result
    */
   async interpolate(payload) {
-    return this.client.post(this.endpoint, payload, { signRequest: true });
+    return this.client.post(this.endpoint, payload, { signRequest: !this.config.isEdge() });
   }
 }
 

@@ -30,6 +30,7 @@ class StandardizationClient(BaseServiceClient):
         """
         super().__init__(config)
         self.function_name = function_name
+        self._edge_endpoint = config.standardization_endpoint
 
     def standardize(
         self,
@@ -53,4 +54,6 @@ class StandardizationClient(BaseServiceClient):
             **kwargs
         }
         logger.info(f"Running standardization for customer: {customer_id}")
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/run", payload)
         return self.invoke_lambda(self.function_name, payload)

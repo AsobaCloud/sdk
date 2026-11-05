@@ -81,17 +81,26 @@ class AuthClient(BaseServiceClient):
             raise AuthenticationError("Not authenticated. Cannot refresh token.")
 
         self._require_endpoint()
-        self._require_endpoint()
         try:
-            payload = {
-                'httpMethod': 'POST',
-                'path': '/api/auth/refresh',
-                'headers': {
-                    'Authorization': f'Bearer {self._current_token}'
+            if self.config.mode == "edge":
+                import requests
+                response = requests.post(
+                    f"{self._endpoint}/api/auth/refresh",
+                    headers={'Authorization': f'Bearer {self._current_token}'},
+                    timeout=self.config.timeout,
+                )
+                response.raise_for_status()
+                result = response.json()
+            else:
+                payload = {
+                    'httpMethod': 'POST',
+                    'path': '/api/auth/refresh',
+                    'headers': {
+                        'Authorization': f'Bearer {self._current_token}'
+                    }
                 }
-            }
 
-            result = self.invoke_lambda(self._get_auth_function_name(), payload)
+                result = self.invoke_lambda(self._get_auth_function_name(), payload)
 
             if 'token' in result:
                 self._current_token = result['token']
@@ -130,13 +139,23 @@ class AuthClient(BaseServiceClient):
 
         self._require_endpoint()
         try:
-            payload = {
-                'httpMethod': 'POST',
-                'path': '/api/auth/login',
-                'body': json.dumps({'username': username, 'password': password})
-            }
+            if self.config.mode == "edge":
+                import requests
+                response = requests.post(
+                    f"{self._endpoint}/api/auth/login",
+                    json={'username': username, 'password': password},
+                    timeout=self.config.timeout,
+                )
+                response.raise_for_status()
+                result = response.json()
+            else:
+                payload = {
+                    'httpMethod': 'POST',
+                    'path': '/api/auth/login',
+                    'body': json.dumps({'username': username, 'password': password})
+                }
 
-            result = self.invoke_lambda(self._get_auth_function_name(), payload)
+                result = self.invoke_lambda(self._get_auth_function_name(), payload)
 
             # Handle MFA challenge
             if result.get('mfa_required'):
@@ -187,16 +206,26 @@ class AuthClient(BaseServiceClient):
 
         self._require_endpoint()
         try:
-            payload = {
-                'httpMethod': 'POST',
-                'path': '/api/auth/verify-mfa',
-                'body': json.dumps({
-                    'mfa_token': mfa_token,
-                    'totp_code': totp_code
-                })
-            }
+            if self.config.mode == "edge":
+                import requests
+                response = requests.post(
+                    f"{self._endpoint}/api/auth/verify-mfa",
+                    json={'mfa_token': mfa_token, 'totp_code': totp_code},
+                    timeout=self.config.timeout,
+                )
+                response.raise_for_status()
+                result = response.json()
+            else:
+                payload = {
+                    'httpMethod': 'POST',
+                    'path': '/api/auth/verify-mfa',
+                    'body': json.dumps({
+                        'mfa_token': mfa_token,
+                        'totp_code': totp_code
+                    })
+                }
 
-            result = self.invoke_lambda(self._get_auth_function_name(), payload)
+                result = self.invoke_lambda(self._get_auth_function_name(), payload)
 
             # Store token on successful MFA verification
             if 'token' in result:

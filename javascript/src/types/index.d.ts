@@ -33,6 +33,7 @@ export interface SDKOptions {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
+  mode?: 'cloud' | 'edge';
 }
 
 // Error types

@@ -24,7 +24,7 @@ class DataIngestionClient {
    * @returns {Promise<Object>} Ingestion result
    */
   async ingest(payload) {
-    return this.client.post(this.endpoint, payload, { signRequest: true });
+    return this.client.post(this.endpoint, payload, { signRequest: !this.config.isEdge() });
   }
 }
 

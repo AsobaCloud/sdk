@@ -24,7 +24,7 @@ class WeatherClient {
    * @returns {Promise<Object>} Update result
    */
   async updateCache(payload) {
-    return this.client.post(this.endpoint, payload, { signRequest: true });
+    return this.client.post(this.endpoint, payload, { signRequest: !this.config.isEdge() });
   }
 }
 

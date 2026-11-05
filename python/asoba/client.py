@@ -6,6 +6,8 @@ import logging
 
 from .config import OnaConfig
 from .services import (
+    AnomalyClient,
+    AssetIntelligenceClient,
     AuthClient,
     DataIngestionClient,
     EdgeDeviceClient,
@@ -14,7 +16,9 @@ from .services import (
     ForecastingClient,
     HuaweiClient,
     InterpolationClient,
+    ListHuaweiCustomersClient,
     PartnerApiClient,
+    SolarResourceClient,
     StandardizationClient,
     TerminalClient,
     TrainingClient,
@@ -113,6 +117,10 @@ class OnaClient:
         self._inverter_telemetry = None
         self._ooda_terminal = None
         self._freemium_forecast = None
+        self._anomaly = None
+        self._asset_intelligence = None
+        self._solar_resource = None
+        self._list_huawei_customers = None
 
         logger.debug("OnaClient initialized")
 
@@ -241,3 +249,31 @@ class OnaClient:
         """Gap detection client (internal)."""
         from .services.gap_detection import GapDetectionClient
         return GapDetectionClient(self.config)
+
+    @property
+    def anomaly(self) -> AnomalyClient:
+        """Anomaly detection client (JEPA world model)."""
+        if self._anomaly is None:
+            self._anomaly = AnomalyClient(self.config)
+        return self._anomaly
+
+    @property
+    def asset_intelligence(self) -> AssetIntelligenceClient:
+        """Asset intelligence client — KPI rollups, soiling, prognostics."""
+        if self._asset_intelligence is None:
+            self._asset_intelligence = AssetIntelligenceClient(self.config)
+        return self._asset_intelligence
+
+    @property
+    def solar_resource(self) -> SolarResourceClient:
+        """Solar resource client — P50/P90 PSH yield estimation."""
+        if self._solar_resource is None:
+            self._solar_resource = SolarResourceClient(self.config)
+        return self._solar_resource
+
+    @property
+    def list_huawei_customers(self) -> ListHuaweiCustomersClient:
+        """Huawei customer discovery client."""
+        if self._list_huawei_customers is None:
+            self._list_huawei_customers = ListHuaweiCustomersClient(self.config)
+        return self._list_huawei_customers

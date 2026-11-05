@@ -33,6 +33,8 @@ class HuaweiClient(BaseServiceClient):
         super().__init__(config)
         self.realtime_function = realtime_function
         self.historical_function = historical_function
+        self._edge_realtime_endpoint = config.huawei_realtime_endpoint
+        self._edge_historical_endpoint = config.huawei_historical_endpoint
 
     def collect_realtime(self, plant_code: str, **kwargs) -> dict[str, Any]:
         """Collect real-time data from Huawei system.
@@ -46,6 +48,8 @@ class HuaweiClient(BaseServiceClient):
         """
         payload = {"plant_code": plant_code, **kwargs}
         logger.info(f"Collecting real-time Huawei data for plant: {plant_code}")
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_realtime_endpoint}/run", payload)
         return self.invoke_lambda(self.realtime_function, payload)
 
     def collect_historical(
@@ -76,4 +80,6 @@ class HuaweiClient(BaseServiceClient):
             f"Collecting historical Huawei data for plant: {plant_code} "
             f"({start_date} to {end_date})"
         )
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_historical_endpoint}/run", payload)
         return self.invoke_lambda(self.historical_function, payload)

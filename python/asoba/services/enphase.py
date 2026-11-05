@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from ..config import OnaConfig
+from ..exceptions import ConfigurationError
 from .base import BaseServiceClient
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,8 @@ class EnphaseClient(BaseServiceClient):
         Returns:
             Collection status and data summary
         """
+        if self.config.mode == "edge":
+            raise ConfigurationError("Enphase collection is not available on edge deployments.")
         payload = {"site_id": site_id, **kwargs}
         logger.info(f"Collecting real-time Enphase data for site: {site_id}")
         return self.invoke_lambda(self.realtime_function, payload)
@@ -66,6 +69,8 @@ class EnphaseClient(BaseServiceClient):
         Returns:
             Collection status and data summary
         """
+        if self.config.mode == "edge":
+            raise ConfigurationError("Enphase collection is not available on edge deployments.")
         payload = {
             "site_id": site_id,
             "start_date": start_date,

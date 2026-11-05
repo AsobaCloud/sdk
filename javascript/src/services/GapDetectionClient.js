@@ -21,7 +21,7 @@ class GapDetectionClient {
    * @returns {Promise<Object>} Detection results
    */
   async detectGaps(params) {
-    return this.client.post(this.endpoint, params, { signRequest: true });
+    return this.client.post(this.endpoint, params, { signRequest: !this.config.isEdge() });
   }
 }
 

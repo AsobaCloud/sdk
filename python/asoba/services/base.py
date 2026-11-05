@@ -6,8 +6,7 @@ import json
 import logging
 from typing import Any
 
-import boto3
-from botocore.exceptions import ClientError
+# boto3 and botocore are imported lazily in cloud mode only
 
 from ..config import OnaConfig
 from ..exceptions import ResourceNotFoundError, ServiceUnavailableError, ValidationError
@@ -36,8 +35,9 @@ class BaseServiceClient:
 
     @property
     def lambda_client(self):
-        """Lazy-loaded Lambda client."""
+        """Lazy-loaded Lambda client (cloud mode only)."""
         if self._lambda_client is None:
+            import boto3
             self._lambda_client = boto3.client(
                 'lambda',
                 region_name=self.config.aws_region
@@ -46,8 +46,9 @@ class BaseServiceClient:
 
     @property
     def s3_client(self):
-        """Lazy-loaded S3 client."""
+        """Lazy-loaded S3 client (cloud mode only)."""
         if self._s3_client is None:
+            import boto3
             self._s3_client = boto3.client(
                 's3',
                 region_name=self.config.aws_region
@@ -56,13 +57,87 @@ class BaseServiceClient:
 
     @property
     def dynamodb(self):
-        """Lazy-loaded DynamoDB resource."""
+        """Lazy-loaded DynamoDB resource (cloud mode only)."""
         if self._dynamodb is None:
+            import boto3
             self._dynamodb = boto3.resource(
                 'dynamodb',
                 region_name=self.config.aws_region
             )
         return self._dynamodb
+
+    def _http_post(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """Send an HTTP POST request (edge mode).
+
+        Args:
+            url: Full URL to POST to
+            payload: JSON body
+
+        Returns:
+            Parsed JSON response
+
+        Raises:
+            ServiceUnavailableError: If request fails
+            ResourceNotFoundError: If 404
+            ValidationError: If 400
+        """
+        import requests
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=self.config.timeout,
+            )
+            if response.status_code == 404:
+                raise ResourceNotFoundError(
+                    response.json().get("error", "Resource not found")
+                )
+            if response.status_code == 400:
+                raise ValidationError(
+                    response.json().get("error", "Validation error")
+                )
+            if response.status_code >= 500:
+                raise ServiceUnavailableError(
+                    f"Service error: {response.json().get('error', response.text)}"
+                )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ServiceUnavailableError(f"HTTP request failed: {e}")
+
+    def _http_get(self, url: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Send an HTTP GET request (edge mode).
+
+        Args:
+            url: Full URL to GET
+            params: Optional query parameters
+
+        Returns:
+            Parsed JSON response
+        """
+        import requests
+        try:
+            response = requests.get(
+                url,
+                params=params,
+                timeout=self.config.timeout,
+            )
+            if response.status_code == 404:
+                raise ResourceNotFoundError(
+                    response.json().get("error", "Resource not found")
+                )
+            if response.status_code == 400:
+                raise ValidationError(
+                    response.json().get("error", "Validation error")
+                )
+            if response.status_code >= 500:
+                raise ServiceUnavailableError(
+                    f"Service error: {response.json().get('error', response.text)}"
+                )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ServiceUnavailableError(f"HTTP request failed: {e}")
 
     @retry_with_backoff(max_retries=3, backoff_factor=2.0)
     def invoke_lambda(
@@ -127,9 +202,15 @@ class BaseServiceClient:
 
             return result
 
-        except ClientError as e:
-            logger.exception(f"Lambda invocation failed: {e}")
-            raise ServiceUnavailableError(f"Lambda invocation failed: {e}")
+        except Exception as e:
+            try:
+                from botocore.exceptions import ClientError as _CE
+            except ImportError:
+                raise
+            if isinstance(e, _CE):
+                logger.exception(f"Lambda invocation failed: {e}")
+                raise ServiceUnavailableError(f"Lambda invocation failed: {e}")
+            raise
         except json.JSONDecodeError as e:
             logger.exception(f"Failed to parse Lambda response: {e}")
             raise ServiceUnavailableError(f"Invalid response from service: {e}")
@@ -151,10 +232,13 @@ class BaseServiceClient:
         try:
             response = self.s3_client.get_object(Bucket=bucket, Key=key)
             return response['Body'].read()
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
-                raise ResourceNotFoundError(f"Object not found: s3://{bucket}/{key}")
-            raise ServiceUnavailableError(f"S3 operation failed: {e}")
+        except Exception as e:
+            from botocore.exceptions import ClientError as _CE
+            if isinstance(e, _CE):
+                if e.response['Error']['Code'] == 'NoSuchKey':
+                    raise ResourceNotFoundError(f"Object not found: s3://{bucket}/{key}")
+                raise ServiceUnavailableError(f"S3 operation failed: {e}")
+            raise
 
     def put_s3_object(
         self,
@@ -179,8 +263,11 @@ class BaseServiceClient:
             if content_type:
                 kwargs['ContentType'] = content_type
             self.s3_client.put_object(**kwargs)
-        except ClientError as e:
-            raise ServiceUnavailableError(f"S3 operation failed: {e}")
+        except Exception as e:
+            from botocore.exceptions import ClientError as _CE
+            if isinstance(e, _CE):
+                raise ServiceUnavailableError(f"S3 operation failed: {e}")
+            raise
 
     def list_s3_objects(self, bucket: str, prefix: str) -> list:
         """List objects in S3.
@@ -201,5 +288,8 @@ class BaseServiceClient:
                 Prefix=prefix
             )
             return [obj['Key'] for obj in response.get('Contents', [])]
-        except ClientError as e:
-            raise ServiceUnavailableError(f"S3 operation failed: {e}")
+        except Exception as e:
+            from botocore.exceptions import ClientError as _CE
+            if isinstance(e, _CE):
+                raise ServiceUnavailableError(f"S3 operation failed: {e}")
+            raise

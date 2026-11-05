@@ -50,7 +50,7 @@ class HTTPClient {
       }
 
       // Sign request if AWS credentials are available and signRequest is true
-      if (options.signRequest && this.config.hasCredentials()) {
+      if (options.signRequest && this.config.hasCredentials() && !this.config.isEdge()) {
         this.signRequest(requestConfig);
       }
 

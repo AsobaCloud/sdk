@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .anomaly import AnomalyClient
+from .asset_intelligence import AssetIntelligenceClient
 from .auth import AuthClient
 from .data_ingestion import DataIngestionClient
 from .edge_device import EdgeDeviceClient
@@ -10,13 +12,17 @@ from .enphase import EnphaseClient
 from .forecasting import ForecastingClient
 from .huawei import HuaweiClient
 from .interpolation import InterpolationClient
+from .list_huawei import ListHuaweiCustomersClient
 from .partner_api import PartnerApiClient
+from .solar_resource import SolarResourceClient
 from .standardization import StandardizationClient
 from .terminal import TerminalClient
 from .training import TrainingClient
 from .weather import WeatherClient
 
 __all__ = [
+    "AnomalyClient",
+    "AssetIntelligenceClient",
     "AuthClient",
     "DataIngestionClient",
     "EdgeDeviceClient",
@@ -25,7 +31,9 @@ __all__ = [
     "ForecastingClient",
     "HuaweiClient",
     "InterpolationClient",
+    "ListHuaweiCustomersClient",
     "PartnerApiClient",
+    "SolarResourceClient",
     "StandardizationClient",
     "TerminalClient",
     "TrainingClient",

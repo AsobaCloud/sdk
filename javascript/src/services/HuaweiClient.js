@@ -25,7 +25,7 @@ class HuaweiClient {
    * @returns {Promise<Object>} Historical data
    */
   async getHistoricalData(payload) {
-    return this.client.post(this.historicalEndpoint, payload, { signRequest: true });
+    return this.client.post(this.historicalEndpoint, payload, { signRequest: !this.config.isEdge() });
   }
 
   /**
@@ -34,7 +34,7 @@ class HuaweiClient {
    * @returns {Promise<Object>} Real-time data
    */
   async getRealTimeData(payload) {
-    return this.client.post(this.realTimeEndpoint, payload, { signRequest: true });
+    return this.client.post(this.realTimeEndpoint, payload, { signRequest: !this.config.isEdge() });
   }
 }
 

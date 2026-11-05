@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from ..config import OnaConfig
+from ..exceptions import ConfigurationError
 from ..utils.validation import validate_batch
 from .base import BaseServiceClient
 
@@ -39,6 +40,8 @@ class DataIngestionClient(BaseServiceClient):
         """
         payload = kwargs
         logger.info("Triggering data ingestion")
+        if self.config.mode == "edge":
+            raise ConfigurationError("Data ingestion is not available on edge deployments. Use the terminal API or huawei clients for data collection.")
         return self.invoke_lambda(self.function_name, payload)
 
     def validate_local_records(self, records: list[dict[str, Any]]) -> dict[str, Any]:

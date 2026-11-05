@@ -43,10 +43,24 @@ class Config {
     this.retries = options.retries !== undefined ? options.retries : 3;
     this.retryDelay = options.retryDelay || 1000;
     this.credentials = options.credentials || null;
+    this.mode = options.mode || process.env.ONA_MODE || 'cloud';
+
+    const envEndpoints = {};
+    if (this.mode === 'edge') {
+      if (process.env.FORECAST_API_URL) envEndpoints.forecasting = process.env.FORECAST_API_URL;
+      if (process.env.WEATHER_API_URL) envEndpoints.weather = process.env.WEATHER_API_URL;
+      if (process.env.HUAWEI_REALTIME_URL) envEndpoints.huaweiRealTime = process.env.HUAWEI_REALTIME_URL;
+      if (process.env.HUAWEI_HISTORICAL_URL) envEndpoints.huaweiHistorical = process.env.HUAWEI_HISTORICAL_URL;
+      if (process.env.TERMINAL_API_URL) envEndpoints.terminal = process.env.TERMINAL_API_URL;
+      if (process.env.TRAINING_API_URL) envEndpoints.globalTraining = process.env.TRAINING_API_URL;
+      if (process.env.GAP_DETECTION_URL) envEndpoints.gapDetection = process.env.GAP_DETECTION_URL;
+      if (process.env.INTERPOLATION_URL) envEndpoints.interpolation = process.env.INTERPOLATION_URL;
+    }
 
     this.endpoints = {
       ...DEFAULT_ENDPOINTS,
       ...(options.endpoints || {}),
+      ...envEndpoints,
     };
   }
 
@@ -84,6 +98,15 @@ class Config {
    */
   getCredentials() {
     return this.credentials;
+  }
+
+  /**
+   * Check if the SDK is configured for edge mode.
+   * In edge mode, requests are not signed with AWS credentials.
+   * @returns {boolean}
+   */
+  isEdge() {
+    return this.mode === 'edge';
   }
 }
 

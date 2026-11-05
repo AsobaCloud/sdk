@@ -26,6 +26,7 @@ class InterpolationClient(BaseServiceClient):
         """
         super().__init__(config)
         self.function_name = function_name
+        self._edge_endpoint = config.terminal_endpoint
 
     def interpolate(
         self,
@@ -49,4 +50,6 @@ class InterpolationClient(BaseServiceClient):
             **kwargs
         }
         logger.info(f"Running interpolation for customer: {customer_id}")
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/terminal/interpolation", payload)
         return self.invoke_lambda(self.function_name, payload)

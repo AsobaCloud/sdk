@@ -40,7 +40,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -69,7 +69,7 @@ class TerminalClient {
         action: 'add',
         ...params
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -92,7 +92,7 @@ class TerminalClient {
           customer_id,
           asset_id
         },
-        { signRequest: true }
+        { signRequest: !this.config.isEdge() }
       );
     } catch (error) {
       if (error.statusCode === 404) {
@@ -216,7 +216,7 @@ class TerminalClient {
         asset_id,
         lookback_hours
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -235,7 +235,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -256,7 +256,7 @@ class TerminalClient {
     return this.client.post(
       `${this.endpoint}/detect`,
       { action: 'pv-insight', detection, user_query },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -281,7 +281,7 @@ class TerminalClient {
         detection_id,
         lookback_hours
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -300,7 +300,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -321,7 +321,7 @@ class TerminalClient {
         customer_id,
         ...scheduleData
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -340,7 +340,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -364,7 +364,7 @@ class TerminalClient {
         asset_id,
         schedule_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -383,7 +383,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -407,7 +407,7 @@ class TerminalClient {
         asset_id,
         bom_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -426,7 +426,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -447,7 +447,7 @@ class TerminalClient {
         customer_id,
         job_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -466,7 +466,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -485,7 +485,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -504,7 +504,7 @@ class TerminalClient {
         action: 'list',
         customer_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -525,7 +525,7 @@ class TerminalClient {
         customer_id,
         ...issueData
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -545,7 +545,7 @@ class TerminalClient {
         action: 'site-summary',
         site_id
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -568,7 +568,7 @@ class TerminalClient {
         time_range,
         asset_filter
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -584,7 +584,7 @@ class TerminalClient {
     return this.client.post(
       `${this.endpoint}/forecast`,
       { customer_id },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -600,7 +600,7 @@ class TerminalClient {
     return this.client.post(
       `${this.endpoint}/interpolation`,
       { customer_id },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -612,7 +612,7 @@ class TerminalClient {
     return this.client.post(
       `${this.endpoint}/ml-models`,
       {},
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -628,7 +628,7 @@ class TerminalClient {
     return this.client.post(
       `${this.endpoint}/ooda`,
       { customer_id },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 }

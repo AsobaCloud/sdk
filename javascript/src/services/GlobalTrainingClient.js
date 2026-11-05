@@ -21,7 +21,7 @@ class GlobalTrainingClient {
    * @returns {Promise<Object>} Job initiation result
    */
   async triggerTraining(params) {
-    return this.client.post(this.endpoint, params, { signRequest: true });
+    return this.client.post(this.endpoint, params, { signRequest: !this.config.isEdge() });
   }
 
   /**
@@ -32,7 +32,7 @@ class GlobalTrainingClient {
   async getTrainingStatus(customerId) {
     const url = new URL(this.endpoint + '/status');
     url.searchParams.set('customer_id', customerId);
-    return this.client.get(url.toString(), { signRequest: true });
+    return this.client.get(url.toString(), { signRequest: !this.config.isEdge() });
   }
 }
 

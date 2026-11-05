@@ -26,6 +26,7 @@ class ForecastingClient(BaseServiceClient):
         """
         super().__init__(config)
         self.function_name = function_name
+        self._edge_endpoint = config.forecasting_endpoint
 
     def get_device_forecast(
         self,
@@ -63,6 +64,8 @@ class ForecastingClient(BaseServiceClient):
             f"hours={forecast_hours}"
         )
 
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/forecast", payload)
         return self.invoke_lambda(self.function_name, payload)
 
     def get_site_forecast(
@@ -101,6 +104,8 @@ class ForecastingClient(BaseServiceClient):
             f"breakdown={include_device_breakdown}"
         )
 
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/forecast", payload)
         return self.invoke_lambda(self.function_name, payload)
 
     def get_customer_forecast(
@@ -135,4 +140,6 @@ class ForecastingClient(BaseServiceClient):
             f"hours={forecast_hours}"
         )
 
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/forecast", payload)
         return self.invoke_lambda(self.function_name, payload)

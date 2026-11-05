@@ -26,6 +26,7 @@ class WeatherClient(BaseServiceClient):
         """
         super().__init__(config)
         self.function_name = function_name
+        self._edge_endpoint = config.weather_endpoint
 
     def trigger_update(self) -> dict[str, Any]:
         """Trigger weather cache update for all locations.
@@ -35,6 +36,8 @@ class WeatherClient(BaseServiceClient):
         """
         payload = {"action": "update"}
         logger.info("Triggering weather cache update")
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/run", payload)
         return self.invoke_lambda(self.function_name, payload)
 
     def get_cached_weather(self, location: str) -> dict[str, Any]:
@@ -46,6 +49,8 @@ class WeatherClient(BaseServiceClient):
         Returns:
             Weather data for the location
         """
+        if self.config.mode == "edge":
+            return self._http_get(f"{self._edge_endpoint}/health")
         # Read from S3 cache
         try:
             key = f"weather-cache/{location}/latest.json"

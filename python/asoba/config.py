@@ -47,6 +47,22 @@ class OnaConfig:
     terminal_endpoint: str = "https://api.asoba.co"
     auth_endpoint: str | None = None
 
+    # --- Edge transport mode ---
+    mode: str = "cloud"
+
+    # --- Edge endpoint URLs (used when mode="edge") ---
+    forecasting_endpoint: str | None = None
+    weather_endpoint: str | None = None
+    huawei_realtime_endpoint: str | None = None
+    huawei_historical_endpoint: str | None = None
+    training_endpoint: str | None = None
+    gap_detection_endpoint: str | None = None
+    standardization_endpoint: str | None = None
+    anomaly_endpoint: str | None = None
+    asset_intelligence_endpoint: str | None = None
+    solar_resource_endpoint: str | None = None
+    list_huawei_customers_endpoint: str | None = None
+
     # --- Request tuning ---
     timeout: int = 120
     max_retries: int = 3
@@ -62,8 +78,9 @@ class OnaConfig:
     energy_analyst_url: str | None = None
 
     def __post_init__(self):
-        if self.partner_endpoint and not self.partner_endpoint.startswith("https://"):
-            raise ConfigurationError("partner_endpoint must use https://")
+        if self.mode == "cloud":
+            if self.partner_endpoint and not self.partner_endpoint.startswith("https://"):
+                raise ConfigurationError("partner_endpoint must use https://")
 
     @classmethod
     def from_env(cls) -> OnaConfig:
@@ -89,9 +106,10 @@ class OnaConfig:
                 "ASOBA_PARTNER_ENDPOINT", "https://partner.api.asoba.co"
             ),
             terminal_endpoint=os.getenv(
-                "ASOBA_TERMINAL_ENDPOINT", "https://api.asoba.co"
+                "ASOBA_TERMINAL_ENDPOINT",
+                os.getenv("TERMINAL_API_URL", "https://api.asoba.co"),
             ),
-            auth_endpoint=os.getenv("ASOBA_AUTH_ENDPOINT"),
+            auth_endpoint=os.getenv("ASOBA_AUTH_ENDPOINT", os.getenv("AUTH_API_URL")),
             timeout=int(os.getenv("ONA_TIMEOUT", "120")),
             max_retries=int(os.getenv("ONA_MAX_RETRIES", "3")),
             retry_backoff=float(os.getenv("ONA_RETRY_BACKOFF", "2.0")),
@@ -100,4 +118,16 @@ class OnaConfig:
             output_bucket=os.getenv("OUTPUT_BUCKET", "sa-api-client-output"),
             edge_api_url=os.getenv("EDGE_API_URL"),
             energy_analyst_url=os.getenv("ENERGY_ANALYST_URL"),
+            mode=os.getenv("ONA_MODE", "cloud"),
+            forecasting_endpoint=os.getenv("FORECAST_API_URL"),
+            weather_endpoint=os.getenv("WEATHER_API_URL"),
+            huawei_realtime_endpoint=os.getenv("HUAWEI_REALTIME_URL"),
+            huawei_historical_endpoint=os.getenv("HUAWEI_HISTORICAL_URL"),
+            training_endpoint=os.getenv("TRAINING_API_URL"),
+            gap_detection_endpoint=os.getenv("GAP_DETECTION_URL"),
+            standardization_endpoint=os.getenv("STANDARDIZATION_URL"),
+            anomaly_endpoint=os.getenv("ANOMALY_API_URL"),
+            asset_intelligence_endpoint=os.getenv("ASSET_INTELLIGENCE_URL"),
+            solar_resource_endpoint=os.getenv("SOLAR_RESOURCE_URL"),
+            list_huawei_customers_endpoint=os.getenv("LIST_HUAWEI_CUSTOMERS_URL"),
         )

@@ -38,14 +38,15 @@ class ForecastingClient {
     validateDeviceId(device_id);
     validatePositiveNumber(forecast_hours, 'forecast_hours');
 
+    const url = this.config.isEdge() ? `${this.endpoint}/forecast` : this.endpoint;
     return this.client.post(
-      this.endpoint,
+      url,
       {
         site_id,
         device_id,
         forecast_hours
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -61,14 +62,15 @@ class ForecastingClient {
     validateSiteId(site_id);
     validatePositiveNumber(forecast_hours, 'forecast_hours');
 
+    const url = this.config.isEdge() ? `${this.endpoint}/forecast` : this.endpoint;
     return this.client.post(
-      this.endpoint,
+      url,
       {
         site_id,
         forecast_hours,
         include_device_breakdown
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 
@@ -83,13 +85,14 @@ class ForecastingClient {
     validateCustomerId(customer_id);
     validatePositiveNumber(forecast_hours, 'forecast_hours');
 
+    const url = this.config.isEdge() ? `${this.endpoint}/forecast` : this.endpoint;
     return this.client.post(
-      this.endpoint,
+      url,
       {
         customer_id,
         forecast_hours
       },
-      { signRequest: true }
+      { signRequest: !this.config.isEdge() }
     );
   }
 }

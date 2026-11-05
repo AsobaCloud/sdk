@@ -30,6 +30,7 @@ class TrainingClient(BaseServiceClient):
         """
         super().__init__(config)
         self.function_name = function_name
+        self._edge_endpoint = config.training_endpoint
 
     def start_training(
         self,
@@ -56,6 +57,8 @@ class TrainingClient(BaseServiceClient):
             **kwargs
         }
         logger.info(f"Starting training job for model type: {model_type}")
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/api/v1/train", payload)
         return self.invoke_lambda(self.function_name, payload)
 
     def get_training_status(self, job_id: str) -> dict[str, Any]:
@@ -69,6 +72,11 @@ class TrainingClient(BaseServiceClient):
         """
         payload = {"action": "status", "job_id": job_id}
         logger.info(f"Getting training status for job: {job_id}")
+        if self.config.mode == "edge":
+            return self._http_get(
+                f"{self._edge_endpoint}/api/v1/training/status",
+                params={"customer_id": job_id}
+            )
         return self.invoke_lambda(self.function_name, payload)
 
     def list_models(self) -> dict[str, Any]:
@@ -79,4 +87,6 @@ class TrainingClient(BaseServiceClient):
         """
         payload = {"action": "list_models"}
         logger.info("Listing trained models")
+        if self.config.mode == "edge":
+            return self._http_get(f"{self._edge_endpoint}/api/v1/challengers")
         return self.invoke_lambda(self.function_name, payload)

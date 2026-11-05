@@ -26,6 +26,7 @@ class GapDetectionClient(BaseServiceClient):
         """
         super().__init__(config)
         self.function_name = function_name
+        self._edge_endpoint = config.gap_detection_endpoint
 
     def detect_gaps(
         self,
@@ -64,4 +65,6 @@ class GapDetectionClient(BaseServiceClient):
             **kwargs,
         }
         logger.info(f"Running gap detection for customer: {customer_id}")
+        if self.config.mode == "edge":
+            return self._http_post(f"{self._edge_endpoint}/run", payload)
         return self.invoke_lambda(self.function_name, payload)
