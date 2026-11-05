@@ -28,3 +28,7 @@ node_modules/
 .venv/
 venv/
 
+.devin/
+.kiro/
+.codex/
+.agents/
