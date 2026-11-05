@@ -4,12 +4,13 @@
 [![CI](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/python-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Python SDK for live energy asset data — inverter telemetry, OODA terminal alerts, Partner API snapshots, battery warranty intelligence, and ODS-E schema validation.
+Python SDK for live energy asset data — inverter telemetry, OODA terminal alerts, Partner API snapshots, battery warranty intelligence, ODS-E schema validation, and full edge deployment support (no cloud dependencies required).
 
 ## Installation
 
 ```bash
-pip install asoba
+pip install asoba          # edge or cloud — core only
+pip install asoba[cloud]   # cloud mode — includes boto3 for AWS Lambda transport
 ```
 
 Or from source:
@@ -20,7 +21,65 @@ cd sdk/python
 pip install -e .
 ```
 
-## Quick start
+## Deployment modes
+
+The SDK supports two deployment modes:
+
+| Mode | Transport | Use case |
+|---|---|---|
+| `cloud` (default) | AWS Lambda via boto3 | SaaS API at `api.asoba.co` |
+| `edge` | HTTP to localhost | Self-hosted Ubuntu 22.04 — no internet required |
+
+### Cloud mode (default)
+
+```bash
+export ASOBA_API_KEY=<your_api_key>
+```
+
+```python
+from asoba import OnaClient
+client = OnaClient()  # mode defaults to "cloud"
+```
+
+### Edge mode
+
+For deployments running the Ona Platform locally on Ubuntu 22.04:
+
+```bash
+export ONA_MODE=edge
+export FORECAST_API_URL=http://localhost:8002
+export TERMINAL_API_URL=http://localhost:8001
+export WEATHER_API_URL=http://localhost:8004
+export HUAWEI_REALTIME_URL=http://localhost:8011
+export HUAWEI_HISTORICAL_URL=http://localhost:8012
+export GAP_DETECTION_URL=http://localhost:8008
+export STANDARDIZATION_URL=http://localhost:8009
+export AUTH_API_URL=http://localhost:8013
+export ANOMALY_API_URL=http://localhost:8005
+export ASSET_INTELLIGENCE_URL=http://localhost:8010
+export SOLAR_RESOURCE_URL=http://localhost:8006
+export LIST_HUAWEI_CUSTOMERS_URL=http://localhost:8007
+```
+
+```python
+from asoba import OnaClient
+client = OnaClient()  # reads ONA_MODE=edge from env — no boto3 needed
+
+# Login to the local auth service
+client.auth.login("admin", "admin")
+
+# Same API, local execution
+forecast = client.forecasting.get_site_forecast("Sibaya", forecast_hours=24)
+detection = client.terminal.run_detection(customer_id="Sibaya", asset_id="INV-001")
+
+# Edge-only clients (available only when ONA_MODE=edge)
+result = client.anomaly.detect(customer_id="Sibaya", asset_id="INV-001", records=[...])
+resource = client.solar_resource.get_p50_p90(lat=-29.85, lon=31.02)
+kpis = client.asset_intelligence.run_site("Sibaya", window_days=30)
+customers = client.list_huawei_customers.list_customers()
+```
+
+See the [Ona Platform edge deployment guide](https://github.com/AsobaCloud/platform) for hardware requirements, install script, and training CLI.
 
 ```python
 from asoba import OnaClient
@@ -44,14 +103,6 @@ for record in client.inverter_telemetry.stream_inverter(
 ):
     print(f"{record.timestamp}: {record.power} kW")
 ```
-
-Set environment variables before running:
-
-```bash
-export ASOBA_API_KEY=<your_api_key>
-```
-
-The same API key works for inverter telemetry, OODA terminal alerts, and the Partner API. Endpoint URLs are hardcoded to the canonical production values and do not need to be set.
 
 ## Inverter Telemetry
 
@@ -348,8 +399,8 @@ ona_platform/          — deprecation shim (re-exports asoba)
 ## Requirements
 
 - Python >= 3.8
-- boto3 >= 1.28.0
 - requests >= 2.31.0
+- boto3 >= 1.28.0 *(cloud mode only — `pip install asoba[cloud]`)*
 
 ## Examples
 

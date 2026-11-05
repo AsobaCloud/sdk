@@ -4,7 +4,7 @@
 [![CI](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml/badge.svg)](https://github.com/AsobaCloud/sdk/actions/workflows/javascript-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-JavaScript SDK for live energy asset data — inverter telemetry, OODA terminal alerts, Partner API snapshots, and battery warranty intelligence.
+JavaScript SDK for live energy asset data — inverter telemetry, OODA terminal alerts, Partner API snapshots, battery warranty intelligence, and full edge deployment support (no cloud dependencies required).
 
 ## Installation
 
@@ -12,7 +12,59 @@ JavaScript SDK for live energy asset data — inverter telemetry, OODA terminal 
 npm install @asobacloud/sdk
 ```
 
-## Quick start
+## Deployment modes
+
+The SDK supports two deployment modes:
+
+| Mode | Transport | Use case |
+|---|---|---|
+| `cloud` (default) | AWS Sig v4 signing | SaaS API at `api.asoba.co` |
+| `edge` | Plain HTTP to localhost | Self-hosted Ubuntu 22.04 — no internet required |
+
+### Cloud mode (default)
+
+```bash
+export ASOBA_API_KEY=<your_api_key>
+```
+
+```javascript
+const { OnaSDK } = require('@asobacloud/sdk');
+const sdk = new OnaSDK();  // mode defaults to "cloud"
+```
+
+### Edge mode
+
+For deployments running the Ona Platform locally on Ubuntu 22.04:
+
+```javascript
+const { OnaSDK } = require('@asobacloud/sdk');
+
+const sdk = new OnaSDK({
+  mode: 'edge',
+  endpoints: {
+    forecasting: 'http://localhost:8002',
+    terminal:    'http://localhost:8001',
+    weather:     'http://localhost:8004',
+  },
+});
+
+// Same API, local execution — no AWS credentials needed
+const forecast = await sdk.forecasting.getSiteForecast({
+  site_id: 'Sibaya',
+  forecast_hours: 24,
+});
+```
+
+Or set via environment variables:
+
+```bash
+export ONA_MODE=edge
+export FORECAST_API_URL=http://localhost:8002
+export TERMINAL_API_URL=http://localhost:8001
+export WEATHER_API_URL=http://localhost:8004
+```
+
+See the [Ona Platform edge deployment guide](https://github.com/AsobaCloud/platform) for hardware requirements, install script, and training CLI.
 
 ```javascript
 const { OnaSDK } = require('@asobacloud/sdk');
@@ -38,14 +90,6 @@ for await (const record of sdk.inverterTelemetry.streamInverter({
   console.log(`${record.timestamp}: ${record.power} kW`);
 }
 ```
-
-Set environment variables before running:
-
-```bash
-export ASOBA_API_KEY=<your_api_key>
-```
-
-The same API key works for inverter telemetry, OODA terminal alerts, and the Partner API. Endpoint URLs are hardcoded to the canonical production values.
 
 ## Inverter Telemetry
 
