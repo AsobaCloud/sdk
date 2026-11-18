@@ -24,6 +24,7 @@ export interface Endpoints {
   terminal?: string;
   weather?: string;
   partnerApi?: string;
+  pvinsight?: string;
 }
 
 export interface SDKOptions {
@@ -95,6 +96,52 @@ export interface ForecastResult {
     aggregation_method?: string;
   };
   generated_at: string;
+}
+
+// Model Observatory types
+export interface ChallengerModel {
+  model_id: string;
+  is_production: boolean;
+  r2: number;
+  nrmse?: number;
+  windows?: number;
+  health_status?: string;
+  local?: boolean;
+}
+
+export interface ModelObservatoryResponse {
+  production_model_id: string;
+  challengers: ChallengerModel[];
+  history: any[];
+  customer_id: string;
+}
+
+export interface ModelObservatoryParams {
+  customer_id: string;
+  site?: string;
+}
+
+// PVInsight types
+export interface PvInsightAnalysisParams {
+  detection: Record<string, any>;
+  top_n?: number;
+  min_severity?: string;
+  job_id?: string;
+}
+
+export interface PvInsightAnalysisResponse {
+  detection: Record<string, any>;
+  llm_analysis: {
+    status: string;
+    recommendation?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+export interface PvInsightHealthResponse {
+  status: string;
+  service: string;
 }
 
 // Terminal API types
@@ -316,6 +363,7 @@ export class TerminalClient {
   getInterpolationResults(params: { customer_id: string }): Promise<any>;
   getMLModels(): Promise<any>;
   getMLOODA(params: { customer_id: string }): Promise<any>;
+  getModelObservatory(params: ModelObservatoryParams): Promise<ModelObservatoryResponse>;
 }
 
 export class PartnerApiClient {
@@ -327,12 +375,18 @@ export class PartnerApiClient {
 }
 
 export class EnergyAnalystClient {
+  /** @deprecated Use PvInsightClient (sdk.pvInsight) for PV O&M anomaly synthesis. */
   query(params: QueryParams): Promise<QueryResponse>;
   addDocuments(params: AddDocumentsParams): Promise<any>;
   uploadPDFs(files: File[]): Promise<any>;
   getCollectionInfo(): Promise<CollectionInfo>;
   clearCollection(): Promise<any>;
   getHealth(): Promise<any>;
+}
+
+export class PvInsightClient {
+  analyze(params: PvInsightAnalysisParams): Promise<PvInsightAnalysisResponse>;
+  health(): Promise<PvInsightHealthResponse>;
 }
 
 export class EdgeDeviceRegistryClient {
@@ -374,7 +428,9 @@ export class OnaSDK {
 
   forecasting: ForecastingClient;
   terminal: TerminalClient;
+  /** @deprecated Use pvInsight (PvInsightClient) for PV O&M anomaly synthesis. */
   energyAnalyst: EnergyAnalystClient;
+  pvInsight: PvInsightClient;
   edgeRegistry: EdgeDeviceRegistryClient;
   dataIngestion: DataIngestionClient;
   interpolation: InterpolationClient;

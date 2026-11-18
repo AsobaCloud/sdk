@@ -261,6 +261,24 @@ class TerminalClient {
   }
 
   /**
+   * Get Model Observatory data (promoted production model and challenger metrics).
+   * @param {Object} params - Parameters
+   * @param {string} params.customer_id - Customer ID
+   * @param {string} [params.site=null] - Optional site name
+   * @returns {Promise<Object>} Model Observatory status and challenger models
+   */
+  async getModelObservatory({ customer_id, site = null }) {
+    validateRequired({ customer_id }, ['customer_id']);
+    const payload = { customer_id };
+    if (site) payload.site = site;
+    return this.client.post(
+      `${this.endpoint}/model-observatory`,
+      payload,
+      { signRequest: !this.config.isEdge() }
+    );
+  }
+
+  /**
    * Run diagnostics on a detected fault (Orient phase)
    * @param {Object} params - Diagnostic parameters
    * @param {string} params.customer_id - Customer ID

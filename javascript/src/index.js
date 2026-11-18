@@ -17,6 +17,7 @@ const WeatherClient = require('./services/WeatherClient');
 const EnphaseClient = require('./services/EnphaseClient');
 const HuaweiClient = require('./services/HuaweiClient');
 const PartnerApiClient = require('./services/PartnerApiClient');
+const PvInsightClient = require('./services/PvInsightClient');
 const { InverterTelemetryClient } = require('./services/InverterTelemetryClient');
 const { OodaTerminalClient } = require('./services/OodaTerminalClient');
 const { FreemiumForecastClient } = require('./services/FreemiumForecastClient');
@@ -74,8 +75,16 @@ class OnaSDK {
     /**
      * Energy Analyst RAG client
      * @type {EnergyAnalystClient}
+     * @deprecated Use pvInsight (PvInsightClient) for PV O&M anomaly synthesis.
+     *   EnergyAnalystClient targets the retired EnergyAnalyst-v0.1 Railway service.
      */
     this.energyAnalyst = new EnergyAnalystClient(this.httpClient, this.config);
+
+    /**
+     * PVInsight service client (JEPA anomaly to Nehanda RAG O&M synthesis)
+     * @type {PvInsightClient}
+     */
+    this.pvInsight = new PvInsightClient(this.httpClient, this.config);
 
     /**
      * Edge Device Registry client
@@ -167,6 +176,7 @@ class OnaSDK {
 // Export SDK class and utilities
 module.exports = {
   OnaSDK,
+  PvInsightClient,
   ...errors,
   ...validators
 };

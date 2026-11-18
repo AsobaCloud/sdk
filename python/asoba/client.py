@@ -18,6 +18,7 @@ from .services import (
     InterpolationClient,
     ListHuaweiCustomersClient,
     PartnerApiClient,
+    PVInsightClient,
     SolarResourceClient,
     StandardizationClient,
     TerminalClient,
@@ -105,6 +106,7 @@ class OnaClient:
         self._forecasting = None
         self._terminal = None
         self._energy_analyst = None
+        self._pv_insight = None
         self._edge_devices = None
         self._weather = None
         self._enphase = None
@@ -186,6 +188,13 @@ class OnaClient:
         if self._energy_analyst is None:
             self._energy_analyst = EnergyAnalystClient(self.config)
         return self._energy_analyst
+
+    @property
+    def pv_insight(self) -> PVInsightClient:
+        """PVInsight service client (JEPA to RAG Nehanda synthesis)."""
+        if self._pv_insight is None:
+            self._pv_insight = PVInsightClient(self.config)
+        return self._pv_insight
 
     @property
     def edge_devices(self) -> EdgeDeviceClient:

@@ -10,6 +10,7 @@ const DEFAULT_ENDPOINTS = {
   oodaTerminal:      'https://ooda.api.asoba.co',
   partnerApi:        'https://partner.api.asoba.co',
   terminal:          'https://api.asoba.co',
+  pvinsight:         null,
   // Internal / advanced
   forecasting:       null,
   dataIngestion:     null,
@@ -45,7 +46,16 @@ class Config {
     this.credentials = options.credentials || null;
     this.mode = options.mode || process.env.ONA_MODE || 'cloud';
 
+    const userEndpoints = options.endpoints || {};
     const envEndpoints = {};
+
+    // Env vars always win (explicit operator configuration beats everything).
+    // Edge-mode defaults only apply when neither the caller nor env has set the value.
+    if (process.env.PVINSIGHT_API_URL) {
+      envEndpoints.pvinsight = process.env.PVINSIGHT_API_URL;
+    } else if (this.mode === 'edge' && !userEndpoints.pvinsight) {
+      envEndpoints.pvinsight = 'http://localhost:8003';
+    }
     if (this.mode === 'edge') {
       if (process.env.FORECAST_API_URL) envEndpoints.forecasting = process.env.FORECAST_API_URL;
       if (process.env.WEATHER_API_URL) envEndpoints.weather = process.env.WEATHER_API_URL;
@@ -59,7 +69,7 @@ class Config {
 
     this.endpoints = {
       ...DEFAULT_ENDPOINTS,
-      ...(options.endpoints || {}),
+      ...userEndpoints,
       ...envEndpoints,
     };
   }

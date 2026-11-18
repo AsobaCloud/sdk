@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Any
 
 import requests
@@ -33,6 +34,12 @@ class EnergyAnalystClient(BaseServiceClient):
             config: SDK configuration
             base_url: Base URL for Energy Analyst service (overrides config)
         """
+        warnings.warn(
+            "EnergyAnalystClient is deprecated and will be removed in a future release. "
+            "For PV O&M anomaly synthesis, use client.pv_insight (PVInsightClient).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         super().__init__(config)
         self.base_url = base_url or config.energy_analyst_url
 

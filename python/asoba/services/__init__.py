@@ -14,6 +14,7 @@ from .huawei import HuaweiClient
 from .interpolation import InterpolationClient
 from .list_huawei import ListHuaweiCustomersClient
 from .partner_api import PartnerApiClient
+from .pv_insight import PVInsightClient
 from .solar_resource import SolarResourceClient
 from .standardization import StandardizationClient
 from .terminal import TerminalClient
@@ -32,6 +33,7 @@ __all__ = [
     "HuaweiClient",
     "InterpolationClient",
     "ListHuaweiCustomersClient",
+    "PVInsightClient",
     "PartnerApiClient",
     "SolarResourceClient",
     "StandardizationClient",

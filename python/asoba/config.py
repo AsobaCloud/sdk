@@ -62,6 +62,7 @@ class OnaConfig:
     asset_intelligence_endpoint: str | None = None
     solar_resource_endpoint: str | None = None
     list_huawei_customers_endpoint: str | None = None
+    pvinsight_endpoint: str | None = None
 
     # --- Request tuning ---
     timeout: int = 120
@@ -78,9 +79,8 @@ class OnaConfig:
     energy_analyst_url: str | None = None
 
     def __post_init__(self):
-        if self.mode == "cloud":
-            if self.partner_endpoint and not self.partner_endpoint.startswith("https://"):
-                raise ConfigurationError("partner_endpoint must use https://")
+        if self.mode == "cloud" and self.partner_endpoint and not self.partner_endpoint.startswith("https://"):
+            raise ConfigurationError("partner_endpoint must use https://")
 
     @classmethod
     def from_env(cls) -> OnaConfig:
@@ -130,4 +130,8 @@ class OnaConfig:
             asset_intelligence_endpoint=os.getenv("ASSET_INTELLIGENCE_URL"),
             solar_resource_endpoint=os.getenv("SOLAR_RESOURCE_URL"),
             list_huawei_customers_endpoint=os.getenv("LIST_HUAWEI_CUSTOMERS_URL"),
+            pvinsight_endpoint=os.getenv(
+                "PVINSIGHT_API_URL",
+                "http://localhost:8003" if os.getenv("ONA_MODE") == "edge" else None,
+            ),
         )

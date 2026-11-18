@@ -171,6 +171,17 @@ class TerminalClient:
             "user_query": user_query,
         })
 
+    def get_model_observatory(
+        self,
+        customer_id: str,
+        site: str | None = None,
+    ) -> dict[str, Any]:
+        """Get Model Observatory data (promoted production model and challenger metrics)."""
+        payload: dict[str, Any] = {"customer_id": customer_id}
+        if site:
+            payload["site"] = site
+        return self._post("model-observatory", payload)
+
     # ------------------------------------------------------------------
     # Diagnostics (Orient)
     # ------------------------------------------------------------------
